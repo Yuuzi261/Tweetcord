@@ -1,3 +1,4 @@
+import discord
 from core.classes import Cog_Extension
 import json
 from tweety import Twitter
@@ -20,7 +21,8 @@ class Notification(Cog_Extension):
                 
     async def notification(self, app, username):
         while True:
-            await asyncio.sleep(randint(30, 60))
+            await asyncio.sleep(10)
+            # await asyncio.sleep(randint(30, 60))
             try:
                 task = asyncio.create_task(asyncio.to_thread(get_tweets, app, username))
                 await task
@@ -31,21 +33,33 @@ class Notification(Cog_Extension):
             
             with open('following.json', 'r', encoding='utf8') as jfile:
                 jdata = json.load(jfile)
-                user = jdata[username]
-                if user['lastest_tweet'] != lastest_tweet[0]:
-                    user['lastest_tweet'] = lastest_tweet[0]
-                    with open('following.json', 'w') as jfile:
-                        json.dump(jdata, jfile)
-                    for chnl in user['channels']:
-                        channel = self.bot.get_channel(chnl)
-                        await channel.send(f"**{lastest_tweet[1]['author'].name}** just tweeted here: \nhttps://twitter.com/{username}/status/{lastest_tweet[0]}")
+                
+            user = jdata[username]
+            if user['lastest_tweet'] != lastest_tweet.id:
+                user['lastest_tweet'] = lastest_tweet.id
+                with open('following.json', 'w') as jfile:
+                    json.dump(jdata, jfile)
+                for chnl in user['channels']:
+                    channel = self.bot.get_channel(chnl)
+                    await channel.send(f"**{lastest_tweet.author.name}** just tweeted here: \n{lastest_tweet.url}", embed=gen_embed(lastest_tweet))
                 
             print(f'alive : {username}')
             
+def gen_embed(tweet):
+    author = tweet.author
+    embed=discord.Embed(title=f'{author.name} tweeted a status', url=tweet.url, color=0x1da0f2, timestamp=tweet.created_on)
+    embed.set_author(name=author.name, icon_url=author.profile_image_url_https, url=f'https://twitter.com/{author.username}')
+    embed.set_thumbnail(url=author.profile_image_url_https[:-10]+'400x400.jpg')
+    embed.add_field(name='', value=tweet.text, inline=False)
+    if len(tweet.media) != 0:
+        embed.set_image(url=tweet.media[0].media_url_https)
+    embed.set_footer(text='Twitter', icon_url='https://images-ext-2.discordapp.net/external/krcaH4psq2u8hROno0il7FE05UYL18EcpWwIekh0Vys/https/pingcord.xyz/assets/twitter-footer.png')
+    return embed
+            
 def get_tweets(app, username):
     tweets = app.get_tweet_notifications()
-    tweets_dict = {tweet.id : {'author' : tweet.author, 'created_on' : tweet.created_on} for tweet in tweets if tweet.author.username == username}
-    lastest_tweet = sorted(tweets_dict.items(), key=lambda x: x[1]['created_on'], reverse=True)[0]
+    tweets = [tweet for tweet in tweets if tweet.author.username == username]
+    lastest_tweet = sorted(tweets, key=lambda x: x.created_on, reverse=True)[0]
     return lastest_tweet
 
 def get_cookies():
