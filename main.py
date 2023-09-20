@@ -1,20 +1,19 @@
 import discord
 from discord.ext import commands
-import json
+from dotenv import load_dotenv
 import os
 
-with open('setting.json', 'r', encoding='utf8') as jfile:
-    jdata = json.load(jfile)
+load_dotenv()
 
-bot = commands.Bot(command_prefix=jdata['PREFIX'], intents=discord.Intents.all())
+bot = commands.Bot(command_prefix=os.getenv('PREFIX'), intents=discord.Intents.all())
 
 @bot.event
 async def on_ready():
-    await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=jdata['ACTIVIY_NAME']))
+    await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=os.getenv('ACTIVIY_NAME')))
     for filename in os.listdir('./cogs'):
             if filename.endswith('.py'):
                 await bot.load_extension(f'cogs.{filename[:-3]}')
-    print(">> Bot is online <<")
+    print('>> Bot is online <<')
 
 @bot.command()
 @commands.is_owner()
@@ -36,5 +35,5 @@ async def reload(ctx, extension):
     await bot.reload_extension(f'cogs.{extension}')
     await ctx.send(f'Re - Loaded {extension} done.')
 
-if __name__ == "__main__":
-    bot.run(jdata["TOKEN"])
+if __name__ == '__main__':
+    bot.run(os.getenv('TOKEN'))
