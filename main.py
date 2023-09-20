@@ -1,6 +1,5 @@
 import discord
 from discord.ext import commands
-from tweety import Twitter
 import json
 import os
 
