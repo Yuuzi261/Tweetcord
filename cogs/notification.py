@@ -38,9 +38,10 @@ class Notification(Cog_Extension):
                 user['lastest_tweet'] = lastest_tweet.id
                 with open('following.json', 'w') as jfile:
                     json.dump(jdata, jfile)
-                for chnl in user['channels']:
-                    channel = self.bot.get_channel(chnl)
-                    await channel.send(f"**{lastest_tweet.author.name}** just {get_action(lastest_tweet)} here: \n{lastest_tweet.url}", embeds=gen_embed(lastest_tweet))
+                for chnl in user['channels'].keys():
+                    channel = self.bot.get_channel(int(chnl))
+                    mention = f"{channel.guild.get_role(int(user['channels'][chnl])).mention} " if user['channels'][chnl] != '' else ''
+                    await channel.send(f"{mention}**{lastest_tweet.author.name}** just {get_action(lastest_tweet)} here: \n{lastest_tweet.url}", embeds=gen_embed(lastest_tweet))
                 
             print(f'alive : {username}')
             
