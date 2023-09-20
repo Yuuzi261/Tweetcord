@@ -41,18 +41,15 @@ async def reload(ctx, extension):
 @commands.is_owner()
 @commands.dm_only()
 async def uploadCookies(ctx):
-    try:
-        txtfile = await [attachment for attachment in ctx.message.attachments if attachment.filename[-4:] == '.txt'][0].read()
-        raw = json.loads(txtfile)
-        needed_cookies = ['guest_id', 'guest_id_marketing', 'guest_id_ads', 'kdt', 'auth_token', 'ct0', 'twid', 'personalization_id']
-        cookies = {}
-        for cookie in raw:
-            name = cookie['name']
-            if name in needed_cookies: cookies[name] = cookie['value']
-        with open('cookies.json', 'w') as f:
-            json.dump(cookies, f)
-    except Exception as e:
-        await ctx.author.send(f'[ERROR] {e}')
+    txtfile = await [attachment for attachment in ctx.message.attachments if attachment.filename[-4:] == '.txt'][0].read()
+    raw = json.loads(txtfile)
+    needed_cookies = ['guest_id', 'guest_id_marketing', 'guest_id_ads', 'kdt', 'auth_token', 'ct0', 'twid', 'personalization_id']
+    cookies = {}
+    for cookie in raw:
+        name = cookie['name']
+        if name in needed_cookies: cookies[name] = cookie['value']
+    with open('cookies.json', 'w') as f:
+        json.dump(cookies, f)
         
 
 @bot.event
@@ -60,7 +57,7 @@ async def on_command_error(ctx, error):
     embed=discord.Embed(title="ERROR", color=0xb7e0f3)
     
     if isinstance(error, commands.errors.CommandNotFound):
-        pass
+        return
     elif isinstance(error, commands.errors.PrivateMessageOnly):
         embed.add_field(name="No Private Message", value="This command can only be used in private messages", inline=False)
         embed.add_field(name="Error message", value=error, inline=False)
