@@ -81,13 +81,7 @@ def get_tweets(app, username):
 
 def get_cookies():
     with open('cookies.json') as jfile:
-        jcookies = json.load(jfile)
-    needed_cookies = ['guest_id', 'guest_id_marketing', 'guest_id_ads', 'kdt', 'auth_token', 'ct0', 'twid', 'personalization_id']
-    cookies = {}
-    for cookie in jcookies:
-        name = cookie['name']
-        if name in needed_cookies: cookies[name] = cookie['value']
-                
+        cookies = json.load(jfile)        
     return cookies
 
 async def setup(bot):
