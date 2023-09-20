@@ -4,9 +4,6 @@ from tweety import Twitter
 import asyncio
 from random import randint
 
-with open('setting.json', 'r', encoding='utf8') as jfile:
-	jdata = json.load(jfile)
-
 class Notification(Cog_Extension):
     def __init__(self, bot):
         super().__init__(bot)
