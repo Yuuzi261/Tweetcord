@@ -40,7 +40,7 @@ class Notification(Cog_Extension):
                     json.dump(jdata, jfile)
                 for chnl in user['channels']:
                     channel = self.bot.get_channel(chnl)
-                    await channel.send(f"**{lastest_tweet.author.name}** just {get_action(lastest_tweet)} here: \n{lastest_tweet.url}", embed=gen_embed(lastest_tweet))
+                    await channel.send(f"**{lastest_tweet.author.name}** just {get_action(lastest_tweet)} here: \n{lastest_tweet.url}", embeds=gen_embed(lastest_tweet))
                 
             print(f'alive : {username}')
             
@@ -50,10 +50,13 @@ def gen_embed(tweet):
     embed.set_author(name=f'{author.name} (@{author.username})', icon_url=author.profile_image_url_https, url=f'https://twitter.com/{author.username}')
     embed.set_thumbnail(url=author.profile_image_url_https[:-10]+'400x400.jpg')
     embed.add_field(name='', value=tweet.text, inline=False)
-    if len(tweet.media) != 0:
+    if len(tweet.media) == 1:
         embed.set_image(url=tweet.media[0].media_url_https)
-    embed.set_footer(text='Twitter', icon_url='https://images-ext-2.discordapp.net/external/krcaH4psq2u8hROno0il7FE05UYL18EcpWwIekh0Vys/https/pingcord.xyz/assets/twitter-footer.png')
-    return embed
+        return [embed]
+    else:
+        imgs_embed = [discord.Embed(url=tweet.url).set_image(url=media.media_url_https) for media in tweet.media]
+        imgs_embed.insert(0, embed)
+        return imgs_embed
 
 def get_action(tweet, disable_quoted = False):
     if tweet.is_retweet: return 'retweeted'
