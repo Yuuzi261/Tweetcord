@@ -21,8 +21,7 @@ class Notification(Cog_Extension):
                 
     async def notification(self, app, username):
         while True:
-            await asyncio.sleep(10)
-            # await asyncio.sleep(randint(30, 60))
+            await asyncio.sleep(randint(30, 60))
             try:
                 task = asyncio.create_task(asyncio.to_thread(get_tweets, app, username))
                 await task
@@ -41,13 +40,13 @@ class Notification(Cog_Extension):
                     json.dump(jdata, jfile)
                 for chnl in user['channels']:
                     channel = self.bot.get_channel(chnl)
-                    await channel.send(f"**{lastest_tweet.author.name}** just tweeted here: \n{lastest_tweet.url}", embed=gen_embed(lastest_tweet))
+                    await channel.send(f"**{lastest_tweet.author.name}** just {get_action(lastest_tweet)} here: \n{lastest_tweet.url}", embed=gen_embed(lastest_tweet))
                 
             print(f'alive : {username}')
             
 def gen_embed(tweet):
     author = tweet.author
-    embed=discord.Embed(title=f'{author.name} tweeted a status', url=tweet.url, color=0x1da0f2, timestamp=tweet.created_on)
+    embed=discord.Embed(title=f'{author.name} {get_action(tweet, disable_quoted=True)} {get_tweet_type(tweet)}', url=tweet.url, color=0x1da0f2, timestamp=tweet.created_on)
     embed.set_author(name=author.name, icon_url=author.profile_image_url_https, url=f'https://twitter.com/{author.username}')
     embed.set_thumbnail(url=author.profile_image_url_https[:-10]+'400x400.jpg')
     embed.add_field(name='', value=tweet.text, inline=False)
@@ -55,6 +54,19 @@ def gen_embed(tweet):
         embed.set_image(url=tweet.media[0].media_url_https)
     embed.set_footer(text='Twitter', icon_url='https://images-ext-2.discordapp.net/external/krcaH4psq2u8hROno0il7FE05UYL18EcpWwIekh0Vys/https/pingcord.xyz/assets/twitter-footer.png')
     return embed
+
+def get_action(tweet, disable_quoted = False):
+    if tweet.is_retweet: return 'retweeted'
+    elif tweet.is_quoted and not disable_quoted: return 'quoted'
+    else: return 'tweeted'
+    
+def get_tweet_type(tweet):
+    media = tweet.media
+    if len(media) > 1: return f'{len(media)} photos'
+    elif len(media) == 1:
+        if media[0].type == 'image': return 'a photo'
+        else: return 'a video'
+    else: return 'a status'
             
 def get_tweets(app, username):
     tweets = app.get_tweet_notifications()
