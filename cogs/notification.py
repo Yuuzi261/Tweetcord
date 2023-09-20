@@ -17,7 +17,8 @@ class Notification(Cog_Extension):
         with open('following.json', 'r', encoding='utf8') as jfile:
             users = json.load(jfile)
         for user in users.keys():
-            self.bot.loop.create_task(self.notification(app, user))
+            self.bot.loop.create_task(self.notification(app, user)).set_name(user)
+        self.bot.loop.create_task(self.taskMonitor(set(users)))
                 
     async def notification(self, app, username):
         while True:
@@ -42,8 +43,13 @@ class Notification(Cog_Extension):
                     channel = self.bot.get_channel(int(chnl))
                     mention = f"{channel.guild.get_role(int(user['channels'][chnl])).mention} " if user['channels'][chnl] != '' else ''
                     await channel.send(f"{mention}**{lastest_tweet.author.name}** just {get_action(lastest_tweet)} here: \n{lastest_tweet.url}", embeds=gen_embed(lastest_tweet))
-                
-            print(f'alive : {username}')
+            
+    async def taskMonitor(self, users : set):
+        while True:
+            taskSet = set([task.get_name() for task in asyncio.all_tasks()])
+            aliveTasks = list(taskSet & users)
+            print(f"[INFO] Alive Tasks : {aliveTasks}")
+            await asyncio.sleep(600)
             
 def gen_embed(tweet):
     author = tweet.author
