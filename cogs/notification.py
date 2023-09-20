@@ -47,7 +47,7 @@ class Notification(Cog_Extension):
 def gen_embed(tweet):
     author = tweet.author
     embed=discord.Embed(title=f'{author.name} {get_action(tweet, disable_quoted=True)} {get_tweet_type(tweet)}', url=tweet.url, color=0x1da0f2, timestamp=tweet.created_on)
-    embed.set_author(name=author.name, icon_url=author.profile_image_url_https, url=f'https://twitter.com/{author.username}')
+    embed.set_author(name=f'{author.name} (@{author.username})', icon_url=author.profile_image_url_https, url=f'https://twitter.com/{author.username}')
     embed.set_thumbnail(url=author.profile_image_url_https[:-10]+'400x400.jpg')
     embed.add_field(name='', value=tweet.text, inline=False)
     if len(tweet.media) != 0:
