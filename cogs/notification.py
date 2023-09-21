@@ -52,7 +52,10 @@ class Notification(Cog_Extension):
     async def tweetsUpdater(self, app):
         while True:
             try: self.tweets = app.get_tweet_notifications()
-            except Exception as e: logger.error(e)
+            except Exception as e:
+                logger.error(f'{e} (task : tweets updater)')
+                logger.error(f'an unexpected error occurred, try again in 5 minutes')
+                await asyncio.sleep(300)
             await asyncio.sleep(10)
             
     async def tasksMonitor(self, users : set):
