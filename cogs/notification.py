@@ -1,6 +1,8 @@
 import discord
 from core.classes import Cog_Extension
 from tweety import Twitter
+from datetime import datetime
+from typing import Union
 import json
 import asyncio
 
@@ -39,8 +41,8 @@ class Notification(Cog_Extension):
                 jdata = json.load(jfile)
                 
             user = jdata[username]
-            if user['lastest_tweet'] != lastest_tweet.id:
-                user['lastest_tweet'] = lastest_tweet.id
+            if date_comparator(lastest_tweet.created_on, user['lastest_tweet']):
+                user['lastest_tweet'] = str(lastest_tweet.created_on)
                 logger.info(f'find a new tweet from {username}')
                 with open('following.json', 'w') as jfile:
                     json.dump(jdata, jfile)
@@ -101,6 +103,10 @@ def get_cookies():
     with open('cookies.json') as jfile:
         cookies = json.load(jfile)        
     return cookies
+
+def date_comparator(date1 : Union[datetime, str], date2 : Union[datetime, str], FORMAT : str = '%Y-%m-%d %H:%M:%S%z') -> int:
+    date1, date2 = [datetime.strptime(date, FORMAT) if type(date) == str else date for date in (date1, date2)]
+    return (date1 > date2) - (date1 < date2)
 
 async def setup(bot):
 	await bot.add_cog(Notification(bot))
