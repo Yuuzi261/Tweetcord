@@ -49,7 +49,7 @@ class Notification(Cog_Extension):
                 for chnl in user['channels'].keys():
                     channel = self.bot.get_channel(int(chnl))
                     mention = f"{channel.guild.get_role(int(user['channels'][chnl])).mention} " if user['channels'][chnl] != '' else ''
-                    await channel.send(f"{mention}**{lastest_tweet.author.name}** just {get_action(lastest_tweet)} here: \n{lastest_tweet.url}", embeds=gen_embed(lastest_tweet))
+                    await channel.send(f"{mention}**{lastest_tweet.author.name}** just {get_action(lastest_tweet)} here: \n{lastest_tweet.url}", file = discord.File('images/twitter.png', filename='twitter.png'), embeds = gen_embed(lastest_tweet))
                     
     async def tweetsUpdater(self, app):
         while True:
@@ -70,10 +70,10 @@ class Notification(Cog_Extension):
             
 def gen_embed(tweet):
     author = tweet.author
-    embed=discord.Embed(title=f'{author.name} {get_action(tweet, disable_quoted=True)} {get_tweet_type(tweet)}', description=tweet.text, url=tweet.url, color=0x1da0f2, timestamp=tweet.created_on)
+    embed = discord.Embed(title=f'{author.name} {get_action(tweet, disable_quoted=True)} {get_tweet_type(tweet)}', description=tweet.text, url=tweet.url, color=0x1da0f2, timestamp=tweet.created_on)
     embed.set_author(name=f'{author.name} (@{author.username})', icon_url=author.profile_image_url_https, url=f'https://twitter.com/{author.username}')
     embed.set_thumbnail(url=author.profile_image_url_https[:-10]+'400x400.jpg')
-    embed.set_footer(text='Twitter', icon_url='https://images-ext-2.discordapp.net/external/krcaH4psq2u8hROno0il7FE05UYL18EcpWwIekh0Vys/https/pingcord.xyz/assets/twitter-footer.png')
+    embed.set_footer(text='Twitter', icon_url='attachment://twitter.png')
     if len(tweet.media) == 1:
         embed.set_image(url=tweet.media[0].media_url_https)
         return [embed]
