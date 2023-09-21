@@ -3,7 +3,6 @@ from core.classes import Cog_Extension
 import json
 from tweety import Twitter
 import asyncio
-from random import randint
 
 class Notification(Cog_Extension):
     def __init__(self, bot):
@@ -16,15 +15,16 @@ class Notification(Cog_Extension):
         app.load_cookies(cookies)
         with open('following.json', 'r', encoding='utf8') as jfile:
             users = json.load(jfile)
+        self.bot.loop.create_task(self.tweetsUpdater(app)).set_name('TweetsUpdater')
         for user in users.keys():
-            self.bot.loop.create_task(self.notification(app, user)).set_name(user)
-        self.bot.loop.create_task(self.taskMonitor(set(users)))
+            self.bot.loop.create_task(self.notification(user)).set_name(user)
+        self.bot.loop.create_task(self.tasksMonitor(set(users)))
                 
-    async def notification(self, app, username):
+    async def notification(self, username):
         while True:
-            await asyncio.sleep(randint(30, 60))
+            await asyncio.sleep(20)
             try:
-                task = asyncio.create_task(asyncio.to_thread(get_tweets, app, username))
+                task = asyncio.create_task(asyncio.to_thread(get_tweets, self.tweets, username))
                 await task
                 lastest_tweet = task.result()
             except Exception as e:
@@ -43,12 +43,18 @@ class Notification(Cog_Extension):
                     channel = self.bot.get_channel(int(chnl))
                     mention = f"{channel.guild.get_role(int(user['channels'][chnl])).mention} " if user['channels'][chnl] != '' else ''
                     await channel.send(f"{mention}**{lastest_tweet.author.name}** just {get_action(lastest_tweet)} here: \n{lastest_tweet.url}", embeds=gen_embed(lastest_tweet))
+                    
+    async def tweetsUpdater(self, app):
+        while True:
+            self.tweets = app.get_tweet_notifications()
+            await asyncio.sleep(20)
             
-    async def taskMonitor(self, users : set):
+    async def tasksMonitor(self, users : set):
         while True:
             taskSet = set([task.get_name() for task in asyncio.all_tasks()])
             aliveTasks = list(taskSet & users)
-            print(f"[INFO] Alive Tasks : {aliveTasks}")
+            print(f'[INFO] Alive Tasks : {aliveTasks}')
+            print('[INFO] TweetsUpdater : Alive') if 'TweetsUpdater' in taskSet else print('[WARNING] TweetsUpdater : Dead')
             await asyncio.sleep(600)
             
 def gen_embed(tweet):
@@ -79,8 +85,7 @@ def get_tweet_type(tweet):
         else: return 'a video'
     else: return 'a status'
             
-def get_tweets(app, username):
-    tweets = app.get_tweet_notifications()
+def get_tweets(tweets, username):
     tweets = [tweet for tweet in tweets if tweet.author.username == username]
     lastest_tweet = sorted(tweets, key=lambda x: x.created_on, reverse=True)[0]
     return lastest_tweet
