@@ -4,6 +4,10 @@ from dotenv import load_dotenv
 import os
 import json
 
+from src import log
+
+logger = log.setup_logger(__name__)
+
 load_dotenv()
 
 bot = commands.Bot(command_prefix=os.getenv('PREFIX'), intents=discord.Intents.all())
@@ -14,7 +18,7 @@ async def on_ready():
     for filename in os.listdir('./cogs'):
             if filename.endswith('.py'):
                 await bot.load_extension(f'cogs.{filename[:-3]}')
-    print('[INFO] Bot is online')
+    logger.info(f'{bot.user} is online')
 
 @bot.command()
 @commands.is_owner()
@@ -50,20 +54,24 @@ async def uploadCookies(ctx):
         if name in needed_cookies: cookies[name] = cookie['value']
     with open('cookies.json', 'w') as f:
         json.dump(cookies, f)
+    logger.info('successfully uploaded cookies')
         
 
 @bot.event
 async def on_command_error(ctx, error):
-    embed=discord.Embed(title="ERROR", color=0xb7e0f3)
+    
+    logger.warning(f'an error occurred but was handled by the error handler, error message : {error}')
+    
+    embed=discord.Embed(title='ERROR', color=0xb7e0f3)
     
     if isinstance(error, commands.errors.CommandNotFound):
         return
     elif isinstance(error, commands.errors.PrivateMessageOnly):
-        embed.add_field(name="No Private Message", value="This command can only be used in private messages", inline=False)
-        embed.add_field(name="Error message", value=error, inline=False)
+        embed.add_field(name='No Private Message', value='This command can only be used in private messages', inline=False)
+        embed.add_field(name='Error message', value=error, inline=False)
     else:
-        embed.add_field(name="ERROR", value="An unexpected error occurred", inline=False)
-        embed.add_field(name="Error message", value=error, inline=False)
+        embed.add_field(name='ERROR', value='An unexpected error occurred', inline=False)
+        embed.add_field(name='Error message', value=error, inline=False)
 
     await ctx.send(embed=embed)
     
