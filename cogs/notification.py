@@ -1,9 +1,14 @@
 import discord
 from core.classes import Cog_Extension
-import json
 from tweety import Twitter
+from datetime import datetime
+from typing import Union
+import json
 import asyncio
-from random import randint
+
+from src import log
+
+logger = log.setup_logger(__name__)
 
 class Notification(Cog_Extension):
     def __init__(self, bot):
@@ -16,34 +21,52 @@ class Notification(Cog_Extension):
         app.load_cookies(cookies)
         with open('following.json', 'r', encoding='utf8') as jfile:
             users = json.load(jfile)
+        self.bot.loop.create_task(self.tweetsUpdater(app)).set_name('TweetsUpdater')
         for user in users.keys():
-            self.bot.loop.create_task(self.notification(app, user))
+            self.bot.loop.create_task(self.notification(user)).set_name(user)
+        self.bot.loop.create_task(self.tasksMonitor(set(users)))
                 
-    async def notification(self, app, username):
+    async def notification(self, username):
         while True:
-            await asyncio.sleep(randint(30, 60))
+            await asyncio.sleep(10)
             try:
-                task = asyncio.create_task(asyncio.to_thread(get_tweets, app, username))
+                task = asyncio.create_task(asyncio.to_thread(get_tweets, self.tweets, username))
                 await task
                 lastest_tweet = task.result()
             except Exception as e:
-                print(f'[ERROR] : {e}')
+                logger.error(f'{e} (task : {username})')
                 continue
             
             with open('following.json', 'r', encoding='utf8') as jfile:
                 jdata = json.load(jfile)
                 
             user = jdata[username]
-            if user['lastest_tweet'] != lastest_tweet.id:
-                user['lastest_tweet'] = lastest_tweet.id
+            if date_comparator(lastest_tweet.created_on, user['lastest_tweet']):
+                user['lastest_tweet'] = str(lastest_tweet.created_on)
+                logger.info(f'find a new tweet from {username}')
                 with open('following.json', 'w') as jfile:
                     json.dump(jdata, jfile)
                 for chnl in user['channels'].keys():
                     channel = self.bot.get_channel(int(chnl))
                     mention = f"{channel.guild.get_role(int(user['channels'][chnl])).mention} " if user['channels'][chnl] != '' else ''
                     await channel.send(f"{mention}**{lastest_tweet.author.name}** just {get_action(lastest_tweet)} here: \n{lastest_tweet.url}", embeds=gen_embed(lastest_tweet))
-                
-            print(f'alive : {username}')
+                    
+    async def tweetsUpdater(self, app):
+        while True:
+            try: self.tweets = app.get_tweet_notifications()
+            except Exception as e:
+                logger.error(f'{e} (task : tweets updater)')
+                logger.error(f'an unexpected error occurred, try again in 5 minutes')
+                await asyncio.sleep(300)
+            await asyncio.sleep(10)
+            
+    async def tasksMonitor(self, users : set):
+        while True:
+            taskSet = set([task.get_name() for task in asyncio.all_tasks()])
+            aliveTasks = list(taskSet & users)
+            logger.info(f'alive tasks : {aliveTasks}')
+            logger.info('tweets updater : alive') if 'TweetsUpdater' in taskSet else logger.warning('tweets updater : dead')
+            await asyncio.sleep(600)
             
 def gen_embed(tweet):
     author = tweet.author
@@ -68,13 +91,10 @@ def get_action(tweet, disable_quoted = False):
 def get_tweet_type(tweet):
     media = tweet.media
     if len(media) > 1: return f'{len(media)} photos'
-    elif len(media) == 1:
-        if media[0].type == 'image': return 'a photo'
-        else: return 'a video'
+    elif len(media) == 1: return f'a {media[0].type}'
     else: return 'a status'
             
-def get_tweets(app, username):
-    tweets = app.get_tweet_notifications()
+def get_tweets(tweets, username):
     tweets = [tweet for tweet in tweets if tweet.author.username == username]
     lastest_tweet = sorted(tweets, key=lambda x: x.created_on, reverse=True)[0]
     return lastest_tweet
@@ -83,6 +103,10 @@ def get_cookies():
     with open('cookies.json') as jfile:
         cookies = json.load(jfile)        
     return cookies
+
+def date_comparator(date1 : Union[datetime, str], date2 : Union[datetime, str], FORMAT : str = '%Y-%m-%d %H:%M:%S%z') -> int:
+    date1, date2 = [datetime.strptime(date, FORMAT) if type(date) == str else date for date in (date1, date2)]
+    return (date1 > date2) - (date1 < date2)
 
 async def setup(bot):
 	await bot.add_cog(Notification(bot))
