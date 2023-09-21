@@ -80,9 +80,7 @@ def get_action(tweet, disable_quoted = False):
 def get_tweet_type(tweet):
     media = tweet.media
     if len(media) > 1: return f'{len(media)} photos'
-    elif len(media) == 1:
-        if media[0].type == 'image': return 'a photo'
-        else: return 'a video'
+    elif len(media) == 1: return f'a {media[0].type}'
     else: return 'a status'
             
 def get_tweets(tweets, username):
