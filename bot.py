@@ -18,14 +18,13 @@ bot = commands.Bot(command_prefix=configs['prefix'], intents=discord.Intents.all
 @bot.event
 async def on_ready():
     await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=configs['activity_name']))
-    await bot.tree.sync()
-    slash = await bot.tree.sync()
-    logger.info(f'loading {len(slash)} slash commands')
     bot.tree.on_error = on_tree_error
     for filename in os.listdir('./cogs'):
             if filename.endswith('.py'):
                 await bot.load_extension(f'cogs.{filename[:-3]}')
     logger.info(f'{bot.user} is online')
+    slash = await bot.tree.sync()
+    logger.info(f'synced {len(slash)} slash commands')
 
 
 @bot.command()
