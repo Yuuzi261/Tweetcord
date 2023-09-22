@@ -6,17 +6,19 @@ import os
 import json
 
 from src import log
+from configs.load_configs import configs
 
 logger = log.setup_logger(__name__)
 
 load_dotenv()
 
-bot = commands.Bot(command_prefix=os.getenv('PREFIX'), intents=discord.Intents.all())
+print(configs)
+bot = commands.Bot(command_prefix=configs['prefix'], intents=discord.Intents.all())
 
 
 @bot.event
 async def on_ready():
-    await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=os.getenv('ACTIVIY_NAME')))
+    await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=configs['activity_name']))
     await bot.tree.sync()
     slash = await bot.tree.sync()
     logger.info(f'loading {len(slash)} slash commands')

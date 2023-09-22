@@ -1,0 +1,5 @@
+prefix: '.'
+activity_name: 'Hennyano'
+tweets_check_period: 10
+tweets_updater_retry_delay: 300
+tasks_monitor_check_period: 600
