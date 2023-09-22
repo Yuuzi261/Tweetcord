@@ -1,14 +1,21 @@
 import discord
 from core.classes import Cog_Extension
 from tweety import Twitter
+from dotenv import load_dotenv
 from datetime import datetime
 from typing import Union
+import os
 import json
 import asyncio
 
 from src import log
 
 logger = log.setup_logger(__name__)
+
+load_dotenv()
+TWEETS_CHECK_PERIOD = int(os.getenv('TWEETS_CHECK_PERIOD'))
+TWEETS_UPDATER_RETRY_DELAY = int(os.getenv('TWEETS_UPDATER_RETRY_DELAY'))
+TASKS_MONITOR_CHECK_PERIOD = int(os.getenv('TASKS_MONITOR_CHECK_PERIOD'))
 
 class Notification(Cog_Extension):
     def __init__(self, bot):
@@ -28,7 +35,7 @@ class Notification(Cog_Extension):
                 
     async def notification(self, username):
         while True:
-            await asyncio.sleep(10)
+            await asyncio.sleep(TWEETS_CHECK_PERIOD)
             try:
                 task = asyncio.create_task(asyncio.to_thread(get_tweets, self.tweets, username))
                 await task
@@ -57,8 +64,8 @@ class Notification(Cog_Extension):
             except Exception as e:
                 logger.error(f'{e} (task : tweets updater)')
                 logger.error(f'an unexpected error occurred, try again in 5 minutes')
-                await asyncio.sleep(300)
-            await asyncio.sleep(10)
+                await asyncio.sleep(TWEETS_UPDATER_RETRY_DELAY)
+            await asyncio.sleep(TWEETS_CHECK_PERIOD)
             
     async def tasksMonitor(self, users : set):
         while True:
@@ -66,7 +73,7 @@ class Notification(Cog_Extension):
             aliveTasks = list(taskSet & users)
             logger.info(f'alive tasks : {aliveTasks}')
             logger.info('tweets updater : alive') if 'TweetsUpdater' in taskSet else logger.warning('tweets updater : dead')
-            await asyncio.sleep(600)
+            await asyncio.sleep(TASKS_MONITOR_CHECK_PERIOD)
             
 def gen_embed(tweet):
     author = tweet.author
