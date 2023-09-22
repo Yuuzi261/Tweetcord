@@ -9,7 +9,7 @@ import asyncio
 from src.log import setup_logger
 from configs.load_configs import configs
 
-logger = setup_logger(__name__)
+log = setup_logger(__name__)
 
 class Notification(Cog_Extension):
     def __init__(self, bot):
@@ -35,7 +35,7 @@ class Notification(Cog_Extension):
                 await task
                 lastest_tweet = task.result()
             except Exception as e:
-                logger.error(f'{e} (task : {username})')
+                log.error(f'{e} (task : {username})')
                 continue
             
             with open('following.json', 'r', encoding='utf8') as jfile:
@@ -44,7 +44,7 @@ class Notification(Cog_Extension):
             user = jdata[username]
             if date_comparator(lastest_tweet.created_on, user['lastest_tweet']):
                 user['lastest_tweet'] = str(lastest_tweet.created_on)
-                logger.info(f'find a new tweet from {username}')
+                log.info(f'find a new tweet from {username}')
                 with open('following.json', 'w') as jfile:
                     json.dump(jdata, jfile)
                 for chnl in user['channels'].keys():
@@ -56,8 +56,8 @@ class Notification(Cog_Extension):
         while True:
             try: self.tweets = app.get_tweet_notifications()
             except Exception as e:
-                logger.error(f'{e} (task : tweets updater)')
-                logger.error(f'an unexpected error occurred, try again in 5 minutes')
+                log.error(f'{e} (task : tweets updater)')
+                log.error(f'an unexpected error occurred, try again in 5 minutes')
                 await asyncio.sleep(configs['tweets_updater_retry_delay'])
             await asyncio.sleep(configs['tweets_check_period'])
             
@@ -65,8 +65,8 @@ class Notification(Cog_Extension):
         while True:
             taskSet = set([task.get_name() for task in asyncio.all_tasks()])
             aliveTasks = list(taskSet & users)
-            logger.info(f'alive tasks : {aliveTasks}')
-            logger.info('tweets updater : alive') if 'TweetsUpdater' in taskSet else logger.warning('tweets updater : dead')
+            log.info(f'alive tasks : {aliveTasks}')
+            log.info('tweets updater : alive') if 'TweetsUpdater' in taskSet else log.warning('tweets updater : dead')
             await asyncio.sleep(configs['tasks_monitor_check_period'])
             
 def gen_embed(tweet):
