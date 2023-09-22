@@ -3,14 +3,13 @@ from core.classes import Cog_Extension
 from tweety import Twitter
 from datetime import datetime
 from typing import Union
-import os
 import json
 import asyncio
 
-from src import log
+from src.log import setup_logger
 from configs.load_configs import configs
 
-logger = log.setup_logger(__name__)
+logger = setup_logger(__name__)
 
 class Notification(Cog_Extension):
     def __init__(self, bot):

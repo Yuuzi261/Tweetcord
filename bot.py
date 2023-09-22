@@ -5,14 +5,13 @@ from dotenv import load_dotenv
 import os
 import json
 
-from src import log
+from src.log import setup_logger
 from configs.load_configs import configs
 
-logger = log.setup_logger(__name__)
+logger = setup_logger(__name__)
 
 load_dotenv()
 
-print(configs)
 bot = commands.Bot(command_prefix=configs['prefix'], intents=discord.Intents.all())
 
 
