@@ -29,7 +29,7 @@ class AccountTracker():
             username = user['username']
             usernames.append(username)
             self.bot.loop.create_task(self.notification(username)).set_name(username)
-        self.bot.loop.create_task(self.tasksMonitor(set(usernames)))
+        self.bot.loop.create_task(self.tasksMonitor(set(usernames))).set_name('TasksMonitor')
 
 
     async def notification(self, username):
@@ -47,7 +47,7 @@ class AccountTracker():
                 users = json.load(jfile)
 
             user = list(filter(lambda item: item[1]["username"] == username, users.items()))[0][1]
-            if date_comparator(lastest_tweet.created_on, user['lastest_tweet']):
+            if date_comparator(lastest_tweet.created_on, user['lastest_tweet']) == 1:
                 user['lastest_tweet'] = str(lastest_tweet.created_on)
                 log.info(f'find a new tweet from {username}')
                 with open('tracked_accounts.json', 'w', encoding='utf8') as jfile:
@@ -67,7 +67,7 @@ class AccountTracker():
                 await asyncio.sleep(configs['tweets_updater_retry_delay'])
             await asyncio.sleep(configs['tweets_check_period'])
 
-            
+
     async def tasksMonitor(self, users : set):
         while True:
             taskSet = set([task.get_name() for task in asyncio.all_tasks()])
@@ -75,3 +75,17 @@ class AccountTracker():
             log.info(f'alive tasks : {aliveTasks}')
             log.info('tweets updater : alive') if 'TweetsUpdater' in taskSet else log.warning('tweets updater : dead')
             await asyncio.sleep(configs['tasks_monitor_check_period'])
+            
+
+    async def addTask(self, username : str):
+        with open('tracked_accounts.json', 'r', encoding='utf8') as jfile:
+            users = json.load(jfile)
+        self.bot.loop.create_task(self.notification(username)).set_name(username)
+        log.info(f'new task {username} added successfully')
+        
+        for task in asyncio.all_tasks():
+            if task.get_name() == 'TasksMonitor':
+                try: log.info(f'existing TasksMonitor has been closed') if task.cancel() else log.info('existing TasksMonitor failed to close')
+                except Exception as e: log.warning(f'addTask : {e}')
+        self.bot.loop.create_task(self.tasksMonitor(set([user['username'] for user in users.values()]))).set_name('TasksMonitor')
+        log.info(f'new TasksMonitor has been started')
