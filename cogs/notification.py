@@ -21,6 +21,7 @@ class Notification(Cog_Extension):
 
     @add_group.command(name='notifier', description="Add a twitter user to specific channel on your server.")
     async def notifier(self, itn : discord.Interaction, username: str, channel: discord.TextChannel, mention: discord.Role = None):
+        await itn.response.defer(ephemeral=True)
         with open('tracked_accounts.json', 'r', encoding='utf8') as jfile:
             users = json.load(jfile)
         match_user = list(filter(lambda item: item[1]["username"] == username, users.items()))
@@ -31,7 +32,7 @@ class Notification(Cog_Extension):
             try:
                 new_user = app.get_user_info(username)
             except:
-                itn.response.send_message(f'user {username} not found', ephemeral=True)
+                await itn.followup.send(f'user {username} not found', ephemeral=True)
                 return
             roleID = str(mention.id) if mention != None else ''
             users[str(new_user.id)] = {'username': username, 'channels': {str(channel.id): roleID}, 'lastest_tweet': datetime.utcnow().replace(tzinfo=timezone.utc).strftime('%Y-%m-%d %H:%M:%S%z')}
@@ -49,7 +50,7 @@ class Notification(Cog_Extension):
         
         await self.account_tracker.addTask(username)
         
-        await itn.response.send_message(f'successfully add notifier of {username}!', ephemeral=True)
+        await itn.followup.send(f'successfully add notifier of {username}!', ephemeral=True)
 
 
 async def setup(bot):
