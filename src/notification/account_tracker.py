@@ -16,7 +16,7 @@ class AccountTracker():
     def __init__(self, bot):
         self.bot = bot
         bot.loop.create_task(self.setup_tasks())
-    
+
     async def setup_tasks(self):
         cookies = get_cookies()
         app = Twitter("session")
@@ -35,14 +35,12 @@ class AccountTracker():
     async def notification(self, username):
         while True:
             await asyncio.sleep(configs['tweets_check_period'])
-            try:
-                task = asyncio.create_task(asyncio.to_thread(get_tweets, self.tweets, username))
-                await task
-                lastest_tweet = task.result()
-            except Exception as e:
-                log.error(f'{e} (task : {username})')
-                continue
-            
+
+            task = asyncio.create_task(asyncio.to_thread(get_tweets, self.tweets, username))
+            await task
+            lastest_tweet = task.result()
+            if lastest_tweet == None: continue
+
             with open('tracked_accounts.json', 'r', encoding='utf8') as jfile:
                 users = json.load(jfile)
 
