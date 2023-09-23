@@ -24,9 +24,12 @@ class AccountTracker():
         with open('tracked_accounts.json', 'r', encoding='utf8') as jfile:
             users = json.load(jfile)
         self.bot.loop.create_task(self.tweetsUpdater(app)).set_name('TweetsUpdater')
-        for user in users.keys():
-            self.bot.loop.create_task(self.notification(user)).set_name(user)
-        self.bot.loop.create_task(self.tasksMonitor(set(users)))
+        usernames = []
+        for user in users.values():
+            username = user['username']
+            usernames.append(username)
+            self.bot.loop.create_task(self.notification(username)).set_name(username)
+        self.bot.loop.create_task(self.tasksMonitor(set(usernames)))
 
 
     async def notification(self, username):
@@ -41,14 +44,14 @@ class AccountTracker():
                 continue
             
             with open('tracked_accounts.json', 'r', encoding='utf8') as jfile:
-                jdata = json.load(jfile)
-                
-            user = jdata[username]
+                users = json.load(jfile)
+
+            user = list(filter(lambda item: item[1]["username"] == username, users.items()))[0][1]
             if date_comparator(lastest_tweet.created_on, user['lastest_tweet']):
                 user['lastest_tweet'] = str(lastest_tweet.created_on)
                 log.info(f'find a new tweet from {username}')
-                with open('tracked_accounts.json', 'w') as jfile:
-                    json.dump(jdata, jfile)
+                with open('tracked_accounts.json', 'w', encoding='utf8') as jfile:
+                    json.dump(users, jfile)
                 for chnl in user['channels'].keys():
                     channel = self.bot.get_channel(int(chnl))
                     mention = f"{channel.guild.get_role(int(user['channels'][chnl])).mention} " if user['channels'][chnl] != '' else ''
