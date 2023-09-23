@@ -160,8 +160,7 @@ cython_debug/
 #.idea/
 
 # some configuration files
-setting.json
-following.json
+tracked_accounts.json
 cookies.json
 
 # automatically generated files
