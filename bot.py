@@ -67,8 +67,11 @@ async def upload_cookies(itn : discord.Interaction, cookies : discord.Attachment
         
 
 @bot.event
-async def on_tree_error(interaction : discord.Interaction, error : app_commands.AppCommandError):
-    await interaction.response.send_message(error.__context__, ephemeral = True)
+async def on_tree_error(itn : discord.Interaction, error : app_commands.AppCommandError):
+    if isinstance(error, app_commands.errors.CheckFailure):
+        await itn.response.send_message('Permission denied.', ephemeral=True)
+    else:
+        await itn.response.send_message(error, ephemeral=True)
     log.warning(f'an error occurred but was handled by the tree error handler, error message : {error}')
     
     

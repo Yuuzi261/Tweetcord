@@ -4,11 +4,11 @@ from core.classes import Cog_Extension
 from tweety import Twitter
 from datetime import datetime, timezone
 import json
-# import asyncio
 
 from src.log import setup_logger
 from src.cookies import get_cookies
 from src.notification.account_tracker import AccountTracker
+from src.permission_check import is_administrator
 
 log = setup_logger(__name__)
 
@@ -19,6 +19,7 @@ class Notification(Cog_Extension):
 
     add_group = app_commands.Group(name='add', description="Add something")
 
+    @is_administrator()
     @add_group.command(name='notifier', description="Add a twitter user to specific channel on your server.")
     async def notifier(self, itn : discord.Interaction, username: str, channel: discord.TextChannel, mention: discord.Role = None):
         await itn.response.defer(ephemeral=True)
