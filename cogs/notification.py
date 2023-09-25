@@ -3,6 +3,8 @@ from discord import app_commands
 from core.classes import Cog_Extension
 from tweety import Twitter
 from datetime import datetime, timezone
+from dotenv import load_dotenv
+import os
 import json
 
 from src.log import setup_logger
@@ -11,6 +13,8 @@ from src.notification.account_tracker import AccountTracker
 from src.permission_check import is_administrator
 
 log = setup_logger(__name__)
+
+load_dotenv()
 
 class Notification(Cog_Extension):
     def __init__(self, bot):
@@ -23,7 +27,7 @@ class Notification(Cog_Extension):
     @add_group.command(name='notifier', description="Add a twitter user to specific channel on your server.")
     async def notifier(self, itn : discord.Interaction, username: str, channel: discord.TextChannel, mention: discord.Role = None):
         await itn.response.defer(ephemeral=True)
-        with open('./data/tracked_accounts.json', 'r', encoding='utf8') as jfile:
+        with open(f"{os.getenv('DATA_PATH')}tracked_accounts.json", 'r', encoding='utf8') as jfile:
             users = json.load(jfile)
         match_user = list(filter(lambda item: item[1]["username"] == username, users.items()))
         if match_user == []:
@@ -41,7 +45,7 @@ class Notification(Cog_Extension):
             user = match_user[0][1]
             user['channel'][str(channel.id)] = str(mention.id) if mention != None else ''
             
-        with open('./data/tracked_accounts.json', 'w', encoding='utf8') as jfile:
+        with open(f"{os.getenv('DATA_PATH')}tracked_accounts.json", 'w', encoding='utf8') as jfile:
             json.dump(users, jfile)
         
         app.follow_user(new_user)

@@ -1,5 +1,7 @@
 import discord
 from tweety import Twitter
+from dotenv import load_dotenv
+import os
 import json
 import asyncio
 
@@ -11,6 +13,8 @@ from src.notification.date_comparator import date_comparator
 from configs.load_configs import configs
 
 log = setup_logger(__name__)
+
+load_dotenv()
 
 class AccountTracker():
     def __init__(self, bot):
@@ -29,7 +33,7 @@ class AccountTracker():
         app = Twitter("session")
         app.load_cookies(cookies)
             
-        with open('./data/tracked_accounts.json', 'r', encoding='utf8') as jfile:
+        with open(f"{os.getenv('DATA_PATH')}tracked_accounts.json", 'r', encoding='utf8') as jfile:
             users = json.load(jfile)
         self.bot.loop.create_task(self.tweetsUpdater(app)).set_name('TweetsUpdater')
         usernames = []
@@ -49,14 +53,14 @@ class AccountTracker():
             lastest_tweet = task.result()
             if lastest_tweet == None: continue
 
-            with open('./data/tracked_accounts.json', 'r', encoding='utf8') as jfile:
+            with open(f"{os.getenv('DATA_PATH')}tracked_accounts.json", 'r', encoding='utf8') as jfile:
                 users = json.load(jfile)
 
             user = list(filter(lambda item: item[1]["username"] == username, users.items()))[0][1]
             if date_comparator(lastest_tweet.created_on, user['lastest_tweet']) == 1:
                 user['lastest_tweet'] = str(lastest_tweet.created_on)
                 log.info(f'find a new tweet from {username}')
-                with open('./data/tracked_accounts.json', 'w', encoding='utf8') as jfile:
+                with open(f"{os.getenv('DATA_PATH')}tracked_accounts.json", 'w', encoding='utf8') as jfile:
                     json.dump(users, jfile)
                 for chnl in user['channels'].keys():
                     channel = self.bot.get_channel(int(chnl))
@@ -84,7 +88,7 @@ class AccountTracker():
             
 
     async def addTask(self, username : str):
-        with open('./data/tracked_accounts.json', 'r', encoding='utf8') as jfile:
+        with open(f"{os.getenv('DATA_PATH')}tracked_accounts.json", 'r', encoding='utf8') as jfile:
             users = json.load(jfile)
         self.bot.loop.create_task(self.notification(username)).set_name(username)
         log.info(f'new task {username} added successfully')
