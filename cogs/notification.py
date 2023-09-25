@@ -41,20 +41,20 @@ class Notification(Cog_Extension):
                 return
             roleID = str(mention.id) if mention != None else ''
             users[str(new_user.id)] = {'username': username, 'channels': {str(channel.id): roleID}, 'lastest_tweet': datetime.utcnow().replace(tzinfo=timezone.utc).strftime('%Y-%m-%d %H:%M:%S%z')}
+            
+            app.follow_user(new_user)
+            
+            if app.enable_user_notification(new_user): log.info(f'successfully opened notification for {username}')
+            else: log.warning(f'unable to turn on notifications for {username}')
+            
+            await self.account_tracker.addTask(username)
         else:
             user = match_user[0][1]
-            user['channel'][str(channel.id)] = str(mention.id) if mention != None else ''
+            user['channels'][str(channel.id)] = str(mention.id) if mention != None else ''
             
         with open(f"{os.getenv('DATA_PATH')}tracked_accounts.json", 'w', encoding='utf8') as jfile:
-            json.dump(users, jfile)
-        
-        app.follow_user(new_user)
+            json.dump(users, jfile, sort_keys=True, indent=4)
             
-        if app.enable_user_notification(new_user): log.info(f'successfully opened notification for {username}')
-        else: log.warning(f'unable to turn on notifications for {username}')
-        
-        await self.account_tracker.addTask(username)
-        
         await itn.followup.send(f'successfully add notifier of {username}!', ephemeral=True)
 
 

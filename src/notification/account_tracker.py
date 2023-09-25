@@ -61,7 +61,7 @@ class AccountTracker():
                 user['lastest_tweet'] = str(lastest_tweet.created_on)
                 log.info(f'find a new tweet from {username}')
                 with open(f"{os.getenv('DATA_PATH')}tracked_accounts.json", 'w', encoding='utf8') as jfile:
-                    json.dump(users, jfile)
+                    json.dump(users, jfile, sort_keys=True, indent=4)
                 for chnl in user['channels'].keys():
                     channel = self.bot.get_channel(int(chnl))
                     mention = f"{channel.guild.get_role(int(user['channels'][chnl])).mention} " if user['channels'][chnl] != '' else ''
