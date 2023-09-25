@@ -23,9 +23,22 @@ class Notification(Cog_Extension):
 
     add_group = app_commands.Group(name='add', description="Add something")
 
+
     @is_administrator()
-    @add_group.command(name='notifier', description="Add a twitter user to specific channel on your server.")
+    @add_group.command(name='notifier')
     async def notifier(self, itn : discord.Interaction, username: str, channel: discord.TextChannel, mention: discord.Role = None):
+        """Add a twitter user to specific channel on your server.
+
+        Parameters
+        -----------
+        username: str
+            The username of the twitter user you want to turn on notifications for.
+        channel: discord.TextChannel
+            The channel to which the bot delivers notifications.
+        mention: discord.Role
+            The role to mention when notifying.
+        """
+        
         await itn.response.defer(ephemeral=True)
         with open(f"{os.getenv('DATA_PATH')}tracked_accounts.json", 'r', encoding='utf8') as jfile:
             users = json.load(jfile)
