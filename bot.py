@@ -18,6 +18,8 @@ bot = commands.Bot(command_prefix=configs['prefix'], intents=discord.Intents.all
 @bot.event
 async def on_ready():
     await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=configs['activity_name']))
+    if not(os.path.isfile(f"{os.getenv('DATA_PATH')}tracked_accounts.json")):
+        with open(f"{os.getenv('DATA_PATH')}tracked_accounts.json", 'w', encoding='utf8') as jfile: json.dump(dict(), jfile, sort_keys=True, indent=4)
     bot.tree.on_error = on_tree_error
     for filename in os.listdir('./cogs'):
             if filename.endswith('.py'):
@@ -48,23 +50,24 @@ async def reload(ctx, extension):
     await ctx.send(f'Re - Loaded {extension} done.')
 
 
+@bot.command()
 @commands.is_owner()
-@bot.tree.command(name = 'upload_cookies', description = 'upload necessary cookies')
-async def upload_cookies(itn : discord.Interaction, cookies : discord.Attachment):
-    info = await bot.application_info()
-    if itn.user != info.owner: raise commands.errors.NotOwner('only the owner can upload cookies')
-    cookies = await cookies.read()
-    raw = json.loads(cookies)
-    needed_cookies = ['guest_id', 'guest_id_marketing', 'guest_id_ads', 'kdt', 'auth_token', 'ct0', 'twid', 'personalization_id']
-    cookies = {}
-    for cookie in raw:
-        name = cookie['name']
-        if name in needed_cookies: cookies[name] = cookie['value']
-    with open('cookies.json', 'w') as f:
-        json.dump(cookies, f)
-    await itn.response.send_message('successfully uploaded cookies', ephemeral = True)
-    log.info('successfully uploaded cookies')
-        
+async def download_data(ctx : commands.context.Context):
+    with open(f"{os.getenv('DATA_PATH')}tracked_accounts.json", 'r', encoding='utf8') as jfile:
+        message = await ctx.send(json.load(jfile))
+    await message.delete(delay=15)
+
+
+@bot.command()
+@commands.is_owner()
+async def upload_data(ctx : commands.context.Context):
+    raw = await [attachment for attachment in ctx.message.attachments if attachment.filename[-4:] == '.txt'][0].read()
+    data = json.loads(raw)
+    with open(f"{os.getenv('DATA_PATH')}tracked_accounts.json", 'w', encoding='utf8') as jfile:
+        json.dump(data, jfile, sort_keys=True, indent=4)
+    message = await ctx.send('successfully uploaded data')
+    await message.delete(delay=5)
+
 
 @bot.event
 async def on_tree_error(itn : discord.Interaction, error : app_commands.AppCommandError):
@@ -73,14 +76,14 @@ async def on_tree_error(itn : discord.Interaction, error : app_commands.AppComma
     else:
         await itn.response.send_message(error, ephemeral=True)
     log.warning(f'an error occurred but was handled by the tree error handler, error message : {error}')
-    
-    
+
+
 @bot.event
 async def on_command_error(ctx : commands.context.Context, error : commands.errors.CommandError):
     if isinstance(error, commands.errors.CommandNotFound): return
     else: await ctx.send(error)
     log.warning(f'an error occurred but was handled by the command error handler, error message : {error}')
-    
-    
+
+
 if __name__ == '__main__':
     bot.run(os.getenv('TOKEN'))

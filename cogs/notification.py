@@ -3,14 +3,18 @@ from discord import app_commands
 from core.classes import Cog_Extension
 from tweety import Twitter
 from datetime import datetime, timezone
+from dotenv import load_dotenv
+import os
 import json
 
 from src.log import setup_logger
-from src.cookies import get_cookies
+from src.get_cookies import get_cookies
 from src.notification.account_tracker import AccountTracker
 from src.permission_check import is_administrator
 
 log = setup_logger(__name__)
+
+load_dotenv()
 
 class Notification(Cog_Extension):
     def __init__(self, bot):
@@ -19,11 +23,24 @@ class Notification(Cog_Extension):
 
     add_group = app_commands.Group(name='add', description="Add something")
 
+
     @is_administrator()
-    @add_group.command(name='notifier', description="Add a twitter user to specific channel on your server.")
+    @add_group.command(name='notifier')
     async def notifier(self, itn : discord.Interaction, username: str, channel: discord.TextChannel, mention: discord.Role = None):
+        """Add a twitter user to specific channel on your server.
+
+        Parameters
+        -----------
+        username: str
+            The username of the twitter user you want to turn on notifications for.
+        channel: discord.TextChannel
+            The channel to which the bot delivers notifications.
+        mention: discord.Role
+            The role to mention when notifying.
+        """
+        
         await itn.response.defer(ephemeral=True)
-        with open('tracked_accounts.json', 'r', encoding='utf8') as jfile:
+        with open(f"{os.getenv('DATA_PATH')}tracked_accounts.json", 'r', encoding='utf8') as jfile:
             users = json.load(jfile)
         match_user = list(filter(lambda item: item[1]["username"] == username, users.items()))
         if match_user == []:
@@ -37,20 +54,20 @@ class Notification(Cog_Extension):
                 return
             roleID = str(mention.id) if mention != None else ''
             users[str(new_user.id)] = {'username': username, 'channels': {str(channel.id): roleID}, 'lastest_tweet': datetime.utcnow().replace(tzinfo=timezone.utc).strftime('%Y-%m-%d %H:%M:%S%z')}
+            
+            app.follow_user(new_user)
+            
+            if app.enable_user_notification(new_user): log.info(f'successfully opened notification for {username}')
+            else: log.warning(f'unable to turn on notifications for {username}')
         else:
             user = match_user[0][1]
-            user['channel'][str(channel.id)] = str(mention.id) if mention != None else ''
+            user['channels'][str(channel.id)] = str(mention.id) if mention != None else ''
             
-        with open('tracked_accounts.json', 'w', encoding='utf8') as jfile:
-            json.dump(users, jfile)
-        
-        app.follow_user(new_user)
+        with open(f"{os.getenv('DATA_PATH')}tracked_accounts.json", 'w', encoding='utf8') as jfile:
+            json.dump(users, jfile, sort_keys=True, indent=4)
             
-        if app.enable_user_notification(new_user): log.info(f'successfully opened notification for {username}')
-        else: log.warning(f'unable to turn on notifications for {username}')
-        
-        await self.account_tracker.addTask(username)
-        
+        if match_user == []: await self.account_tracker.addTask(username)
+            
         await itn.followup.send(f'successfully add notifier of {username}!', ephemeral=True)
 
 
