@@ -165,3 +165,8 @@ cookies.json
 
 # automatically generated files
 session.tw_session
+
+# docker & fly.io
+Dockerfile
+.dockerignore
+fly.toml

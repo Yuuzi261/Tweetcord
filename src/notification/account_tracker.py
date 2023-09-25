@@ -18,10 +18,18 @@ class AccountTracker():
         bot.loop.create_task(self.setup_tasks())
 
     async def setup_tasks(self):
-        cookies = get_cookies()
+        while True:
+            try:
+                cookies = get_cookies()
+                break
+            except:
+                log.error('failed to read cookies, please upload cookies')
+                await asyncio.sleep(10)
+                
         app = Twitter("session")
         app.load_cookies(cookies)
-        with open('tracked_accounts.json', 'r', encoding='utf8') as jfile:
+            
+        with open('./data/tracked_accounts.json', 'r', encoding='utf8') as jfile:
             users = json.load(jfile)
         self.bot.loop.create_task(self.tweetsUpdater(app)).set_name('TweetsUpdater')
         usernames = []
@@ -41,14 +49,14 @@ class AccountTracker():
             lastest_tweet = task.result()
             if lastest_tweet == None: continue
 
-            with open('tracked_accounts.json', 'r', encoding='utf8') as jfile:
+            with open('./data/tracked_accounts.json', 'r', encoding='utf8') as jfile:
                 users = json.load(jfile)
 
             user = list(filter(lambda item: item[1]["username"] == username, users.items()))[0][1]
             if date_comparator(lastest_tweet.created_on, user['lastest_tweet']) == 1:
                 user['lastest_tweet'] = str(lastest_tweet.created_on)
                 log.info(f'find a new tweet from {username}')
-                with open('tracked_accounts.json', 'w', encoding='utf8') as jfile:
+                with open('./data/tracked_accounts.json', 'w', encoding='utf8') as jfile:
                     json.dump(users, jfile)
                 for chnl in user['channels'].keys():
                     channel = self.bot.get_channel(int(chnl))
@@ -76,7 +84,7 @@ class AccountTracker():
             
 
     async def addTask(self, username : str):
-        with open('tracked_accounts.json', 'r', encoding='utf8') as jfile:
+        with open('./data/tracked_accounts.json', 'r', encoding='utf8') as jfile:
             users = json.load(jfile)
         self.bot.loop.create_task(self.notification(username)).set_name(username)
         log.info(f'new task {username} added successfully')

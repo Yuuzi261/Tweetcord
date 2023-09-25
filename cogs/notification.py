@@ -23,7 +23,7 @@ class Notification(Cog_Extension):
     @add_group.command(name='notifier', description="Add a twitter user to specific channel on your server.")
     async def notifier(self, itn : discord.Interaction, username: str, channel: discord.TextChannel, mention: discord.Role = None):
         await itn.response.defer(ephemeral=True)
-        with open('tracked_accounts.json', 'r', encoding='utf8') as jfile:
+        with open('./data/tracked_accounts.json', 'r', encoding='utf8') as jfile:
             users = json.load(jfile)
         match_user = list(filter(lambda item: item[1]["username"] == username, users.items()))
         if match_user == []:
@@ -41,7 +41,7 @@ class Notification(Cog_Extension):
             user = match_user[0][1]
             user['channel'][str(channel.id)] = str(mention.id) if mention != None else ''
             
-        with open('tracked_accounts.json', 'w', encoding='utf8') as jfile:
+        with open('./data/tracked_accounts.json', 'w', encoding='utf8') as jfile:
             json.dump(users, jfile)
         
         app.follow_user(new_user)

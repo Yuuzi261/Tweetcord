@@ -18,6 +18,8 @@ bot = commands.Bot(command_prefix=configs['prefix'], intents=discord.Intents.all
 @bot.event
 async def on_ready():
     await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=configs['activity_name']))
+    if not(os.path.isfile(r'./data/tracked_accounts.json')):
+        with open('./data/tracked_accounts.json', 'w', encoding='utf8') as jfile: json.dump(dict(), jfile)
     bot.tree.on_error = on_tree_error
     for filename in os.listdir('./cogs'):
             if filename.endswith('.py'):
