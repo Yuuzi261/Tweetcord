@@ -6,7 +6,7 @@ import json
 import asyncio
 
 from src.log import setup_logger
-from src.cookies import get_cookies
+from src.get_cookies import get_cookies
 from src.notification.display_tools import gen_embed, get_action
 from src.notification.get_tweets import get_tweets
 from src.notification.date_comparator import date_comparator

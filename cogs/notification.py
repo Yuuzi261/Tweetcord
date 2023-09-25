@@ -8,7 +8,7 @@ import os
 import json
 
 from src.log import setup_logger
-from src.cookies import get_cookies
+from src.get_cookies import get_cookies
 from src.notification.account_tracker import AccountTracker
 from src.permission_check import is_administrator
 

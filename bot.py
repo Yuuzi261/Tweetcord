@@ -50,24 +50,6 @@ async def reload(ctx, extension):
     await ctx.send(f'Re - Loaded {extension} done.')
 
 
-@commands.is_owner()
-@bot.tree.command(name = 'upload_cookies', description = 'upload necessary cookies')
-async def upload_cookies(itn : discord.Interaction, cookies : discord.Attachment):
-    info = await bot.application_info()
-    if itn.user != info.owner: raise commands.errors.NotOwner('only the owner can upload cookies')
-    cookies = await cookies.read()
-    raw = json.loads(cookies)
-    needed_cookies = ['guest_id', 'guest_id_marketing', 'guest_id_ads', 'kdt', 'auth_token', 'ct0', 'twid', 'personalization_id']
-    cookies = {}
-    for cookie in raw:
-        name = cookie['name']
-        if name in needed_cookies: cookies[name] = cookie['value']
-    with open('cookies.json', 'w') as f:
-        json.dump(cookies, f)
-    await itn.response.send_message('successfully uploaded cookies', ephemeral = True)
-    log.info('successfully uploaded cookies')
-        
-
 @bot.event
 async def on_tree_error(itn : discord.Interaction, error : app_commands.AppCommandError):
     if isinstance(error, app_commands.errors.CheckFailure):
@@ -75,14 +57,14 @@ async def on_tree_error(itn : discord.Interaction, error : app_commands.AppComma
     else:
         await itn.response.send_message(error, ephemeral=True)
     log.warning(f'an error occurred but was handled by the tree error handler, error message : {error}')
-    
-    
+
+
 @bot.event
 async def on_command_error(ctx : commands.context.Context, error : commands.errors.CommandError):
     if isinstance(error, commands.errors.CommandNotFound): return
     else: await ctx.send(error)
     log.warning(f'an error occurred but was handled by the command error handler, error message : {error}')
-    
-    
+
+
 if __name__ == '__main__':
     bot.run(os.getenv('TOKEN'))
