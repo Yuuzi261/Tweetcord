@@ -19,7 +19,7 @@ bot = commands.Bot(command_prefix=configs['prefix'], intents=discord.Intents.all
 async def on_ready():
     await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=configs['activity_name']))
     if not(os.path.isfile(f"{os.getenv('DATA_PATH')}tracked_accounts.json")):
-        with open(f"{os.getenv('DATA_PATH')}tracked_accounts.json", 'w', encoding='utf8') as jfile: json.dump(dict(), jfile)
+        with open(f"{os.getenv('DATA_PATH')}tracked_accounts.json", 'w', encoding='utf8') as jfile: json.dump(dict(), jfile, sort_keys=True, indent=4)
     bot.tree.on_error = on_tree_error
     for filename in os.listdir('./cogs'):
             if filename.endswith('.py'):
@@ -48,6 +48,25 @@ async def unload(ctx, extension):
 async def reload(ctx, extension):
     await bot.reload_extension(f'cogs.{extension}')
     await ctx.send(f'Re - Loaded {extension} done.')
+
+
+@bot.command()
+@commands.is_owner()
+async def download_data(ctx : commands.context.Context):
+    with open(f"{os.getenv('DATA_PATH')}tracked_accounts.json", 'r', encoding='utf8') as jfile:
+        message = await ctx.send(json.load(jfile))
+    await message.delete(delay=15)
+
+
+@bot.command()
+@commands.is_owner()
+async def upload_data(ctx : commands.context.Context):
+    raw = await [attachment for attachment in ctx.message.attachments if attachment.filename[-4:] == '.txt'][0].read()
+    data = json.loads(raw)
+    with open(f"{os.getenv('DATA_PATH')}tracked_accounts.json", 'w', encoding='utf8') as jfile:
+        json.dump(data, jfile, sort_keys=True, indent=4)
+    message = await ctx.send('successfully uploaded data')
+    await message.delete(delay=5)
 
 
 @bot.event
