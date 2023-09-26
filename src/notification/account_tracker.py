@@ -29,7 +29,7 @@ class AccountTracker():
                 cookies = get_cookies()
                 break
             except:
-                log.error('failed to read cookies, please upload cookies')
+                log.warning('failed to read cookies, please upload cookies')
                 await asyncio.sleep(10)
                 
         app = Twitter("session")
