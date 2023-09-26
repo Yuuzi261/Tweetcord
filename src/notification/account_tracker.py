@@ -1,6 +1,7 @@
 import discord
 from tweety import Twitter
 from dotenv import load_dotenv
+from datetime import datetime, timedelta
 import os
 import json
 import asyncio
@@ -19,6 +20,7 @@ load_dotenv()
 class AccountTracker():
     def __init__(self, bot):
         self.bot = bot
+        self.tasksMonitorLogAt = datetime.utcnow() - timedelta(seconds=configs['tasks_monitor_log_period'])
         bot.loop.create_task(self.setup_tasks())
 
     async def setup_tasks(self):
@@ -80,10 +82,20 @@ class AccountTracker():
 
     async def tasksMonitor(self, users : set):
         while True:
-            taskSet = set([task.get_name() for task in asyncio.all_tasks()])
-            aliveTasks = list(taskSet & users)
-            log.info(f'alive tasks : {aliveTasks}')
-            log.info('tweets updater : alive') if 'TweetsUpdater' in taskSet else log.warning('tweets updater : dead')
+            taskSet = {task.get_name() for task in asyncio.all_tasks()}
+            aliveTasks = taskSet & users
+            
+            if aliveTasks != users:
+                log.warning(f'dead tasks : {list(users - aliveTasks)}')
+                
+            if 'TweetsUpdater' not in taskSet:
+                log.warning('tweets updater : dead')
+                
+            if (datetime.utcnow() - self.tasksMonitorLogAt).total_seconds() >= configs['tasks_monitor_log_period']:
+                log.info(f'alive tasks : {list(aliveTasks)}')
+                if 'TweetsUpdater' in taskSet: log.info('tweets updater : alive')
+                self.tasksMonitorLogAt = datetime.utcnow()
+                
             await asyncio.sleep(configs['tasks_monitor_check_period'])
             
 
