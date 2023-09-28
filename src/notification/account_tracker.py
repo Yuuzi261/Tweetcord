@@ -86,7 +86,11 @@ class AccountTracker():
             aliveTasks = taskSet & users
             
             if aliveTasks != users:
-                log.warning(f'dead tasks : {list(users - aliveTasks)}')
+                deadTasks = list(users - aliveTasks)
+                log.warning(f'dead tasks : {deadTasks}')
+                for deadTask in deadTasks:
+                    self.bot.loop.create_task(self.notification(deadTask)).set_name(deadTask)
+                    log.info(f'restart {deadTask} successfully')
                 
             if 'TweetsUpdater' not in taskSet:
                 log.warning('tweets updater : dead')
