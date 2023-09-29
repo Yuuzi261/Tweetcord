@@ -1,12 +1,12 @@
 import discord
 from tweety import Twitter
 from dotenv import load_dotenv
+from datetime import datetime, timedelta
 import os
 import json
 import asyncio
 
 from src.log import setup_logger
-from src.get_cookies import get_cookies
 from src.notification.display_tools import gen_embed, get_action
 from src.notification.get_tweets import get_tweets
 from src.notification.date_comparator import date_comparator
@@ -19,19 +19,12 @@ load_dotenv()
 class AccountTracker():
     def __init__(self, bot):
         self.bot = bot
+        self.tasksMonitorLogAt = datetime.utcnow() - timedelta(seconds=configs['tasks_monitor_log_period'])
         bot.loop.create_task(self.setup_tasks())
 
-    async def setup_tasks(self):
-        while True:
-            try:
-                cookies = get_cookies()
-                break
-            except:
-                log.error('failed to read cookies, please upload cookies')
-                await asyncio.sleep(10)
-                
+    async def setup_tasks(self):                
         app = Twitter("session")
-        app.load_cookies(cookies)
+        app.load_auth_token(os.getenv('TWITTER_TOKEN'))
             
         with open(f"{os.getenv('DATA_PATH')}tracked_accounts.json", 'r', encoding='utf8') as jfile:
             users = json.load(jfile)
@@ -80,10 +73,24 @@ class AccountTracker():
 
     async def tasksMonitor(self, users : set):
         while True:
-            taskSet = set([task.get_name() for task in asyncio.all_tasks()])
-            aliveTasks = list(taskSet & users)
-            log.info(f'alive tasks : {aliveTasks}')
-            log.info('tweets updater : alive') if 'TweetsUpdater' in taskSet else log.warning('tweets updater : dead')
+            taskSet = {task.get_name() for task in asyncio.all_tasks()}
+            aliveTasks = taskSet & users
+            
+            if aliveTasks != users:
+                deadTasks = list(users - aliveTasks)
+                log.warning(f'dead tasks : {deadTasks}')
+                for deadTask in deadTasks:
+                    self.bot.loop.create_task(self.notification(deadTask)).set_name(deadTask)
+                    log.info(f'restart {deadTask} successfully')
+                
+            if 'TweetsUpdater' not in taskSet:
+                log.warning('tweets updater : dead')
+                
+            if (datetime.utcnow() - self.tasksMonitorLogAt).total_seconds() >= configs['tasks_monitor_log_period']:
+                log.info(f'alive tasks : {list(aliveTasks)}')
+                if 'TweetsUpdater' in taskSet: log.info('tweets updater : alive')
+                self.tasksMonitorLogAt = datetime.utcnow()
+                
             await asyncio.sleep(configs['tasks_monitor_check_period'])
             
 
