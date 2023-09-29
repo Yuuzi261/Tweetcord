@@ -86,4 +86,4 @@ async def on_command_error(ctx : commands.context.Context, error : commands.erro
 
 
 if __name__ == '__main__':
-    bot.run(os.getenv('TOKEN'))
+    bot.run(os.getenv('BOT_TOKEN'))

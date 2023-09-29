@@ -8,7 +8,6 @@ import os
 import json
 
 from src.log import setup_logger
-from src.get_cookies import get_cookies
 from src.notification.account_tracker import AccountTracker
 from src.permission_check import is_administrator
 
@@ -44,9 +43,8 @@ class Notification(Cog_Extension):
             users = json.load(jfile)
         match_user = list(filter(lambda item: item[1]["username"] == username, users.items()))
         if match_user == []:
-            cookies = get_cookies()
             app = Twitter("session")
-            app.load_cookies(cookies)
+            app.load_auth_token(os.getenv('TWITTER_TOKEN'))
             try:
                 new_user = app.get_user_info(username)
             except:
