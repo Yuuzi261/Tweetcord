@@ -53,8 +53,7 @@ async def reload(ctx, extension):
 @bot.command()
 @commands.is_owner()
 async def download_data(ctx : commands.context.Context):
-    with open(f"{os.getenv('DATA_PATH')}tracked_accounts.json", 'r', encoding='utf8') as jfile:
-        message = await ctx.send(json.load(jfile))
+    message = await ctx.send(file=discord.File(f"{os.getenv('DATA_PATH')}tracked_accounts.json"))
     await message.delete(delay=15)
 
 
