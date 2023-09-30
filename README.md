@@ -2,6 +2,37 @@
 
 Tweetcord is a discord bot that uses the tweety module to let you receive tweet updates from specific Twitter users on discord. You just need to set up the Twitter users and discord channels you want to follow, and Tweetcord will automatically send the tweets to the designated channels, so you won’t miss any important news.🐦
 
+## Features
+
+<details>
+   <summary>
+
+### Screenshots
+
+   </summary>
+👇When the followed user posts a new tweet, your server will also receive a notification.
+
+![](https://i.imgur.com/lavcfOz.png)
+
+</details>
+
+<details>
+   <summary>
+
+### Commands
+
+   </summary>
+
+👉 `/add notifier` `username` `channel` | `mention`
+
+| parameters | types | descriptions |
+| --------- | ----- | ----------- |
+| `username` | str | The username of the twitter user you want to turn on notifications for |
+| `channel` | discord.TextChannel | The channel to which the bot delivers notifications |
+| `mention` | discord.Role | The role to mention when notifying |
+
+</details>
+
 ## Installation
 
 Before running the bot, you need to install the necessary modules.
