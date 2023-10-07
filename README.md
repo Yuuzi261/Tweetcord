@@ -12,7 +12,7 @@ Tweetcord is a discord bot that uses the tweety module to let you receive tweet 
    </summary>
 👇When the followed user posts a new tweet, your server will also receive a notification.
 
-![](https://i.imgur.com/lavcfOz.png)
+![](https://i.imgur.com/SXITM0a.png)
 
 </details>
 

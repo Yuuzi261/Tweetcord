@@ -3,7 +3,7 @@ from tweety import Twitter
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
 import os
-import json
+import sqlite3
 import asyncio
 
 from src.log import setup_logger
@@ -22,19 +22,23 @@ class AccountTracker():
         self.tasksMonitorLogAt = datetime.utcnow() - timedelta(seconds=configs['tasks_monitor_log_period'])
         bot.loop.create_task(self.setup_tasks())
 
-    async def setup_tasks(self):                
+    async def setup_tasks(self):
         app = Twitter("session")
         app.load_auth_token(os.getenv('TWITTER_TOKEN'))
-            
-        with open(f"{os.getenv('DATA_PATH')}tracked_accounts.json", 'r', encoding='utf8') as jfile:
-            users = json.load(jfile)
+        
+        conn = sqlite3.connect(f"{os.getenv('DATA_PATH')}tracked_accounts.db")
+        cursor = conn.cursor()
+        
         self.bot.loop.create_task(self.tweetsUpdater(app)).set_name('TweetsUpdater')
+        cursor.execute('SELECT username FROM user')
         usernames = []
-        for user in users.values():
-            username = user['username']
+        for user in cursor:
+            username = user[0]
             usernames.append(username)
             self.bot.loop.create_task(self.notification(username)).set_name(username)
         self.bot.loop.create_task(self.tasksMonitor(set(usernames))).set_name('TasksMonitor')
+        
+        conn.close()
 
 
     async def notification(self, username):
@@ -45,20 +49,22 @@ class AccountTracker():
             await task
             lastest_tweet = task.result()
             if lastest_tweet == None: continue
+            
+            conn = sqlite3.connect(f"{os.getenv('DATA_PATH')}tracked_accounts.db")
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
 
-            with open(f"{os.getenv('DATA_PATH')}tracked_accounts.json", 'r', encoding='utf8') as jfile:
-                users = json.load(jfile)
-
-            user = list(filter(lambda item: item[1]["username"] == username, users.items()))[0][1]
+            user = cursor.execute('SELECT * FROM user WHERE username = ?', (username,)).fetchone()
             if date_comparator(lastest_tweet.created_on, user['lastest_tweet']) == 1:
-                user['lastest_tweet'] = str(lastest_tweet.created_on)
+                cursor.execute('UPDATE user SET lastest_tweet = ? WHERE username = ?', (str(lastest_tweet.created_on), username))
                 log.info(f'find a new tweet from {username}')
-                with open(f"{os.getenv('DATA_PATH')}tracked_accounts.json", 'w', encoding='utf8') as jfile:
-                    json.dump(users, jfile, sort_keys=True, indent=4)
-                for chnl in user['channels'].keys():
-                    channel = self.bot.get_channel(int(chnl))
-                    mention = f"{channel.guild.get_role(int(user['channels'][chnl])).mention} " if user['channels'][chnl] != '' else ''
+                for data in cursor.execute('SELECT * FROM notification WHERE user_id = ?', (user['id'],)):
+                    channel = self.bot.get_channel(int(data['channel_id']))
+                    mention = f"{channel.guild.get_role(int(data['role_id'])).mention} " if data['role_id'] != '' else ''
                     await channel.send(f"{mention}**{lastest_tweet.author.name}** just {get_action(lastest_tweet)} here: \n{lastest_tweet.url}", file = discord.File('images/twitter.png', filename='twitter.png'), embeds = gen_embed(lastest_tweet))
+                    
+            conn.commit()
+            conn.close()
 
 
     async def tweetsUpdater(self, app):
@@ -95,8 +101,9 @@ class AccountTracker():
             
 
     async def addTask(self, username : str):
-        with open(f"{os.getenv('DATA_PATH')}tracked_accounts.json", 'r', encoding='utf8') as jfile:
-            users = json.load(jfile)
+        conn = sqlite3.connect(f"{os.getenv('DATA_PATH')}tracked_accounts.db")
+        cursor = conn.cursor()
+        
         self.bot.loop.create_task(self.notification(username)).set_name(username)
         log.info(f'new task {username} added successfully')
         
@@ -104,5 +111,7 @@ class AccountTracker():
             if task.get_name() == 'TasksMonitor':
                 try: log.info(f'existing TasksMonitor has been closed') if task.cancel() else log.info('existing TasksMonitor failed to close')
                 except Exception as e: log.warning(f'addTask : {e}')
-        self.bot.loop.create_task(self.tasksMonitor(set([user['username'] for user in users.values()]))).set_name('TasksMonitor')
+        self.bot.loop.create_task(self.tasksMonitor({user[0] for user in cursor.execute('SELECT username FROM user').fetchall()})).set_name('TasksMonitor')
         log.info(f'new TasksMonitor has been started')
+        
+        conn.close()

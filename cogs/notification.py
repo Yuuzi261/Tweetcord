@@ -5,7 +5,7 @@ from tweety import Twitter
 from datetime import datetime, timezone
 from dotenv import load_dotenv
 import os
-import json
+import sqlite3
 
 from src.log import setup_logger
 from src.notification.account_tracker import AccountTracker
@@ -39,10 +39,15 @@ class Notification(Cog_Extension):
         """
         
         await itn.response.defer(ephemeral=True)
-        with open(f"{os.getenv('DATA_PATH')}tracked_accounts.json", 'r', encoding='utf8') as jfile:
-            users = json.load(jfile)
-        match_user = list(filter(lambda item: item[1]["username"] == username, users.items()))
-        if match_user == []:
+        
+        conn = sqlite3.connect(f"{os.getenv('DATA_PATH')}tracked_accounts.db")
+        cursor = conn.cursor()
+        
+        cursor.execute(f"SELECT * FROM user WHERE username='{username}'")
+        match_user = cursor.fetchone()
+        
+        roleID = str(mention.id) if mention != None else ''
+        if match_user == None:
             app = Twitter("session")
             app.load_auth_token(os.getenv('TWITTER_TOKEN'))
             try:
@@ -50,21 +55,23 @@ class Notification(Cog_Extension):
             except:
                 await itn.followup.send(f'user {username} not found', ephemeral=True)
                 return
-            roleID = str(mention.id) if mention != None else ''
-            users[str(new_user.id)] = {'username': username, 'channels': {str(channel.id): roleID}, 'lastest_tweet': datetime.utcnow().replace(tzinfo=timezone.utc).strftime('%Y-%m-%d %H:%M:%S%z')}
+            
+            cursor.execute('INSERT INTO user VALUES (?, ?, ?)', (str(new_user.id), username, datetime.utcnow().replace(tzinfo=timezone.utc).strftime('%Y-%m-%d %H:%M:%S%z')))
+            cursor.execute('INSERT OR IGNORE INTO channel VALUES (?)', (str(channel.id),))
+            cursor.execute('INSERT INTO notification VALUES (?, ?, ?)', (str(new_user.id), str(channel.id), roleID))
             
             app.follow_user(new_user)
             
             if app.enable_user_notification(new_user): log.info(f'successfully opened notification for {username}')
             else: log.warning(f'unable to turn on notifications for {username}')
         else:
-            user = match_user[0][1]
-            user['channels'][str(channel.id)] = str(mention.id) if mention != None else ''
+            cursor.execute('INSERT OR IGNORE INTO channel VALUES (?)', (str(channel.id),))
+            cursor.execute('REPLACE INTO notification VALUES (?, ?, ?)', (match_user[0], str(channel.id), roleID))
+        
+        conn.commit()
+        conn.close()
             
-        with open(f"{os.getenv('DATA_PATH')}tracked_accounts.json", 'w', encoding='utf8') as jfile:
-            json.dump(users, jfile, sort_keys=True, indent=4)
-            
-        if match_user == []: await self.account_tracker.addTask(username)
+        if match_user == None: await self.account_tracker.addTask(username)
             
         await itn.followup.send(f'successfully add notifier of {username}!', ephemeral=True)
 
