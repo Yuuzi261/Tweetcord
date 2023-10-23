@@ -42,9 +42,10 @@ class Notification(Cog_Extension):
         await itn.response.defer(ephemeral=True)
         
         conn = sqlite3.connect(f"{os.getenv('DATA_PATH')}tracked_accounts.db")
+        conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
         
-        cursor.execute(f"SELECT * FROM user WHERE username='{username}'")
+        cursor.execute('SELECT * FROM user WHERE username = ?', (username,))
         match_user = cursor.fetchone()
         
         roleID = str(mention.id) if mention != None else ''
@@ -67,7 +68,7 @@ class Notification(Cog_Extension):
             else: log.warning(f'unable to turn on notifications for {username}')
         else:
             cursor.execute('INSERT OR IGNORE INTO channel VALUES (?)', (str(channel.id),))
-            cursor.execute('REPLACE INTO notification (user_id, channel_id, role_id) VALUES (?, ?, ?)', (match_user[0], str(channel.id), roleID))
+            cursor.execute('REPLACE INTO notification (user_id, channel_id, role_id) VALUES (?, ?, ?)', (match_user['id'], str(channel.id), roleID))
         
         conn.commit()
         conn.close()
