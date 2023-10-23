@@ -61,8 +61,9 @@ class AccountTracker():
                 log.info(f'find a new tweet from {username}')
                 for data in cursor.execute('SELECT * FROM notification WHERE user_id = ?', (user['id'],)):
                     channel = self.bot.get_channel(int(data['channel_id']))
-                    mention = f"{channel.guild.get_role(int(data['role_id'])).mention} " if data['role_id'] != '' else ''
-                    await channel.send(f"{mention}**{lastest_tweet.author.name}** just {get_action(lastest_tweet)} here: \n{lastest_tweet.url}", file = discord.File('images/twitter.png', filename='twitter.png'), embeds = gen_embed(lastest_tweet))
+                    if channel != None:
+                        mention = f"{channel.guild.get_role(int(data['role_id'])).mention} " if data['role_id'] != '' else ''
+                        await channel.send(f"{mention}**{lastest_tweet.author.name}** just {get_action(lastest_tweet)} here: \n{lastest_tweet.url}", file = discord.File('images/twitter.png', filename='twitter.png'), embeds = gen_embed(lastest_tweet))
                     
             conn.close()
 
