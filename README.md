@@ -31,6 +31,13 @@ Tweetcord is a discord bot that uses the tweety module to let you receive tweet 
 | `channel` | discord.TextChannel | The channel to which the bot delivers notifications |
 | `mention` | discord.Role | The role to mention when notifying |
 
+👉 `/remove notifier` `username` `channel`
+
+| parameters | types | descriptions |
+| --------- | ----- | ----------- |
+| `username` | str | The username of the twitter user you want to turn off notifications for |
+| `channel` | discord.TextChannel | The channel which set to delivers notifications |
+
 </details>
 
 ## Installation
@@ -45,7 +52,7 @@ In certain operating systems, you may need to use the command `pip3` instead of 
 
 ## Usage
 
-**📢This tutorial is suitable for version 0.3.2 or higher.**
+**📢This tutorial is suitable for version 0.3.2 or later. (Recommended: 0.3.4 or later)**
 
 ### 1. Create and configure the .env file
 
