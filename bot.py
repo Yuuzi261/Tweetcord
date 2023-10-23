@@ -48,6 +48,11 @@ async def reload(ctx, extension):
     await bot.reload_extension(f'cogs.{extension}')
     await ctx.send(f'Re - Loaded {extension} done.')
 
+@bot.command()
+@commands.is_owner()
+async def download_log(ctx : commands.context.Context):
+    message = await ctx.send(file=discord.File('console.log'))
+    await message.delete(delay=15)
 
 @bot.command()
 @commands.is_owner()
