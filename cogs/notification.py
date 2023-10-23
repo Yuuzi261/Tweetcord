@@ -21,6 +21,7 @@ class Notification(Cog_Extension):
         self.account_tracker = AccountTracker(bot)
 
     add_group = app_commands.Group(name='add', description="Add something")
+    remove_group = app_commands.Group(name='remove', description='Remove something')
 
 
     @is_administrator()
@@ -58,7 +59,7 @@ class Notification(Cog_Extension):
             
             cursor.execute('INSERT INTO user VALUES (?, ?, ?)', (str(new_user.id), username, datetime.utcnow().replace(tzinfo=timezone.utc).strftime('%Y-%m-%d %H:%M:%S%z')))
             cursor.execute('INSERT OR IGNORE INTO channel VALUES (?)', (str(channel.id),))
-            cursor.execute('INSERT INTO notification VALUES (?, ?, ?)', (str(new_user.id), str(channel.id), roleID))
+            cursor.execute('INSERT INTO notification (user_id, channel_id, role_id) VALUES (?, ?, ?)', (str(new_user.id), str(channel.id), roleID))
             
             app.follow_user(new_user)
             
@@ -66,7 +67,7 @@ class Notification(Cog_Extension):
             else: log.warning(f'unable to turn on notifications for {username}')
         else:
             cursor.execute('INSERT OR IGNORE INTO channel VALUES (?)', (str(channel.id),))
-            cursor.execute('REPLACE INTO notification VALUES (?, ?, ?)', (match_user[0], str(channel.id), roleID))
+            cursor.execute('REPLACE INTO notification (user_id, channel_id, role_id) VALUES (?, ?, ?)', (match_user[0], str(channel.id), roleID))
         
         conn.commit()
         conn.close()
@@ -74,6 +75,37 @@ class Notification(Cog_Extension):
         if match_user == None: await self.account_tracker.addTask(username)
             
         await itn.followup.send(f'successfully add notifier of {username}!', ephemeral=True)
+
+
+    @is_administrator()
+    @remove_group.command(name='notifier')
+    async def notifier(self, itn : discord.Interaction, username: str, channel: discord.TextChannel):
+        """Remove a notifier on your server.
+
+        Parameters
+        -----------
+        username: str
+            The username of the twitter user you want to turn off notifications for.
+        channel: discord.TextChannel
+            The channel which set to delivers notifications.
+        """
+        
+        await itn.response.defer(ephemeral=True)
+        
+        conn = sqlite3.connect(f"{os.getenv('DATA_PATH')}tracked_accounts.db")
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        
+        cursor.execute('SELECT user_id FROM notification, user WHERE username = ? AND channel_id = ? AND user_id = id', (username, str(channel.id)))
+        match_notifier = cursor.fetchone()
+        if match_notifier != None:
+            cursor.execute('UPDATE notification SET enabled = 0 WHERE user_id = ? AND channel_id = ?', (match_notifier['user_id'], str(channel.id)))
+            conn.commit()
+            await itn.followup.send(f'successfully remove notifier of {username}!', ephemeral=True)
+        else:
+            await itn.followup.send(f'can\'t find notifier {username} in {channel.mention}!', ephemeral=True)
+        
+        conn.close()
 
 
 async def setup(bot):

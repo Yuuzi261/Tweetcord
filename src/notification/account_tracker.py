@@ -59,7 +59,7 @@ class AccountTracker():
             if date_comparator(lastest_tweet.created_on, user['lastest_tweet']) == 1:
                 execute(conn, 'UPDATE user SET lastest_tweet = ? WHERE username = ?', (str(lastest_tweet.created_on), username), username)
                 log.info(f'find a new tweet from {username}')
-                for data in cursor.execute('SELECT * FROM notification WHERE user_id = ?', (user['id'],)):
+                for data in cursor.execute('SELECT * FROM notification WHERE user_id = ? AND enabled = 1', (user['id'],)):
                     channel = self.bot.get_channel(int(data['channel_id']))
                     if channel != None:
                         mention = f"{channel.guild.get_role(int(data['role_id'])).mention} " if data['role_id'] != '' else ''
