@@ -10,6 +10,7 @@ from src.log import setup_logger
 from src.notification.display_tools import gen_embed, get_action
 from src.notification.get_tweets import get_tweets
 from src.notification.date_comparator import date_comparator
+from src.db_function.db_executor import execute
 from configs.load_configs import configs
 
 log = setup_logger(__name__)
@@ -56,14 +57,14 @@ class AccountTracker():
 
             user = cursor.execute('SELECT * FROM user WHERE username = ?', (username,)).fetchone()
             if date_comparator(lastest_tweet.created_on, user['lastest_tweet']) == 1:
-                cursor.execute('UPDATE user SET lastest_tweet = ? WHERE username = ?', (str(lastest_tweet.created_on), username))
+                execute(conn, 'UPDATE user SET lastest_tweet = ? WHERE username = ?', (str(lastest_tweet.created_on), username), username)
                 log.info(f'find a new tweet from {username}')
-                for data in cursor.execute('SELECT * FROM notification WHERE user_id = ?', (user['id'],)):
+                for data in cursor.execute('SELECT * FROM notification WHERE user_id = ? AND enabled = 1', (user['id'],)):
                     channel = self.bot.get_channel(int(data['channel_id']))
-                    mention = f"{channel.guild.get_role(int(data['role_id'])).mention} " if data['role_id'] != '' else ''
-                    await channel.send(f"{mention}**{lastest_tweet.author.name}** just {get_action(lastest_tweet)} here: \n{lastest_tweet.url}", file = discord.File('images/twitter.png', filename='twitter.png'), embeds = gen_embed(lastest_tweet))
+                    if channel != None:
+                        mention = f"{channel.guild.get_role(int(data['role_id'])).mention} " if data['role_id'] != '' else ''
+                        await channel.send(f"{mention}**{lastest_tweet.author.name}** just {get_action(lastest_tweet)} here: \n{lastest_tweet.url}", file = discord.File('images/twitter.png', filename='twitter.png'), embeds = gen_embed(lastest_tweet))
                     
-            conn.commit()
             conn.close()
 
 

@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 import os
 
 from src.log import setup_logger
-from src.init_db import init_db
+from src.db_function.init_db import init_db
 from configs.load_configs import configs
 
 log = setup_logger(__name__)
@@ -48,6 +48,11 @@ async def reload(ctx, extension):
     await bot.reload_extension(f'cogs.{extension}')
     await ctx.send(f'Re - Loaded {extension} done.')
 
+@bot.command()
+@commands.is_owner()
+async def download_log(ctx : commands.context.Context):
+    message = await ctx.send(file=discord.File('console.log'))
+    await message.delete(delay=15)
 
 @bot.command()
 @commands.is_owner()
