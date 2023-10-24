@@ -1,4 +1,6 @@
 <div align="center">
+
+<img alt="LOGO" src="https://i.imgur.com/WKXJDZL.png" width="300" height="300" />
   
 # Tweetcord
 
