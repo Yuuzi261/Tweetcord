@@ -1,8 +1,18 @@
+<div align="center">
+  
 # Tweetcord
 
-Tweetcord is a discord bot that uses the tweety module to let you receive tweet updates from specific Twitter users on discord. You just need to set up the Twitter users and discord channels you want to follow, and Tweetcord will automatically send the tweets to the designated channels, so you won’t miss any important news.🐦
+A Twitter Alert Bot For Discord
 
-## Features
+[**English**](./README.md) | [**中文繁體**](./README_zh.md)
+
+</div>
+
+## 📝Introduction
+
+Tweetcord is a discord bot that uses the tweety-ns module to let you receive tweet updates from specific Twitter users on discord. You just need to set up the Twitter users and discord channels you want to follow, and Tweetcord will automatically send the tweets to the designated channels, so you won’t miss any important news.🐦
+
+## ✨Features
 
 <details>
    <summary>
@@ -40,7 +50,7 @@ Tweetcord is a discord bot that uses the tweety module to let you receive tweet 
 
 </details>
 
-## Installation
+## 📥Installation
 
 Before running the bot, you need to install the necessary modules.
 
@@ -50,9 +60,32 @@ pip install -r requirements.txt
 
 In certain operating systems, you may need to use the command `pip3` instead of `pip` for installation.
 
-## Usage
+## ⚡Usage
 
 **📢This tutorial is suitable for version 0.3.2 or later. (Recommended: 0.3.4 or later)**
+
+<details>
+   <summary><b>📌click here to upgrade from 0.3.3 to 0.3.4</b></summary>
+
+Because the database structure has been updated, you must use the following code to update the database structure.
+
+```py
+from dotenv import load_dotenv
+import os
+import sqlite3
+
+load_dotenv()
+
+conn = sqlite3.connect(f"{os.getenv('DATA_PATH')}tracked_accounts.db")
+cursor = conn.cursor()
+
+cursor.execute('ALTER TABLE notification ADD enabled INTEGER DEFAULT 1')
+
+conn.commit()
+conn.close()
+```
+
+</details>
 
 ### 1. Create and configure the .env file
 
