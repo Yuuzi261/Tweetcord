@@ -81,7 +81,7 @@ class Notification(Cog_Extension):
 
 
     @is_administrator()
-    @remove_group.command(name='remove_notifier')
+    @remove_group.command(name='notifier')
     async def remove_notifier(self, itn: discord.Interaction, username: str):
         """Remove a notifier on your server.
 
