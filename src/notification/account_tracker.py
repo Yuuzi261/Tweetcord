@@ -20,8 +20,23 @@ load_dotenv()
 class AccountTracker():
     def __init__(self, bot):
         self.bot = bot
+        self.tasks = {}
+        self.cancelled_users = set()
         self.tasksMonitorLogAt = datetime.utcnow() - timedelta(seconds=configs['tasks_monitor_log_period'])
+
         bot.loop.create_task(self.setup_tasks())
+
+    async def clear_cancelled_tasks(self):
+        for task in asyncio.all_tasks():
+            if task.done():
+                task_name = task.get_name()
+                if task_name:
+                    log.info(f"Task for {task_name} has been cancelled and removed.")
+                else:
+                    log.warning(f"No task name found for a cancelled task.")
+                task.cancel()
+
+        log.info("Cancelled tasks cleared.")
 
     async def setup_tasks(self):
         app = Twitter("session")
@@ -38,6 +53,7 @@ class AccountTracker():
             usernames.append(username)
             self.bot.loop.create_task(self.notification(username)).set_name(username)
         self.bot.loop.create_task(self.tasksMonitor(set(usernames))).set_name('TasksMonitor')
+        
         
         conn.close()
 
@@ -78,18 +94,27 @@ class AccountTracker():
             await asyncio.sleep(configs['tweets_check_period'])
 
 
-    async def tasksMonitor(self, users : set):
+    async def tasksMonitor(self, users: set):
         while True:
             taskSet = {task.get_name() for task in asyncio.all_tasks()}
             aliveTasks = taskSet & users
+
+            deadTasks = list(users - aliveTasks - self.cancelled_users)
             
-            if aliveTasks != users:
-                deadTasks = list(users - aliveTasks)
-                log.warning(f'dead tasks : {deadTasks}')
-                for deadTask in deadTasks:
+            conn = sqlite3.connect(f"{os.getenv('DATA_PATH')}tracked_accounts.db")
+            cursor = conn.cursor()
+
+            for deadTask in deadTasks:
+                user_exists = cursor.execute("SELECT * FROM user WHERE username=?", (deadTask,)).fetchone()
+                if user_exists:
                     self.bot.loop.create_task(self.notification(deadTask)).set_name(deadTask)
                     log.info(f'restart {deadTask} successfully')
+                else:
+                    log.info(f'Not restarting {deadTask} as user no longer exists.')
+                    users.discard(deadTask)
                 
+            conn.close()
+
             if 'TweetsUpdater' not in taskSet:
                 log.warning('tweets updater : dead')
                 
@@ -100,13 +125,24 @@ class AccountTracker():
                 
             await asyncio.sleep(configs['tasks_monitor_check_period'])
             
+    async def removeTask(self, username: str):
+        for task in asyncio.all_tasks():
+            if task.get_name() == username:
+                task.cancel()
+                log.info(f'Task for {username} has been cancelled.')
+                return
+        log.warning(f'No task found for {username}.')
+            
 
     async def addTask(self, username : str):
         conn = sqlite3.connect(f"{os.getenv('DATA_PATH')}tracked_accounts.db")
         cursor = conn.cursor()
         
-        self.bot.loop.create_task(self.notification(username)).set_name(username)
+        task = self.bot.loop.create_task(self.notification(username))
+        self.tasks[username] = task
+        task.set_name(username)
         log.info(f'new task {username} added successfully')
+        
         
         for task in asyncio.all_tasks():
             if task.get_name() == 'TasksMonitor':
