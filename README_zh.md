@@ -60,7 +60,7 @@ Tweetcord是一個discord機器人，它使用tweety-ns模組讓你在discord上
 pip install -r requirements.txt
 ```
 
-在某些作業系統中，你可能需要使用`pip3`而不是`pip`來進行安裝。
+在某些作業系統中，你可能需要使用 `pip3` 而不是 `pip` 來進行安裝。
 
 ## ⚡使用
 
@@ -112,14 +112,23 @@ tasks_monitor_check_period: 60      # 檢查每個任務是否正常運行的間
 tasks_monitor_log_period: 14400     # 將當前運行中的任務列表輸出到執行日誌的間隔。
 ```
 
-### 3. 運行機器人
+### 3. 運行機器人並邀請至你的伺服器
 
 ```shell
 python bot.py
 ```
 
-在某些操作系統中，你可能需要使用`python3`而不是`python`。
+在某些操作系統中，你可能需要使用 `python3` 而不是 `python`。
+
+🔧機器人權限設定 `2147666944`
+
+- [x] 讀取訊息（Read Messages/View Channels）
+- [x] 發送訊息（Send Messages）
+- [x] 嵌入連結（Embed Links）
+- [x] 附加檔案（Attach Files）
+- [x] 提及 @everyone、@here 和所有身分組（Mention Everyone）
+- [x] 使用應用程式命令（Use Slash Commands）
 
 ### 4. 玩得開心
 
-現在你可以回到Discord，並使用`/add notifier`指令來設置你想要接收更新的Twitter用戶！
+現在你可以回到Discord，並使用 `/add notifier` 指令來設置你想要接收更新的Twitter用戶！
