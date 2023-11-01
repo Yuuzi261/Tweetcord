@@ -62,8 +62,11 @@ class AccountTracker():
                 for data in cursor.execute('SELECT * FROM notification WHERE user_id = ? AND enabled = 1', (user['id'],)):
                     channel = self.bot.get_channel(int(data['channel_id']))
                     if channel != None:
-                        mention = f"{channel.guild.get_role(int(data['role_id'])).mention} " if data['role_id'] != '' else ''
-                        await channel.send(f"{mention}**{lastest_tweet.author.name}** just {get_action(lastest_tweet)} here: \n{lastest_tweet.url}", file = discord.File('images/twitter.png', filename='twitter.png'), embeds = gen_embed(lastest_tweet))
+                        try:
+                            mention = f"{channel.guild.get_role(int(data['role_id'])).mention} " if data['role_id'] != '' else ''
+                            await channel.send(f"{mention}**{lastest_tweet.author.name}** just {get_action(lastest_tweet)} here: \n{lastest_tweet.url}", file = discord.File('images/twitter.png', filename='twitter.png'), embeds = gen_embed(lastest_tweet))
+                        except Exception as e:
+                            if not isinstance(e, discord.errors.Forbidden): log.error(f'an unexpected error occurred at {channel.mention} while sending notification')
                     
             conn.close()
 
