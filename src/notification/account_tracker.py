@@ -9,7 +9,6 @@ import asyncio
 from src.log import setup_logger
 from src.notification.display_tools import gen_embed, get_action
 from src.notification.get_tweets import get_tweets
-from src.notification.date_comparator import date_comparator
 from src.db_function.db_executor import execute
 from configs.load_configs import configs
 
@@ -48,23 +47,23 @@ class AccountTracker():
 
             task = asyncio.create_task(asyncio.to_thread(get_tweets, self.tweets, username))
             await task
-            lastest_tweet = task.result()
-            if lastest_tweet == None: continue
+            lastest_tweets = task.result()
+            if lastest_tweets == None: continue
             
             conn = sqlite3.connect(f"{os.getenv('DATA_PATH')}tracked_accounts.db")
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
 
             user = cursor.execute('SELECT * FROM user WHERE username = ?', (username,)).fetchone()
-            if date_comparator(lastest_tweet.created_on, user['lastest_tweet']) == 1:
-                execute(conn, 'UPDATE user SET lastest_tweet = ? WHERE username = ?', (str(lastest_tweet.created_on), username), username)
+            execute(conn, 'UPDATE user SET lastest_tweet = ? WHERE username = ?', (str(lastest_tweets[-1].created_on), username), username)
+            for tweet in lastest_tweets:
                 log.info(f'find a new tweet from {username}')
                 for data in cursor.execute('SELECT * FROM notification WHERE user_id = ? AND enabled = 1', (user['id'],)):
                     channel = self.bot.get_channel(int(data['channel_id']))
                     if channel != None:
                         try:
                             mention = f"{channel.guild.get_role(int(data['role_id'])).mention} " if data['role_id'] != '' else ''
-                            await channel.send(f"{mention}**{lastest_tweet.author.name}** just {get_action(lastest_tweet)} here: \n{lastest_tweet.url}", file = discord.File('images/twitter.png', filename='twitter.png'), embeds = gen_embed(lastest_tweet))
+                            await channel.send(f"{mention}**{tweet.author.name}** just {get_action(tweet)} here: \n{tweet.url}", file = discord.File('images/twitter.png', filename='twitter.png'), embeds = gen_embed(tweet))
                         except Exception as e:
                             if not isinstance(e, discord.errors.Forbidden): log.error(f'an unexpected error occurred at {channel.mention} while sending notification')
                     
