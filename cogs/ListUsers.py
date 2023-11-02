@@ -41,11 +41,6 @@ class ListUsersCog(commands.Cog):
             else f"{i+1}. ```{username}``` <#{channel_id}> {':arrow_forward:' if enabled == 1 else ':pause_button:'}"
             for i, (username, channel_id, role_id, enabled) in enumerate(user_channel_role_data)
         ]
-
-        formatted_data = [
-            f"{i+1}. {username} <#{channel_id}> <@&{role_id}>" if role_id else f"{i+1}. {username} <#{channel_id}>"
-            for i, (username, channel_id, role_id) in enumerate(user_channel_role_data)
-        ]
         
         if not formatted_data:
             description = "***No users are registered on this server.***"
