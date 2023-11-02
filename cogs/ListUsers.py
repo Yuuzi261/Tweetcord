@@ -23,7 +23,7 @@ class ListUsersCog(commands.Cog):
         cursor = conn.cursor()
 
         cursor.execute("""
-            SELECT user.username, channel.id, notification.role_id
+            SELECT user.username, channel.id, notification.role_id, notification.enabled
             FROM user
             JOIN notification
             ON user.id = notification.user_id
