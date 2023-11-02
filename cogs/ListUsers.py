@@ -23,7 +23,7 @@ class ListUsersCog(commands.Cog):
         cursor = conn.cursor()
 
         cursor.execute("""
-            SELECT user.username, channel.id, notification.mention
+            SELECT user.username, channel.id, notification.role_id, notification.enabled
             FROM user
             JOIN notification
             ON user.id = notification.user_id
@@ -31,11 +31,15 @@ class ListUsersCog(commands.Cog):
             ON notification.channel_id = channel.id
             WHERE notification.server_id = ?
         """, (str(server_id),))
-        user_channel_data = cursor.fetchall()
+        user_channel_role_data = cursor.fetchall()
 
         conn.close()
 
-        formatted_data = [f"{i+1}. ```{username}``` <#{channel_id}> Mention: {mention}" for i, (username, channel_id, mention) in enumerate(user_channel_data)]
+        formatted_data = [
+            f"{i+1}. ```{username}``` <#{channel_id}> <@&{role_id}> {':arrow_forward:' if enabled == 1 else ':pause_button:'}" if role_id 
+            else f"{i+1}. ```{username}``` <#{channel_id}> {':arrow_forward:' if enabled == 1 else ':pause_button:'}"
+            for i, (username, channel_id, role_id, enabled) in enumerate(user_channel_role_data)
+        ]
 
         if not formatted_data:
             description = "***No users are registered on this server.***"
@@ -43,7 +47,7 @@ class ListUsersCog(commands.Cog):
             description = '\n'.join(formatted_data)
             
         embed = discord.Embed(
-            title=f'Notice Add List ',
+            title=f'Notification List in __***{itn.guild.name}***__ ',
             description=description,
             color=0x778899
         )

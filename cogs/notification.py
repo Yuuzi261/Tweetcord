@@ -48,9 +48,8 @@ class Notification(Cog_Extension):
         cursor.execute('SELECT * FROM user WHERE username = ?', (username,))
         match_user = cursor.fetchone()
         
-        server_id = str(itn.guild_id)
+        server_id = str(channel.guild.id)
         roleID = str(mention.id) if mention != None else ''
-        mention_str = mention.mention if mention else ''
         if match_user == None:
             app = Twitter("session")
             app.load_auth_token(os.getenv('TWITTER_TOKEN'))
@@ -62,7 +61,7 @@ class Notification(Cog_Extension):
             
             cursor.execute('INSERT INTO user VALUES (?, ?, ?)', (str(new_user.id), username, datetime.utcnow().replace(tzinfo=timezone.utc).strftime('%Y-%m-%d %H:%M:%S%z')))
             cursor.execute('INSERT OR IGNORE INTO channel VALUES (?)', (str(channel.id),))
-            cursor.execute('INSERT INTO notification (user_id, channel_id, role_id, mention, server_id) VALUES (?, ?, ?, ?, ?)', (str(new_user.id), str(channel.id), roleID, mention_str, server_id))
+            cursor.execute('INSERT INTO notification (user_id, channel_id, role_id, server_id) VALUES (?, ?, ?, ?)', (str(new_user.id), str(channel.id), roleID, server_id))
             
             app.follow_user(new_user)
             
@@ -70,7 +69,7 @@ class Notification(Cog_Extension):
             else: log.warning(f'unable to turn on notifications for {username}')
         else:
             cursor.execute('INSERT OR IGNORE INTO channel VALUES (?)', (str(channel.id),))
-            cursor.execute('REPLACE INTO notification (user_id, channel_id, role_id, mention) VALUES (?, ?, ?)', (match_user['id'], str(channel.id), roleID, mention_str))
+            cursor.execute('REPLACE INTO notification (user_id, channel_id, role_id, server_id) VALUES (?, ?, ?, ?)', (match_user['id'], str(channel.id), roleID, server_id))
         
         conn.commit()
         conn.close()
@@ -82,7 +81,7 @@ class Notification(Cog_Extension):
 
     @is_administrator()
     @remove_group.command(name='notifier')
-    async def remove_notifier(self, itn: discord.Interaction, username: str):
+    async def notifier(self, itn : discord.Interaction, username: str, channel: discord.TextChannel):
         """Remove a notifier on your server.
 
         Parameters
@@ -91,38 +90,26 @@ class Notification(Cog_Extension):
             The username of the twitter user you want to turn off notifications for.
         channel: discord.TextChannel
             The channel which set to delivers notifications.
-        """  
+        """
+        
         await itn.response.defer(ephemeral=True)
         
         conn = sqlite3.connect(f"{os.getenv('DATA_PATH')}tracked_accounts.db")
+        conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
         
-        server_id = str(itn.guild_id)
-
-        cursor.execute(f"SELECT * FROM user WHERE username='{username}'")
-        match_user = cursor.fetchone()
+        server_id = str(channel.guild.id)
         
-        if match_user is None:
-            await itn.followup.send(f'can\'t find notifier{username}', ephemeral=True)
-            return
+        cursor.execute('SELECT user_id FROM notification, user WHERE username = ? AND channel_id = ? AND user_id = id AND server_id = ?', (username, str(channel.id), server_id))
+        match_notifier = cursor.fetchone()
+        if match_notifier != None:
+            cursor.execute('UPDATE notification SET enabled = 0 WHERE user_id = ? AND channel_id = ? AND server_id = ?', (match_notifier['user_id'], str(channel.id), server_id))
+            conn.commit()
+            await itn.followup.send(f'successfully remove notifier of {username}!', ephemeral=True)
+        else:
+            await itn.followup.send(f'can\'t find notifier {username} in {channel.mention}!', ephemeral=True)
         
-        await self.account_tracker.removeTask(username)
-        
-        cursor.execute(f"DELETE FROM user WHERE username='{username}'")
-        cursor.execute(f"DELETE FROM notification WHERE user_id='{match_user[0]}' AND server_id='{server_id}'")
-        
-        conn.commit()
         conn.close()
-
-        app = Twitter("session")
-        app.load_auth_token(os.getenv('TWITTER_TOKEN'))
-        user_info = app.get_user_info(username)
-        app.unfollow_user(user_info)
-        app.disable_user_notification(user_info)
-        
-        await self.account_tracker.clear_cancelled_tasks()  
-
-        await itn.followup.send(f'successfully remove notifier of{username}', ephemeral=True)
 
 
 async def setup(bot):
