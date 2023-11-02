@@ -2,6 +2,7 @@ import os
 import sqlite3
 
 def init_db():
+    os.mkdir(os.getenv('DATA_PATH'))
     conn = sqlite3.connect(f"{os.getenv('DATA_PATH')}tracked_accounts.db")
     cursor = conn.cursor()
     cursor.executescript("""
