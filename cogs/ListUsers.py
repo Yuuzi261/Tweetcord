@@ -24,6 +24,7 @@ class ListUsersCog(commands.Cog):
 
         cursor.execute("""
             SELECT user.username, channel.id, notification.role_id, notification.enabled
+            SELECT user.username, channel.id, notification.role_id
             FROM user
             JOIN notification
             ON user.id = notification.user_id
@@ -41,6 +42,11 @@ class ListUsersCog(commands.Cog):
             for i, (username, channel_id, role_id, enabled) in enumerate(user_channel_role_data)
         ]
 
+        formatted_data = [
+            f"{i+1}. {username} <#{channel_id}> <@&{role_id}>" if role_id else f"{i+1}. {username} <#{channel_id}>"
+            for i, (username, channel_id, role_id) in enumerate(user_channel_role_data)
+        ]
+        
         if not formatted_data:
             description = "***No users are registered on this server.***"
         else:
