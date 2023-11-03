@@ -4,16 +4,18 @@ from discord.ext import commands
 import sqlite3
 import os
 
+from src.permission_check import is_administrator
+
 class ListUsersCog(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
 
+    @is_administrator()
     @app_commands.command(
         name='list_users',
         description='Lists registered Twitter usernames and their associated channels'
     )
-    @commands.has_permissions(administrator=True)
     async def list_users(self, itn: discord.Interaction):
         
         server_id = itn.guild_id
@@ -23,23 +25,21 @@ class ListUsersCog(commands.Cog):
         cursor = conn.cursor()
 
         cursor.execute("""
-            SELECT user.username, channel.id, notification.role_id, notification.enabled
             SELECT user.username, channel.id, notification.role_id
             FROM user
             JOIN notification
             ON user.id = notification.user_id
             JOIN channel
             ON notification.channel_id = channel.id
-            WHERE notification.server_id = ?
+            WHERE notification.server_id = ? AND notification.enabled = 1
         """, (str(server_id),))
         user_channel_role_data = cursor.fetchall()
 
         conn.close()
 
         formatted_data = [
-            f"{i+1}. ```{username}``` <#{channel_id}> <@&{role_id}> {':arrow_forward:' if enabled == 1 else ':pause_button:'}" if role_id 
-            else f"{i+1}. ```{username}``` <#{channel_id}> {':arrow_forward:' if enabled == 1 else ':pause_button:'}"
-            for i, (username, channel_id, role_id, enabled) in enumerate(user_channel_role_data)
+            f"{i+1}. ```{username}``` <#{channel_id}> <@&{role_id}>" if role_id else f"{i+1}. {username} <#{channel_id}>"
+            for i, (username, channel_id, role_id) in enumerate(user_channel_role_data)
         ]
         
         if not formatted_data:

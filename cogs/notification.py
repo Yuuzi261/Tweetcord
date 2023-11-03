@@ -98,12 +98,10 @@ class Notification(Cog_Extension):
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
         
-        server_id = str(channel.guild.id)
-        
-        cursor.execute('SELECT user_id FROM notification, user WHERE username = ? AND channel_id = ? AND user_id = id AND server_id = ?', (username, str(channel.id), server_id))
+        cursor.execute('SELECT user_id FROM notification, user WHERE username = ? AND channel_id = ? AND user_id = id', (username, str(channel.id)))
         match_notifier = cursor.fetchone()
         if match_notifier != None:
-            cursor.execute('UPDATE notification SET enabled = 0 WHERE user_id = ? AND channel_id = ? AND server_id = ?', (match_notifier['user_id'], str(channel.id), server_id))
+            cursor.execute('UPDATE notification SET enabled = 0 WHERE user_id = ? AND channel_id = ?', (match_notifier['user_id'], str(channel.id)))
             conn.commit()
             await itn.followup.send(f'successfully remove notifier of {username}!', ephemeral=True)
         else:
