@@ -112,7 +112,7 @@ tasks_monitor_check_period: 60      # Interval at which to check if each tasks i
 tasks_monitor_log_period: 14400     # Interval at which to output the list of currently running tasks to the execution log.
 ```
 
-### 3. Run the bot
+### 3. Run and invite the bot to your server
 
 ```shell
 python bot.py
@@ -120,6 +120,21 @@ python bot.py
 
 In certain operating systems, you may need to use `python3` instead of `python`.
 
+🔧Bot Permissions Setup `2147666944`
+
+- [x] Read Messages/View Channels
+- [x] Send Messages
+- [x] Embed Links
+- [x] Attach Files
+- [x] Mention Everyone
+- [x] Use Slash Commands
+
 ### 4. Have fun
 
 Now you can go back to Discord and use the `/add notifier` command to set up notifications for the Twitter users you wish to receive updates from!
+
+## 💪Contributors
+
+This project exists thanks to all the people who contribute.
+
+[![](https://contrib.rocks/image?repo=Yuuzi261/Tweetcord)](https://github.com/Yuuzi261/Tweetcord/graphs/contributors)
