@@ -48,6 +48,7 @@ class Notification(Cog_Extension):
         cursor.execute('SELECT * FROM user WHERE username = ?', (username,))
         match_user = cursor.fetchone()
         
+        server_id = str(channel.guild.id)
         roleID = str(mention.id) if mention != None else ''
         if match_user == None:
             app = Twitter("session")
@@ -60,7 +61,7 @@ class Notification(Cog_Extension):
             
             cursor.execute('INSERT INTO user VALUES (?, ?, ?)', (str(new_user.id), username, datetime.utcnow().replace(tzinfo=timezone.utc).strftime('%Y-%m-%d %H:%M:%S%z')))
             cursor.execute('INSERT OR IGNORE INTO channel VALUES (?)', (str(channel.id),))
-            cursor.execute('INSERT INTO notification (user_id, channel_id, role_id) VALUES (?, ?, ?)', (str(new_user.id), str(channel.id), roleID))
+            cursor.execute('INSERT INTO notification (user_id, channel_id, role_id, server_id) VALUES (?, ?, ?, ?)', (str(new_user.id), str(channel.id), roleID, server_id))
             
             app.follow_user(new_user)
             
@@ -68,7 +69,7 @@ class Notification(Cog_Extension):
             else: log.warning(f'unable to turn on notifications for {username}')
         else:
             cursor.execute('INSERT OR IGNORE INTO channel VALUES (?)', (str(channel.id),))
-            cursor.execute('REPLACE INTO notification (user_id, channel_id, role_id) VALUES (?, ?, ?)', (match_user['id'], str(channel.id), roleID))
+            cursor.execute('REPLACE INTO notification (user_id, channel_id, role_id, server_id) VALUES (?, ?, ?, ?)', (match_user['id'], str(channel.id), roleID, server_id))
         
         conn.commit()
         conn.close()
