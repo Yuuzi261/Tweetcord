@@ -132,3 +132,9 @@ In certain operating systems, you may need to use `python3` instead of `python`.
 ### 4. Have fun
 
 Now you can go back to Discord and use the `/add notifier` command to set up notifications for the Twitter users you wish to receive updates from!
+
+## 💪Contributors
+
+This project exists thanks to all the people who contribute.
+
+[![](https://contrib.rocks/image?repo=Yuuzi261/Tweetcord)](https://github.com/Yuuzi261/Tweetcord/graphs/contributors)
