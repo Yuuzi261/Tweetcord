@@ -50,7 +50,7 @@ class ListUsers(Cog_Extension):
             color=0x778899
         )
 
-        await itn.response.send_message(embed=embed)
+        await itn.response.send_message(embed=embed, ephemeral=True)
 
 
 async def setup(bot):
