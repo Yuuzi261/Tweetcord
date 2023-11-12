@@ -73,7 +73,7 @@ pip install -r requirements.txt
 <details>
    <summary><b>📌0.3.4升級到0.3.5請點這裡</b></summary>
 
-在`cogs`資料夾創建一個python檔案並命名為`upgrade.py`，貼上下面的程式碼並運行機器人，使用斜線指令`/upgrade`進行升級。升級結束後可以移除這個cog。
+在 `cogs` 資料夾創建一個python檔案並命名為 `upgrade.py`，貼上下面的程式碼並運行機器人，使用斜線指令 `/upgrade` 進行升級。升級結束後可以移除這個cog。
 
 ```py
 import discord
