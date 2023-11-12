@@ -60,16 +60,16 @@ class Notification(Cog_Extension):
                 return
             
             cursor.execute('INSERT INTO user VALUES (?, ?, ?)', (str(new_user.id), username, datetime.utcnow().replace(tzinfo=timezone.utc).strftime('%Y-%m-%d %H:%M:%S%z')))
-            cursor.execute('INSERT OR IGNORE INTO channel VALUES (?)', (str(channel.id),))
-            cursor.execute('INSERT INTO notification (user_id, channel_id, role_id, server_id) VALUES (?, ?, ?, ?)', (str(new_user.id), str(channel.id), roleID, server_id))
+            cursor.execute('INSERT OR IGNORE INTO channel VALUES (?, ?)', (str(channel.id), server_id))
+            cursor.execute('INSERT INTO notification (user_id, channel_id, role_id) VALUES (?, ?, ?)', (str(new_user.id), str(channel.id), roleID))
             
             app.follow_user(new_user)
             
             if app.enable_user_notification(new_user): log.info(f'successfully opened notification for {username}')
             else: log.warning(f'unable to turn on notifications for {username}')
         else:
-            cursor.execute('INSERT OR IGNORE INTO channel VALUES (?)', (str(channel.id),))
-            cursor.execute('REPLACE INTO notification (user_id, channel_id, role_id, server_id) VALUES (?, ?, ?, ?)', (match_user['id'], str(channel.id), roleID, server_id))
+            cursor.execute('INSERT OR IGNORE INTO channel VALUES (?, ?)', (str(channel.id), server_id))
+            cursor.execute('REPLACE INTO notification (user_id, channel_id, role_id) VALUES (?, ?, ?)', (match_user['id'], str(channel.id), roleID))
         
         conn.commit()
         conn.close()
