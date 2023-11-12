@@ -31,14 +31,14 @@ class ListUsersCog(commands.Cog):
             ON user.id = notification.user_id
             JOIN channel
             ON notification.channel_id = channel.id
-            WHERE notification.server_id = ? AND notification.enabled = 1
+            WHERE channel.server_id = ? AND notification.enabled = 1
         """, (str(server_id),))
         user_channel_role_data = cursor.fetchall()
 
         conn.close()
 
         formatted_data = [
-            f"{i+1}. ```{username}``` <#{channel_id}> <@&{role_id}>" if role_id else f"{i+1}. {username} <#{channel_id}>"
+            f"{i+1}. ```{username}``` <#{channel_id}> <@&{role_id}>" if role_id else f"{i+1}. ```{username}``` <#{channel_id}>"
             for i, (username, channel_id, role_id) in enumerate(user_channel_role_data)
         ]
         
