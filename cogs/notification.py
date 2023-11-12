@@ -9,7 +9,7 @@ import sqlite3
 
 from src.log import setup_logger
 from src.notification.account_tracker import AccountTracker
-from src.permission_check import is_administrator
+from src.permission import ADMINISTRATOR
 
 log = setup_logger(__name__)
 
@@ -20,11 +20,10 @@ class Notification(Cog_Extension):
         super().__init__(bot)
         self.account_tracker = AccountTracker(bot)
 
-    add_group = app_commands.Group(name='add', description="Add something")
-    remove_group = app_commands.Group(name='remove', description='Remove something')
+    add_group = app_commands.Group(name='add', description='Add something', default_permissions=ADMINISTRATOR)
+    remove_group = app_commands.Group(name='remove', description='Remove something', default_permissions=ADMINISTRATOR)
 
 
-    @is_administrator()
     @add_group.command(name='notifier')
     async def notifier(self, itn : discord.Interaction, username: str, channel: discord.TextChannel, mention: discord.Role = None):
         """Add a twitter user to specific channel on your server.
@@ -79,7 +78,6 @@ class Notification(Cog_Extension):
         await itn.followup.send(f'successfully add notifier of {username}!', ephemeral=True)
 
 
-    @is_administrator()
     @remove_group.command(name='notifier')
     async def notifier(self, itn : discord.Interaction, username: str, channel: discord.TextChannel):
         """Remove a notifier on your server.
