@@ -6,7 +6,7 @@
 
 A Twitter Alert Bot For Discord
 
-[**English**](./README.md) | [**中文繁體**](./README_zh.md)
+[**English**](./README.md) | [**繁體中文**](./README_zh.md)
 
 </div>
 
@@ -50,6 +50,10 @@ Tweetcord is a discord bot that uses the tweety-ns module to let you receive twe
 | `username` | str | The username of the twitter user you want to turn off notifications for |
 | `channel` | discord.TextChannel | The channel which set to delivers notifications |
 
+👉 `/list users`
+
+- List all twitter users whose notifications are enabled on the current server
+
 </details>
 
 ## 📥Installation
@@ -64,7 +68,60 @@ In certain operating systems, you may need to use the command `pip3` instead of 
 
 ## ⚡Usage
 
-**📢This tutorial is suitable for version 0.3.2 or later. (Recommended: 0.3.4 or later)**
+**📢This tutorial is suitable for version 0.3.2 or later. (Recommended: 0.3.5 or later)**
+
+<details>
+   <summary><b>📌click here to upgrade from 0.3.4 to 0.3.5</b></summary>
+
+Create a python file in the `cogs` folder and name it `upgrade.py`. Paste the following code and run the bot. Use the slash command `/upgrade` to upgrade. This cog can be removed after the upgrade is completed.
+
+```py
+import discord
+from discord import app_commands
+from core.classes import Cog_Extension
+import sqlite3
+import os
+
+from src.log import setup_logger
+from src.permission_check import is_administrator
+
+log = setup_logger(__name__)
+
+class Upgrade(Cog_Extension):
+
+    @is_administrator()
+    @app_commands.command(name='upgrade', description='upgrade to Tweetcord 0.3.5')
+    async def upgrade(self, itn: discord.Interaction):
+        
+        await itn.response.defer(ephemeral=True)
+        
+        conn = sqlite3.connect(f"{os.getenv('DATA_PATH')}tracked_accounts.db")
+        cursor = conn.cursor()
+
+        cursor.executescript('ALTER TABLE channel ADD server_id TEXT')
+        
+        cursor.execute('SELECT id FROM channel')
+        channels = cursor.fetchall()
+        
+        for c in channels:
+            try:
+                channel = self.bot.get_channel(int(c[0]))
+                cursor.execute('UPDATE channel SET server_id = ? WHERE id = ?', (channel.guild.id, channel.id))
+            except:
+                log.warning(f'the bot cannot obtain channel: {c[0]}, but this will not cause problems with the original features. The new feature can also be used normally on existing servers.')
+                
+
+        conn.commit()
+        conn.close()
+
+        await itn.followup.send('successfully upgrade to 0.3.5, you can remove this cog.')
+
+
+async def setup(bot):
+    await bot.add_cog(Upgrade(bot))
+```
+
+</details>
 
 <details>
    <summary><b>📌click here to upgrade from 0.3.3 to 0.3.4</b></summary>

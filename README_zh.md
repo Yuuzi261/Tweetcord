@@ -6,7 +6,7 @@
 
 Discord的Twitter通知機器人
 
-[**English**](./README.md) | [**中文繁體**](./README_zh.md)
+[**English**](./README.md) | [**繁體中文**](./README_zh.md)
 
 </div>
 
@@ -50,6 +50,10 @@ Tweetcord是一個discord機器人，它使用tweety-ns模組讓你在discord上
 | `username` | str | 你想要關閉通知的Twitter用戶的用戶名 |
 | `channel` | discord.TextChannel | 設置為發送通知的頻道 |
 
+👉 `/list users`
+
+- 列出所有當前伺服器開啟通知的Twitter用戶
+
 </details>
 
 ## 📥安裝
@@ -64,7 +68,60 @@ pip install -r requirements.txt
 
 ## ⚡使用
 
-**📢本教學適用於0.3.2或更高版本。（建議：0.3.4或更高版本）**
+**📢本教學適用於0.3.2或更高版本。（建議：0.3.5或更高版本）**
+
+<details>
+   <summary><b>📌0.3.4升級到0.3.5請點這裡</b></summary>
+
+在`cogs`資料夾創建一個python檔案並命名為`upgrade.py`，貼上下面的程式碼並運行機器人，使用斜線指令`/upgrade`進行升級。升級結束後可以移除這個cog。
+
+```py
+import discord
+from discord import app_commands
+from core.classes import Cog_Extension
+import sqlite3
+import os
+
+from src.log import setup_logger
+from src.permission_check import is_administrator
+
+log = setup_logger(__name__)
+
+class Upgrade(Cog_Extension):
+
+    @is_administrator()
+    @app_commands.command(name='upgrade', description='upgrade to Tweetcord 0.3.5')
+    async def upgrade(self, itn: discord.Interaction):
+        
+        await itn.response.defer(ephemeral=True)
+        
+        conn = sqlite3.connect(f"{os.getenv('DATA_PATH')}tracked_accounts.db")
+        cursor = conn.cursor()
+
+        cursor.executescript('ALTER TABLE channel ADD server_id TEXT')
+        
+        cursor.execute('SELECT id FROM channel')
+        channels = cursor.fetchall()
+        
+        for c in channels:
+            try:
+                channel = self.bot.get_channel(int(c[0]))
+                cursor.execute('UPDATE channel SET server_id = ? WHERE id = ?', (channel.guild.id, channel.id))
+            except:
+                log.warning(f'the bot cannot obtain channel: {c[0]}, but this will not cause problems with the original features. The new feature can also be used normally on existing servers.')
+                
+
+        conn.commit()
+        conn.close()
+
+        await itn.followup.send('successfully upgrade to 0.3.5, you can remove this cog.')
+
+
+async def setup(bot):
+    await bot.add_cog(Upgrade(bot))
+```
+
+</details>
 
 <details>
    <summary><b>📌0.3.3升級到0.3.4請點這裡</b></summary>
@@ -132,3 +189,9 @@ python bot.py
 ### 4. 玩得開心
 
 現在你可以回到Discord，並使用 `/add notifier` 指令來設置你想要接收更新的Twitter用戶！
+
+## 💪貢獻者
+
+感謝所有貢獻者。
+
+[![](https://contrib.rocks/image?repo=Yuuzi261/Tweetcord)](https://github.com/Yuuzi261/Tweetcord/graphs/contributors)
