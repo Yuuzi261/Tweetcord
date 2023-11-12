@@ -1,22 +1,19 @@
 import discord
 from discord import app_commands
-from discord.ext import commands
+from core.classes import Cog_Extension
 import sqlite3
 import os
 
 from src.permission_check import is_administrator
 
-class ListUsersCog(commands.Cog):
-
-    def __init__(self, bot):
-        self.bot = bot
+class ListUsers(Cog_Extension):
+    
+    list_group = app_commands.Group(name='list', description="List something")
 
     @is_administrator()
-    @app_commands.command(
-        name='list_users',
-        description='Lists registered Twitter usernames and their associated channels'
-    )
+    @list_group.command(name='users')
     async def list_users(self, itn: discord.Interaction):
+        """Lists all exists notifier on your server."""
         
         server_id = itn.guild_id
 
@@ -56,7 +53,5 @@ class ListUsersCog(commands.Cog):
         await itn.response.send_message(embed=embed)
 
 
-
-
 async def setup(bot):
-    await bot.add_cog(ListUsersCog(bot))
+    await bot.add_cog(ListUsers(bot))
