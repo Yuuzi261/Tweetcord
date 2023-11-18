@@ -73,10 +73,7 @@ async def upload_data(ctx : commands.context.Context):
 
 @bot.event
 async def on_tree_error(itn : discord.Interaction, error : app_commands.AppCommandError):
-    if isinstance(error, app_commands.errors.CheckFailure):
-        await itn.response.send_message('Permission denied.', ephemeral=True)
-    else:
-        await itn.response.send_message(error, ephemeral=True)
+    await itn.response.send_message(error, ephemeral=True)
     log.warning(f'an error occurred but was handled by the tree error handler, error message : {error}')
 
 
