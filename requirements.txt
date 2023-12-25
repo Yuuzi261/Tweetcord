@@ -1,4 +1,4 @@
 discord.py==2.3.2
-tweety-ns==0.9.9.5
+tweety-ns==1.0
 python-dotenv==1.0.0
 pyyaml==6.0.1
