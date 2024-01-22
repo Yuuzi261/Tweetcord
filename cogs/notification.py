@@ -49,7 +49,7 @@ class Notification(Cog_Extension):
         
         server_id = str(channel.guild.id)
         roleID = str(mention.id) if mention != None else ''
-        if match_user == None:
+        if match_user == None or match_user['enabled'] == 0:
             app = Twitter("session")
             app.load_auth_token(os.getenv('TWITTER_TOKEN'))
             try:
@@ -58,9 +58,15 @@ class Notification(Cog_Extension):
                 await itn.followup.send(f'user {username} not found', ephemeral=True)
                 return
             
-            cursor.execute('INSERT INTO user VALUES (?, ?, ?)', (str(new_user.id), username, datetime.utcnow().replace(tzinfo=timezone.utc).strftime('%Y-%m-%d %H:%M:%S%z')))
-            cursor.execute('INSERT OR IGNORE INTO channel VALUES (?, ?)', (str(channel.id), server_id))
-            cursor.execute('INSERT INTO notification (user_id, channel_id, role_id) VALUES (?, ?, ?)', (str(new_user.id), str(channel.id), roleID))
+            if match_user == None:
+                cursor.execute('INSERT INTO user VALUES (?, ?, ?)', (str(new_user.id), username, datetime.utcnow().replace(tzinfo=timezone.utc).strftime('%Y-%m-%d %H:%M:%S%z')))
+                cursor.execute('INSERT OR IGNORE INTO channel VALUES (?, ?)', (str(channel.id), server_id))
+                cursor.execute('INSERT INTO notification (user_id, channel_id, role_id) VALUES (?, ?, ?)', (str(new_user.id), str(channel.id), roleID))
+            else:
+                cursor.execute('INSERT OR IGNORE INTO channel VALUES (?, ?)', (str(channel.id), server_id))
+                cursor.execute('REPLACE INTO notification (user_id, channel_id, role_id) VALUES (?, ?, ?)', (match_user['id'], str(channel.id), roleID))
+                cursor.execute('UPDATE user SET enabled = 1 WHERE id = ?', (match_user['id'],))
+                
             
             app.follow_user(new_user)
             
@@ -73,7 +79,7 @@ class Notification(Cog_Extension):
         conn.commit()
         conn.close()
             
-        if match_user == None: await self.account_tracker.addTask(username)
+        if match_user == None or match_user['enabled'] == 0: await self.account_tracker.addTask(username)
             
         await itn.followup.send(f'successfully add notifier of {username}!', ephemeral=True)
 
@@ -96,12 +102,18 @@ class Notification(Cog_Extension):
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
         
-        cursor.execute('SELECT user_id FROM notification, user WHERE username = ? AND channel_id = ? AND user_id = id', (username, str(channel.id)))
+        cursor.execute('SELECT user_id FROM notification, user WHERE username = ? AND channel_id = ? AND user_id = id AND notification.enabled = 1', (username, str(channel.id)))
         match_notifier = cursor.fetchone()
         if match_notifier != None:
             cursor.execute('UPDATE notification SET enabled = 0 WHERE user_id = ? AND channel_id = ?', (match_notifier['user_id'], str(channel.id)))
             conn.commit()
             await itn.followup.send(f'successfully remove notifier of {username}!', ephemeral=True)
+            cursor.execute('SELECT user_id FROM notification WHERE user_id = ? AND enabled = 1', (match_notifier['user_id'],))
+            if len(cursor.fetchall()) == 0:
+                cursor.execute('UPDATE user SET enabled = 0 WHERE id = ?', (match_notifier['user_id'],))
+                conn.commit()
+                await self.account_tracker.removeTask(username)
+                
         else:
             await itn.followup.send(f'can\'t find notifier {username} in {channel.mention}!', ephemeral=True)
         

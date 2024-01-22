@@ -30,7 +30,7 @@ class AccountTracker():
         cursor = conn.cursor()
         
         self.bot.loop.create_task(self.tweetsUpdater(app)).set_name('TweetsUpdater')
-        cursor.execute('SELECT username FROM user')
+        cursor.execute('SELECT username FROM user WHERE enabled = 1')
         usernames = []
         for user in cursor:
             username = user[0]
@@ -114,7 +114,27 @@ class AccountTracker():
             if task.get_name() == 'TasksMonitor':
                 try: log.info(f'existing TasksMonitor has been closed') if task.cancel() else log.info('existing TasksMonitor failed to close')
                 except Exception as e: log.warning(f'addTask : {e}')
-        self.bot.loop.create_task(self.tasksMonitor({user[0] for user in cursor.execute('SELECT username FROM user').fetchall()})).set_name('TasksMonitor')
+        self.bot.loop.create_task(self.tasksMonitor({user[0] for user in cursor.execute('SELECT username FROM user WHERE enabled = 1').fetchall()})).set_name('TasksMonitor')
+        log.info(f'new TasksMonitor has been started')
+        
+        conn.close()
+        
+
+    async def removeTask(self, username : str):
+        conn = sqlite3.connect(f"{os.getenv('DATA_PATH')}tracked_accounts.db")
+        cursor = conn.cursor()
+        
+        for task in asyncio.all_tasks():
+            if task.get_name() == 'TasksMonitor':
+                try: log.info(f'existing TasksMonitor has been closed') if task.cancel() else log.info('existing TasksMonitor failed to close')
+                except Exception as e: log.warning(f'removeTask : {e}')
+                
+        for task in asyncio.all_tasks():
+            if task.get_name() == username:
+                try: log.info(f'existing task {username} has been closed') if task.cancel() else log.info(f'existing task {username} failed to close')
+                except Exception as e: log.warning(f'removeTask : {e}')
+        
+        self.bot.loop.create_task(self.tasksMonitor({user[0] for user in cursor.execute('SELECT username FROM user WHERE enabled = 1').fetchall()})).set_name('TasksMonitor')
         log.info(f'new TasksMonitor has been started')
         
         conn.close()

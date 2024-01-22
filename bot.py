@@ -21,8 +21,8 @@ async def on_ready():
     if not(os.path.isfile(f"{os.getenv('DATA_PATH')}tracked_accounts.db")): init_db()
     bot.tree.on_error = on_tree_error
     for filename in os.listdir('./cogs'):
-            if filename.endswith('.py'):
-                await bot.load_extension(f'cogs.{filename[:-3]}')
+        if filename.endswith('.py'):
+            await bot.load_extension(f'cogs.{filename[:-3]}')
     log.info(f'{bot.user} is online')
     slash = await bot.tree.sync()
     log.info(f'synced {len(slash)} slash commands')
