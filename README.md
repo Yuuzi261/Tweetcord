@@ -54,6 +54,10 @@ Tweetcord is a discord bot that uses the tweety-ns module to let you receive twe
 
 - List all twitter users whose notifications are enabled on the current server
 
+👉 `/sync`
+
+- Sync the notification of new Twitter account with database.  If you change the twitter account used by bot, please use this command
+
 </details>
 
 ## 📥Installation
@@ -167,6 +171,8 @@ tweets_check_period: 10             # The check frequency for the posts (it is n
 tweets_updater_retry_delay: 300     # Retry Interval when Tweets Updater encounters exceptions (e.g., rate limitations).
 tasks_monitor_check_period: 60      # Interval at which to check if each tasks is functioning properly, and if a task has stopped, attempt a restart.
 tasks_monitor_log_period: 14400     # Interval at which to output the list of currently running tasks to the execution log.
+auto_turn_off_notification: true    # (v0.4.0 or later) If all notifications for a user are disabled, decide whether to unfollow the user.
+auto_unfollow: true                 # (v0.4.0 or later) If all notifications for a user is disabled, decide whether to disable notification for the user (twitter side).
 ```
 
 ### 3. Run and invite the bot to your server
@@ -185,6 +191,9 @@ In certain operating systems, you may need to use `python3` instead of `python`.
 - [x] Attach Files
 - [x] Mention Everyone
 - [x] Use Slash Commands
+
+> [!NOTE]
+> If you want to host the bot on a server, here is a recommended service that is basically free: [fly.io](https://fly.io).
 
 ### 4. Have fun
 

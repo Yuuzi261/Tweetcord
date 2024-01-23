@@ -54,6 +54,10 @@ Tweetcord是一個discord機器人，它使用tweety-ns模組讓你在discord上
 
 - 列出所有當前伺服器開啟通知的Twitter用戶
 
+👉 `/sync`
+
+- 將新Twitter帳戶的通知與資料庫同步。如果你更改了bot使用的Twitter帳戶，請使用此指令
+
 </details>
 
 ## 📥安裝
@@ -167,6 +171,8 @@ tweets_check_period: 10             # 檢查推文的頻率（不建議將此值
 tweets_updater_retry_delay: 300     # 當Tweets Updater遇到異常（例如速率限制）時的重試間隔。
 tasks_monitor_check_period: 60      # 檢查每個任務是否正常運行的間隔，如果某個任務停止了，嘗試重新啟動。
 tasks_monitor_log_period: 14400     # 將當前運行中的任務列表輸出到執行日誌的間隔。
+auto_turn_off_notification: true    # (v0.4.0或更新版本) 如果某個使用者的所有通知都已停用，決定是否取消追蹤該使用者。
+auto_unfollow: true                 # (v0.4.0或更新版本) 如果某個使用者的所有通知都已停用，決定是否停用該使用者的通知（Twitter端）。
 ```
 
 ### 3. 運行機器人並邀請至你的伺服器
@@ -185,6 +191,9 @@ python bot.py
 - [x] 附加檔案（Attach Files）
 - [x] 提及 @everyone、@here 和所有身分組（Mention Everyone）
 - [x] 使用應用程式命令（Use Slash Commands）
+
+> [!NOTE]
+> 如果想將機器人架到伺服器上，這裡推薦一個基本免費的服務：[fly.io](https://fly.io).
 
 ### 4. 玩得開心
 
