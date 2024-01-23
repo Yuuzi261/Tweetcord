@@ -16,6 +16,29 @@ log = setup_logger(__name__)
 
 load_dotenv()
 
+class CustomMsgModal(discord.ui.Modal, title='custom message'):
+    def __init__(self, user_id: str, username: str, channel: discord.TextChannel):
+        super().__init__(timeout=None)
+        # self.headers = headers
+        self.user_id = user_id
+        # self.username = username
+        self.channel = channel
+        self.custom_msg = discord.ui.TextInput(label=f'custom message for @{username} in #{channel.name}', placeholder='enter custom message', max_length=200, style=discord.TextStyle.long, required=True)
+        self.add_item(self.custom_msg)
+
+    async def on_submit(self, itn: discord.Interaction):
+        await itn.response.defer(ephemeral=True)
+        
+        conn = sqlite3.connect(f"{os.getenv('DATA_PATH')}tracked_accounts.db")
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        
+        cursor.execute('UPDATE notification SET custom_msg = ? WHERE user_id = ? AND channel_id = ?', (self.custom_msg.value, self.user_id, str(self.channel.id)))
+        conn.commit()
+        conn.close()
+        
+        await itn.followup.send('setting successful', ephemeral=True)
+
 class Notification(Cog_Extension):
     def __init__(self, bot):
         super().__init__(bot)
@@ -23,7 +46,7 @@ class Notification(Cog_Extension):
 
     add_group = app_commands.Group(name='add', description='Add something', default_permissions=ADMINISTRATOR)
     remove_group = app_commands.Group(name='remove', description='Remove something', default_permissions=ADMINISTRATOR)
-
+    custom_group = app_commands.Group(name='custom', description='Custom something', default_permissions=ADMINISTRATOR)
 
     @add_group.command(name='notifier')
     async def notifier(self, itn : discord.Interaction, username: str, channel: discord.TextChannel, mention: discord.Role = None):
@@ -128,6 +151,43 @@ class Notification(Cog_Extension):
         else:
             await itn.followup.send(f'can\'t find notifier {username} in {channel.mention}!', ephemeral=True)
         
+        conn.close()
+        
+        
+    @custom_group.command(name='message')
+    async def custom_message(self, itn : discord.Interaction, username: str, channel: discord.TextChannel, default: bool = False):
+        """Set custom messages for notification.
+
+        Parameters
+        -----------
+        username: str
+            The username of the twitter user you want to set custom message.
+        channel: discord.TextChannel
+            The channel which set to delivers notifications.
+        default: bool
+            Whether to use default setting.
+        """
+        
+        # await itn.response.defer(ephemeral=True)
+        
+        conn = sqlite3.connect(f"{os.getenv('DATA_PATH')}tracked_accounts.db")
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        
+        cursor.execute('SELECT user_id FROM notification, user WHERE username = ? AND channel_id = ? AND user_id = id AND notification.enabled = 1', (username, str(channel.id)))
+        match_notifier = cursor.fetchone()
+        if match_notifier != None:
+            if default:
+                await itn.response.defer(ephemeral=True)
+                cursor.execute('UPDATE notification SET custom_msg = ? WHERE user_id = ? AND channel_id = ?', (None, match_notifier['user_id'], str(channel.id)))
+                conn.commit()
+                await itn.followup.send('successfully restored to default settings', ephemeral=True)
+            else:
+                modal = CustomMsgModal(match_notifier['user_id'], username, channel)
+                await itn.response.send_modal(modal)
+        else:
+            await itn.response.send_message(f'can\'t find notifier {username} in {channel.mention}!', ephemeral=True)
+            
         conn.close()
 
 
