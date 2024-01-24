@@ -30,7 +30,7 @@ class AccountTracker():
         cursor = conn.cursor()
         
         self.bot.loop.create_task(self.tweetsUpdater(app)).set_name('TweetsUpdater')
-        cursor.execute('SELECT username FROM user')
+        cursor.execute('SELECT username FROM user WHERE enabled = 1')
         usernames = []
         for user in cursor:
             username = user[0]
@@ -63,7 +63,10 @@ class AccountTracker():
                     if channel != None:
                         try:
                             mention = f"{channel.guild.get_role(int(data['role_id'])).mention} " if data['role_id'] != '' else ''
-                            await channel.send(f"{mention}**{tweet.author.name}** just {get_action(tweet)} here: \n{tweet.url}", file = discord.File('images/twitter.png', filename='twitter.png'), embeds = gen_embed(tweet))
+                            author, action, url = tweet.author.name, get_action(tweet), tweet.url
+                            msg = data['customized_msg'] if data['customized_msg'] else "{mention}**{author}** just {action} here: \n{url}"
+                            msg = msg.format(mention=mention, author=author, action=action, url=url)
+                            await channel.send(msg, file = discord.File('images/twitter.png', filename='twitter.png'), embeds = gen_embed(tweet))
                         except Exception as e:
                             if not isinstance(e, discord.errors.Forbidden): log.error(f'an unexpected error occurred at {channel.mention} while sending notification')
                     
@@ -114,7 +117,27 @@ class AccountTracker():
             if task.get_name() == 'TasksMonitor':
                 try: log.info(f'existing TasksMonitor has been closed') if task.cancel() else log.info('existing TasksMonitor failed to close')
                 except Exception as e: log.warning(f'addTask : {e}')
-        self.bot.loop.create_task(self.tasksMonitor({user[0] for user in cursor.execute('SELECT username FROM user').fetchall()})).set_name('TasksMonitor')
+        self.bot.loop.create_task(self.tasksMonitor({user[0] for user in cursor.execute('SELECT username FROM user WHERE enabled = 1').fetchall()})).set_name('TasksMonitor')
+        log.info(f'new TasksMonitor has been started')
+        
+        conn.close()
+        
+
+    async def removeTask(self, username : str):
+        conn = sqlite3.connect(f"{os.getenv('DATA_PATH')}tracked_accounts.db")
+        cursor = conn.cursor()
+        
+        for task in asyncio.all_tasks():
+            if task.get_name() == 'TasksMonitor':
+                try: log.info(f'existing TasksMonitor has been closed') if task.cancel() else log.info('existing TasksMonitor failed to close')
+                except Exception as e: log.warning(f'removeTask : {e}')
+                
+        for task in asyncio.all_tasks():
+            if task.get_name() == username:
+                try: log.info(f'existing task {username} has been closed') if task.cancel() else log.info(f'existing task {username} failed to close')
+                except Exception as e: log.warning(f'removeTask : {e}')
+        
+        self.bot.loop.create_task(self.tasksMonitor({user[0] for user in cursor.execute('SELECT username FROM user WHERE enabled = 1').fetchall()})).set_name('TasksMonitor')
         log.info(f'new TasksMonitor has been started')
         
         conn.close()

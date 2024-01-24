@@ -4,13 +4,12 @@ from core.classes import Cog_Extension
 import sqlite3
 import os
 
-from src.permission_check import is_administrator
+from src.permission import ADMINISTRATOR
 
 class ListUsers(Cog_Extension):
     
-    list_group = app_commands.Group(name='list', description="List something")
+    list_group = app_commands.Group(name='list', description='List something', default_permissions=ADMINISTRATOR)
 
-    @is_administrator()
     @list_group.command(name='users')
     async def list_users(self, itn: discord.Interaction):
         """Lists all exists notifier on your server."""

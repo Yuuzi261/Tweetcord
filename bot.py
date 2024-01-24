@@ -21,8 +21,8 @@ async def on_ready():
     if not(os.path.isfile(f"{os.getenv('DATA_PATH')}tracked_accounts.db")): init_db()
     bot.tree.on_error = on_tree_error
     for filename in os.listdir('./cogs'):
-            if filename.endswith('.py'):
-                await bot.load_extension(f'cogs.{filename[:-3]}')
+        if filename.endswith('.py'):
+            await bot.load_extension(f'cogs.{filename[:-3]}')
     log.info(f'{bot.user} is online')
     slash = await bot.tree.sync()
     log.info(f'synced {len(slash)} slash commands')
@@ -73,10 +73,7 @@ async def upload_data(ctx : commands.context.Context):
 
 @bot.event
 async def on_tree_error(itn : discord.Interaction, error : app_commands.AppCommandError):
-    if isinstance(error, app_commands.errors.CheckFailure):
-        await itn.response.send_message('Permission denied.', ephemeral=True)
-    else:
-        await itn.response.send_message(error, ephemeral=True)
+    await itn.response.send_message(error, ephemeral=True)
     log.warning(f'an error occurred but was handled by the tree error handler, error message : {error}')
 
 
