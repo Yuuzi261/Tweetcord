@@ -64,7 +64,7 @@ class AccountTracker():
                         try:
                             mention = f"{channel.guild.get_role(int(data['role_id'])).mention} " if data['role_id'] != '' else ''
                             author, action, url = tweet.author.name, get_action(tweet), tweet.url
-                            msg = data['custom_msg'] if data['custom_msg'] else "{mention}**{author}** just {action} here: \n{url}"
+                            msg = data['customized_msg'] if data['customized_msg'] else "{mention}**{author}** just {action} here: \n{url}"
                             msg = msg.format(mention=mention, author=author, action=action, url=url)
                             await channel.send(msg, file = discord.File('images/twitter.png', filename='twitter.png'), embeds = gen_embed(tweet))
                         except Exception as e:
