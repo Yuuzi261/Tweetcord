@@ -120,7 +120,7 @@ class Upgrade(Cog_Extension):
         try:
             cursor.executescript("""
                 ALTER TABLE user ADD enabled INTEGER DEFAULT 1;
-                ALTER TABLE notification ADD cusomized_msg TEXT DEFAULT NULL;
+                ALTER TABLE notification ADD customized_msg TEXT DEFAULT NULL;
             """)
             await itn.followup.send('successfully upgrade to 0.4.0, you can remove this cog and reboot the bot.')
         except:

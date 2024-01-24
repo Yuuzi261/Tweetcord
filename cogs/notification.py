@@ -9,36 +9,13 @@ import sqlite3
 
 from src.log import setup_logger
 from src.notification.account_tracker import AccountTracker
+from src.discord_ui.modal import CustomizeMsgModal
 from src.permission import ADMINISTRATOR
 from configs.load_configs import configs
 
 log = setup_logger(__name__)
 
 load_dotenv()
-
-class CustomizeMsgModal(discord.ui.Modal, title='customize message'):
-    def __init__(self, user_id: str, username: str, channel: discord.TextChannel):
-        super().__init__(timeout=None)
-        self.user_id = user_id
-        self.channel = channel
-        label = f'customizing message for @{username} in #{channel.name}'
-        if len(label) > 45: label = f'customizing message for @{username}'
-        if len(label) > 45: label = f'customizing message'
-        self.customized_msg = discord.ui.TextInput(label=label, placeholder='enter customized message', max_length=200, style=discord.TextStyle.long, required=True)
-        self.add_item(self.customized_msg)
-
-    async def on_submit(self, itn: discord.Interaction):
-        await itn.response.defer(ephemeral=True)
-        
-        conn = sqlite3.connect(f"{os.getenv('DATA_PATH')}tracked_accounts.db")
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
-        
-        cursor.execute('UPDATE notification SET customized_msg = ? WHERE user_id = ? AND channel_id = ?', (self.customized_msg.value, self.user_id, str(self.channel.id)))
-        conn.commit()
-        conn.close()
-        
-        await itn.followup.send('setting successful', ephemeral=True)
 
 class Notification(Cog_Extension):
     def __init__(self, bot):
@@ -84,7 +61,7 @@ class Notification(Cog_Extension):
                 return
             
             if match_user == None:
-                cursor.execute('INSERT INTO user VALUES (?, ?, ?)', (str(new_user.id), username, datetime.utcnow().replace(tzinfo=timezone.utc).strftime('%Y-%m-%d %H:%M:%S%z')))
+                cursor.execute('INSERT INTO user (id, username, lastest_tweet) VALUES (?, ?, ?)', (str(new_user.id), username, datetime.utcnow().replace(tzinfo=timezone.utc).strftime('%Y-%m-%d %H:%M:%S%z')))
                 cursor.execute('INSERT OR IGNORE INTO channel VALUES (?, ?)', (str(channel.id), server_id))
                 cursor.execute('INSERT INTO notification (user_id, channel_id, role_id) VALUES (?, ?, ?)', (str(new_user.id), str(channel.id), roleID))
             else:
