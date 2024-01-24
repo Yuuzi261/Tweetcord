@@ -66,12 +66,12 @@ Tweetcord is a discord bot that uses the tweety-ns module to let you receive twe
 | `channel` | discord.TextChannel | The channel which set to delivers notifications |
 | `default` | bool | Whether to use default setting _(default is false)_ |
 
-> [!TIP]
-> There are currently 4 special variables that can be used in customized messages, which will be explained below.
-> `{action}` : poster's action, include `tweeted`, `retweeted` and `quoted`
-> `{author}` : poster's display name
-> `{mention}` : the role to mention when sending to discord
-> `{url}` : the link of the tweet
+There are currently 4 special variables that can be used in customized messages, which will be explained below.
+
+- `{action}` : poster's action, include `tweeted`, `retweeted` and `quoted`
+- `{author}` : poster's display name
+- `{mention}` : the role to mention when sending to discord
+- `{url}` : the link of the tweet
 
 </details>
 
@@ -92,8 +92,7 @@ In certain operating systems, you may need to use the command `pip3` instead of 
 <details>
    <summary><b>📌click here to upgrade from 0.3.5 to 0.4.0</b></summary>
 
-> [!IMPORTANT]
-> Before everything starts you must upgrade the version of `tweety-ns` to `1.0.9.2` first and download or pull the new code from this repo.
+⚠️Before everything starts you must upgrade the version of `tweety-ns` to `1.0.9.2` first and download or pull the new code from this repo.
 
 Create a python file in the `cogs` folder and name it `upgrade.py`. Paste the following code and run the bot. Use the slash command `/upgrade version` to upgrade. This cog can be removed after the upgrade is completed.
 

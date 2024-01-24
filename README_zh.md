@@ -66,12 +66,12 @@ Tweetcord是一個discord機器人，它使用tweety-ns模組讓你在discord上
 | `channel` | discord.TextChannel | 機器人發送通知的頻道 |
 | `default` | bool | 是否要還原至預設的設定 _(預設是false)_ |
 
-> [!TIP]
-> 目前自定義通知訊息有4種特別的變數可以使用，將在下面說明
-> `{action}` : 發文者的動作, 包括 `tweeted`, `retweeted` 和 `quoted` _(暫不支持中文)_
-> `{author}` : 發文者的顯示名稱
-> `{mention}` : 發送到discord時提及的身份組
-> `{url}` : 推文的連結
+目前自定義通知訊息有4種特別的變數可以使用，將在下面說明：
+
+- `{action}` : 發文者的動作, 包括 `tweeted`, `retweeted` 和 `quoted` _(暫不支持中文)_
+- `{author}` : 發文者的顯示名稱
+- `{mention}` : 發送到discord時提及的身份組
+- `{url}` : 推文的連結
 
 </details>
 
@@ -92,8 +92,7 @@ pip install -r requirements.txt
 <details>
    <summary><b>📌0.3.5升級到0.4.0請點這裡</b></summary>
 
-> [!IMPORTANT]
-> 在一切開始之前請先更新 `tweety-ns` 至 `1.0.9.2` 版本並且從這個repo下載或拉取新的程式碼。
+⚠️在一切開始之前請先更新 `tweety-ns` 至 `1.0.9.2` 版本並且從這個repo下載或拉取新的程式碼。
 
 在 `cogs` 資料夾創建一個python檔案並命名為 `upgrade.py`，貼上下面的程式碼並運行機器人，使用斜線指令 `/upgrade version` 進行升級。升級結束後可以移除這個cog。
 
