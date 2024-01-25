@@ -90,7 +90,7 @@ In certain operating systems, you may need to use the command `pip3` instead of 
 **📢This tutorial is suitable for version 0.3.2 or later. (Recommended: 0.3.5 or later)**
 
 <details>
-   <summary><b>📌click here to upgrade from 0.3.5 to 0.4.0</b></summary>
+   <summary><b>📌click here to upgrade from 0.3.5 to 0.4</b></summary>
 
 ⚠️Before everything starts you must upgrade the version of `tweety-ns` to `1.0.9.2` first and download or pull the new code from this repo.
 
@@ -109,7 +109,7 @@ class Upgrade(Cog_Extension):
     
     upgrade_group = app_commands.Group(name='upgrade', description='Upgrade something', default_permissions=ADMINISTRATOR)
 
-    @upgrade_group.command(name='version', description='upgrade to Tweetcord 0.4.0')
+    @upgrade_group.command(name='version', description='upgrade to Tweetcord 0.4')
     async def upgrade(self, itn: discord.Interaction):
         
         await itn.response.defer(ephemeral=True)
@@ -122,9 +122,9 @@ class Upgrade(Cog_Extension):
                 ALTER TABLE user ADD enabled INTEGER DEFAULT 1;
                 ALTER TABLE notification ADD customized_msg TEXT DEFAULT NULL;
             """)
-            await itn.followup.send('successfully upgrade to 0.4.0, you can remove this cog and reboot the bot.')
+            await itn.followup.send('successfully upgrade to 0.4, you can remove this cog and reboot the bot.')
         except:
-            await itn.followup.send('upgrading to 0.4.0 failed, please try again or contact the author.')
+            await itn.followup.send('upgrading to 0.4 failed, please try again or contact the author.')
 
 
 async def setup(bot):
@@ -230,8 +230,8 @@ tweets_check_period: 10             # The check frequency for the posts (it is n
 tweets_updater_retry_delay: 300     # Retry Interval when Tweets Updater encounters exceptions (e.g., rate limitations).
 tasks_monitor_check_period: 60      # Interval at which to check if each tasks is functioning properly, and if a task has stopped, attempt a restart.
 tasks_monitor_log_period: 14400     # Interval at which to output the list of currently running tasks to the execution log.
-auto_turn_off_notification: true    # (v0.4.0 or later) If all notifications for a user are disabled, decide whether to unfollow the user.
-auto_unfollow: true                 # (v0.4.0 or later) If all notifications for a user is disabled, decide whether to disable notification for the user (twitter side).
+auto_turn_off_notification: true    # (v0.4 or later) If all notifications for a user are disabled, decide whether to unfollow the user.
+auto_unfollow: true                 # (v0.4 or later) If all notifications for a user is disabled, decide whether to disable notification for the user (twitter side).
 ```
 
 ### 3. Run and invite the bot to your server
