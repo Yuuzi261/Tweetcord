@@ -90,7 +90,7 @@ pip install -r requirements.txt
 **📢本教學適用於0.3.2或更高版本。（建議：0.3.5或更高版本）**
 
 <details>
-   <summary><b>📌0.3.5升級到0.4.0請點這裡</b></summary>
+   <summary><b>📌0.3.5升級到0.4請點這裡</b></summary>
 
 ⚠️在一切開始之前請先更新 `tweety-ns` 至 `1.0.9.2` 版本並且從這個repo下載或拉取新的程式碼。
 
@@ -109,7 +109,7 @@ class Upgrade(Cog_Extension):
     
     upgrade_group = app_commands.Group(name='upgrade', description='Upgrade something', default_permissions=ADMINISTRATOR)
 
-    @upgrade_group.command(name='version', description='upgrade to Tweetcord 0.4.0')
+    @upgrade_group.command(name='version', description='upgrade to Tweetcord 0.4')
     async def upgrade(self, itn: discord.Interaction):
         
         await itn.response.defer(ephemeral=True)
@@ -122,9 +122,9 @@ class Upgrade(Cog_Extension):
                 ALTER TABLE user ADD enabled INTEGER DEFAULT 1;
                 ALTER TABLE notification ADD customized_msg TEXT DEFAULT NULL;
             """)
-            await itn.followup.send('successfully upgrade to 0.4.0, you can remove this cog and reboot the bot.')
+            await itn.followup.send('successfully upgrade to 0.4, you can remove this cog and reboot the bot.')
         except:
-            await itn.followup.send('upgrading to 0.4.0 failed, please try again or contact the author.')
+            await itn.followup.send('upgrading to 0.4 failed, please try again or contact the author.')
 
 
 async def setup(bot):
@@ -230,8 +230,8 @@ tweets_check_period: 10             # 檢查推文的頻率（不建議將此值
 tweets_updater_retry_delay: 300     # 當Tweets Updater遇到異常（例如速率限制）時的重試間隔。
 tasks_monitor_check_period: 60      # 檢查每個任務是否正常運行的間隔，如果某個任務停止了，嘗試重新啟動。
 tasks_monitor_log_period: 14400     # 將當前運行中的任務列表輸出到執行日誌的間隔。
-auto_turn_off_notification: true    # (v0.4.0或更新版本) 如果某個使用者的所有通知都已停用，決定是否取消追蹤該使用者。
-auto_unfollow: true                 # (v0.4.0或更新版本) 如果某個使用者的所有通知都已停用，決定是否停用該使用者的通知（Twitter端）。
+auto_turn_off_notification: true    # (v0.4或更新版本) 如果某個使用者的所有通知都已停用，決定是否取消追蹤該使用者。
+auto_unfollow: true                 # (v0.4或更新版本) 如果某個使用者的所有通知都已停用，決定是否停用該使用者的通知（Twitter端）。
 ```
 
 ### 3. 運行機器人並邀請至你的伺服器
