@@ -14,6 +14,7 @@ load_dotenv()
 
 class Sync(Cog_Extension):
 
+    @app_commands.default_permissions(administrator=True)
     @app_commands.command(name='sync')
     async def sync(self, itn : discord.Interaction):
         """To sync the notification of new Twitter account with database, use this command.
