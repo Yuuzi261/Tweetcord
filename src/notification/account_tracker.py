@@ -64,10 +64,20 @@ class AccountTracker():
                     if channel != None and is_match_type(tweet, data['enable_type']):
                         try:
                             mention = f"{channel.guild.get_role(int(data['role_id'])).mention} " if data['role_id'] != '' else ''
-                            author, action, url = tweet.author.name, get_action(tweet), tweet.url
+                            author, action = tweet.author.name, get_action(tweet)
+
+                            if configs['use_fx']:
+                                url = f"https://fixupx.com/{tweet.author.username}/status/{tweet.id}"
+                            else:
+                                url = tweet.url
+                                
                             msg = data['customized_msg'] if data['customized_msg'] else "{mention}**{author}** just {action} here: \n{url}"
                             msg = msg.format(mention=mention, author=author, action=action, url=url)
-                            await channel.send(msg, file = discord.File('images/twitter.png', filename='twitter.png'), embeds = gen_embed(tweet))
+
+                            if configs['use_fx']:
+                                await channel.send(msg)
+                            else:
+                                await channel.send(msg, file = discord.File('images/twitter.png', filename='twitter.png'), embeds = gen_embed(tweet))     
                         except Exception as e:
                             if not isinstance(e, discord.errors.Forbidden): log.error(f'an unexpected error occurred at {channel.mention} while sending notification')
                     
