@@ -4,7 +4,11 @@ from core.classes import Cog_Extension
 import sqlite3
 import os
 
+from src.utils import str_to_bool as stb
 from src.permission import ADMINISTRATOR
+
+CHECK = '\u2705'
+XMARK = '\u274C'
 
 class ListUsers(Cog_Extension):
     
@@ -21,7 +25,7 @@ class ListUsers(Cog_Extension):
         cursor = conn.cursor()
 
         cursor.execute("""
-            SELECT user.username, channel.id, notification.role_id
+            SELECT user.username, channel.id, notification.role_id, notification.enable_type
             FROM user
             JOIN notification
             ON user.id = notification.user_id
@@ -34,8 +38,8 @@ class ListUsers(Cog_Extension):
         conn.close()
 
         formatted_data = [
-            f"{i+1}. ```{username}``` <#{channel_id}> <@&{role_id}>" if role_id else f"{i+1}. ```{username}``` <#{channel_id}>"
-            for i, (username, channel_id, role_id) in enumerate(user_channel_role_data)
+            f"{i+1}. ```{username}``` <#{channel_id}>{f' <@&{role_id}>' if role_id else ''} {CHECK if stb(enable_type[0]) else XMARK}retweet {CHECK if stb(enable_type[1]) else XMARK}quote"
+            for i, (username, channel_id, role_id, enable_type) in enumerate(user_channel_role_data)
         ]
         
         if not formatted_data:
