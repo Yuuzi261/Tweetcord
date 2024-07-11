@@ -6,4 +6,4 @@ tasks_monitor_check_period: 60
 tasks_monitor_log_period: 14400
 auto_turn_off_notification: true
 auto_unfollow: true
-use_fx: True
+use_fx: false
