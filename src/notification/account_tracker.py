@@ -71,7 +71,7 @@ class AccountTracker():
                             else:
                                 url = tweet.url
                                 
-                            msg = data['customized_msg'] if data['customized_msg'] else "{mention}**{author}** just {action} here: \n{url}"
+                            msg = data['customized_msg'] if data['customized_msg'] else configs['default_message']
                             msg = msg.format(mention=mention, author=author, action=action, url=url)
 
                             if configs['use_fx']:
