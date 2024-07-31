@@ -9,6 +9,7 @@ import asyncio
 from src.log import setup_logger
 from src.notification.display_tools import gen_embed, get_action
 from src.notification.get_tweets import get_tweets
+from src.notification.utils import is_match_type
 from src.db_function.db_executor import execute
 from configs.load_configs import configs
 
@@ -60,13 +61,23 @@ class AccountTracker():
                 log.info(f'find a new tweet from {username}')
                 for data in cursor.execute('SELECT * FROM notification WHERE user_id = ? AND enabled = 1', (user['id'],)):
                     channel = self.bot.get_channel(int(data['channel_id']))
-                    if channel != None:
+                    if channel != None and is_match_type(tweet, data['enable_type']):
                         try:
                             mention = f"{channel.guild.get_role(int(data['role_id'])).mention} " if data['role_id'] != '' else ''
-                            author, action, url = tweet.author.name, get_action(tweet), tweet.url
-                            msg = data['customized_msg'] if data['customized_msg'] else "{mention}**{author}** just {action} here: \n{url}"
+                            author, action = tweet.author.name, get_action(tweet)
+
+                            if configs['use_fx']:
+                                url = f"https://fixupx.com/{tweet.author.username}/status/{tweet.id}"
+                            else:
+                                url = tweet.url
+                                
+                            msg = data['customized_msg'] if data['customized_msg'] else configs['default_message']
                             msg = msg.format(mention=mention, author=author, action=action, url=url)
-                            await channel.send(msg, file = discord.File('images/twitter.png', filename='twitter.png'), embeds = gen_embed(tweet))
+
+                            if configs['use_fx']:
+                                await channel.send(msg)
+                            else:
+                                await channel.send(msg, file = discord.File('images/twitter.png', filename='twitter.png'), embeds = gen_embed(tweet))     
                         except Exception as e:
                             if not isinstance(e, discord.errors.Forbidden): log.error(f'an unexpected error occurred at {channel.mention} while sending notification')
                     
