@@ -9,7 +9,6 @@ import sqlite3
 
 from src.log import setup_logger
 from src.notification.account_tracker import AccountTracker
-from src.notification.utils import format_enable_type
 from src.discord_ui.modal import CustomizeMsgModal
 from src.permission import ADMINISTRATOR
 from configs.load_configs import configs
@@ -28,7 +27,9 @@ class Notification(Cog_Extension):
     customize_group = app_commands.Group(name='customize', description='Customize something', default_permissions=ADMINISTRATOR)
 
     @add_group.command(name='notifier')
-    async def notifier(self, itn : discord.Interaction, username: str, channel: discord.TextChannel, mention: discord.Role = None, retweet: bool = True, quote: bool = True):
+    @app_commands.choices(enable_type=[app_commands.Choice(name='All (default)', value='11'), app_commands.Choice(name='Tweet & Retweet Only', value='10'), app_commands.Choice(name='Tweet & Quote Only', value='01'), app_commands.Choice(name='Tweet Only', value='00')])
+    @app_commands.rename(enable_type='type')
+    async def notifier(self, itn : discord.Interaction, username: str, channel: discord.TextChannel, mention: discord.Role = None, enable_type: str = '11'):
         """Add a twitter user to specific channel on your server.
 
         Parameters
@@ -39,10 +40,8 @@ class Notification(Cog_Extension):
             The channel to which the bot delivers notifications.
         mention: discord.Role
             The role to mention when notifying.
-        retweet: bool
-            Whether to enable notifications for retweets
-        quote: bool
-            Whether to enable notifications for quoted tweets
+        type: str
+            Whether to enable notifications for retweets & quotes.
         """
         
         await itn.response.defer(ephemeral=True)
@@ -68,10 +67,10 @@ class Notification(Cog_Extension):
             if match_user == None:
                 cursor.execute('INSERT INTO user (id, username, lastest_tweet) VALUES (?, ?, ?)', (str(new_user.id), username, datetime.utcnow().replace(tzinfo=timezone.utc).strftime('%Y-%m-%d %H:%M:%S%z')))
                 cursor.execute('INSERT OR IGNORE INTO channel VALUES (?, ?)', (str(channel.id), server_id))
-                cursor.execute('INSERT INTO notification (user_id, channel_id, role_id, enable_type) VALUES (?, ?, ?, ?)', (str(new_user.id), str(channel.id), roleID, format_enable_type(retweet, quote)))
+                cursor.execute('INSERT INTO notification (user_id, channel_id, role_id, enable_type) VALUES (?, ?, ?, ?)', (str(new_user.id), str(channel.id), roleID, enable_type))
             else:
                 cursor.execute('INSERT OR IGNORE INTO channel VALUES (?, ?)', (str(channel.id), server_id))
-                cursor.execute('REPLACE INTO notification (user_id, channel_id, role_id, enable_type) VALUES (?, ?, ?, ?)', (match_user['id'], str(channel.id), roleID, format_enable_type(retweet, quote)))
+                cursor.execute('REPLACE INTO notification (user_id, channel_id, role_id, enable_type) VALUES (?, ?, ?, ?)', (match_user['id'], str(channel.id), roleID, enable_type))
                 cursor.execute('UPDATE user SET enabled = 1 WHERE id = ?', (match_user['id'],))
                 
             
@@ -81,7 +80,7 @@ class Notification(Cog_Extension):
             else: log.warning(f'unable to turn on notifications for {username}')
         else:
             cursor.execute('INSERT OR IGNORE INTO channel VALUES (?, ?)', (str(channel.id), server_id))
-            cursor.execute('REPLACE INTO notification (user_id, channel_id, role_id, enable_type) VALUES (?, ?, ?, ?)', (match_user['id'], str(channel.id), roleID, format_enable_type(retweet, quote)))
+            cursor.execute('REPLACE INTO notification (user_id, channel_id, role_id, enable_type) VALUES (?, ?, ?, ?)', (match_user['id'], str(channel.id), roleID, enable_type))
         
         conn.commit()
         conn.close()
