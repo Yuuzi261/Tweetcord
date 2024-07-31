@@ -35,14 +35,14 @@ Tweetcord是一個discord機器人，它使用tweety-ns模組讓你在discord上
 
    </summary>
 
-👉 `/add notifier` `username` `channel` | `mention`
+👉 `/add notifier` `username` `channel` | `mention` `type`
 
 | 參數 | 類型 | 描述 |
 | --------- | ----- | ----------- |
 | `username` | str | 你想要開啟通知的Twitter用戶的用戶名 |
 | `channel` | discord.TextChannel | 機器人發送通知的頻道 |
 | `mention` | discord.Role | 通知時提及的身分組 |
-| `type` | str | 設定是否啟用轉推和引用的通知 |
+| `type` | str | 設定是否啟用轉推和引用的通知 _(0.4.1版本的新功能)_ |
 
 👉 `/remove notifier` `username` `channel`
 
@@ -90,125 +90,7 @@ pip install -r requirements.txt
 
 **📢本教學適用於0.3.2或更高版本。（建議：0.3.5或更高版本）**
 
-<details>
-   <summary><b>📌0.3.5升級到0.4請點這裡</b></summary>
-
-⚠️在一切開始之前請先更新 `tweety-ns` 至 `1.0.9.2` 版本並且從這個repo下載或拉取新的程式碼。
-
-在 `cogs` 資料夾創建一個python檔案並命名為 `upgrade.py`，貼上下面的程式碼並運行機器人，使用斜線指令 `/upgrade version` 進行升級。升級結束後可以移除這個cog。
-
-```py
-import discord
-from discord import app_commands
-from core.classes import Cog_Extension
-import sqlite3
-import os
-
-from src.permission import ADMINISTRATOR
-
-class Upgrade(Cog_Extension):
-    
-    upgrade_group = app_commands.Group(name='upgrade', description='Upgrade something', default_permissions=ADMINISTRATOR)
-
-    @upgrade_group.command(name='version', description='upgrade to Tweetcord 0.4')
-    async def upgrade(self, itn: discord.Interaction):
-        
-        await itn.response.defer(ephemeral=True)
-        
-        conn = sqlite3.connect(f"{os.getenv('DATA_PATH')}tracked_accounts.db")
-        cursor = conn.cursor()
-
-        try:
-            cursor.executescript("""
-                ALTER TABLE user ADD enabled INTEGER DEFAULT 1;
-                ALTER TABLE notification ADD customized_msg TEXT DEFAULT NULL;
-            """)
-            await itn.followup.send('successfully upgrade to 0.4, you can remove this cog and reboot the bot.')
-        except:
-            await itn.followup.send('upgrading to 0.4 failed, please try again or contact the author.')
-
-
-async def setup(bot):
-    await bot.add_cog(Upgrade(bot))
-```
-
-</details>
-
-<details>
-   <summary><b>📌0.3.4升級到0.3.5請點這裡</b></summary>
-
-在 `cogs` 資料夾創建一個python檔案並命名為 `upgrade.py`，貼上下面的程式碼並運行機器人，使用斜線指令 `/upgrade` 進行升級。升級結束後可以移除這個cog。
-
-```py
-import discord
-from discord import app_commands
-from core.classes import Cog_Extension
-import sqlite3
-import os
-
-from src.log import setup_logger
-from src.permission_check import is_administrator
-
-log = setup_logger(__name__)
-
-class Upgrade(Cog_Extension):
-
-    @is_administrator()
-    @app_commands.command(name='upgrade', description='upgrade to Tweetcord 0.3.5')
-    async def upgrade(self, itn: discord.Interaction):
-        
-        await itn.response.defer(ephemeral=True)
-        
-        conn = sqlite3.connect(f"{os.getenv('DATA_PATH')}tracked_accounts.db")
-        cursor = conn.cursor()
-
-        cursor.executescript('ALTER TABLE channel ADD server_id TEXT')
-        
-        cursor.execute('SELECT id FROM channel')
-        channels = cursor.fetchall()
-        
-        for c in channels:
-            try:
-                channel = self.bot.get_channel(int(c[0]))
-                cursor.execute('UPDATE channel SET server_id = ? WHERE id = ?', (channel.guild.id, channel.id))
-            except:
-                log.warning(f'the bot cannot obtain channel: {c[0]}, but this will not cause problems with the original features. The new feature can also be used normally on existing servers.')
-                
-
-        conn.commit()
-        conn.close()
-
-        await itn.followup.send('successfully upgrade to 0.3.5, you can remove this cog.')
-
-
-async def setup(bot):
-    await bot.add_cog(Upgrade(bot))
-```
-
-</details>
-
-<details>
-   <summary><b>📌0.3.3升級到0.3.4請點這裡</b></summary>
-
-因為資料庫結構更新因此必須使用以下程式碼更新資料庫結構。
-
-```py
-from dotenv import load_dotenv
-import os
-import sqlite3
-
-load_dotenv()
-
-conn = sqlite3.connect(f"{os.getenv('DATA_PATH')}tracked_accounts.db")
-cursor = conn.cursor()
-
-cursor.execute('ALTER TABLE notification ADD enabled INTEGER DEFAULT 1')
-
-conn.commit()
-conn.close()
-```
-
-</details>
+### [⬆️查看歷史版本升級指南](./UPGRADE_GUIDE.md)
 
 ### 1. 創建並配置.env文件
 
