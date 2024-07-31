@@ -42,6 +42,7 @@ Tweetcord是一個discord機器人，它使用tweety-ns模組讓你在discord上
 | `username` | str | 你想要開啟通知的Twitter用戶的用戶名 |
 | `channel` | discord.TextChannel | 機器人發送通知的頻道 |
 | `mention` | discord.Role | 通知時提及的身分組 |
+| `type` | str | 設定是否啟用轉推和引用的通知 |
 
 👉 `/remove notifier` `username` `channel`
 
@@ -232,6 +233,10 @@ tasks_monitor_check_period: 60      # 檢查每個任務是否正常運行的間
 tasks_monitor_log_period: 14400     # 將當前運行中的任務列表輸出到執行日誌的間隔。
 auto_turn_off_notification: true    # (v0.4或更新版本) 如果某個使用者的所有通知都已停用，決定是否取消追蹤該使用者。
 auto_unfollow: true                 # (v0.4或更新版本) 如果某個使用者的所有通知都已停用，決定是否停用該使用者的通知（Twitter端）。
+use_fx: false                       # (v0.4.1或更新版本) 是否使用FixTweet來嵌入內容而不是使用內建的嵌入
+default_message: |                  # (v0.4.1或更新版本) 全域設定預設的訊息格式
+  {mention}**{author}** just {action} here: 
+  {url}
 ```
 
 ### 3. 運行機器人並邀請至你的伺服器

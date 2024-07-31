@@ -42,6 +42,7 @@ Tweetcord is a discord bot that uses the tweety-ns module to let you receive twe
 | `username` | str | The username of the twitter user you want to turn on notifications for |
 | `channel` | discord.TextChannel | The channel to which the bot delivers notifications |
 | `mention` | discord.Role | The role to mention when notifying |
+| `type` | str | Whether to enable notifications for retweets & quotes |
 
 👉 `/remove notifier` `username` `channel`
 
@@ -232,6 +233,10 @@ tasks_monitor_check_period: 60      # Interval at which to check if each tasks i
 tasks_monitor_log_period: 14400     # Interval at which to output the list of currently running tasks to the execution log.
 auto_turn_off_notification: true    # (v0.4 or later) If all notifications for a user are disabled, decide whether to unfollow the user.
 auto_unfollow: true                 # (v0.4 or later) If all notifications for a user is disabled, decide whether to disable notification for the user (twitter side).
+use_fx: false                       # (v0.4.1 or later) Whether to use FxTwitter to embed content instead of using the built-in embed
+default_message: |                  # (v0.4.1 or later) Set default message format globally
+  {mention}**{author}** just {action} here: 
+  {url}
 ```
 
 ### 3. Run and invite the bot to your server
