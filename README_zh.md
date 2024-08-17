@@ -12,7 +12,7 @@ Discord的Twitter通知機器人
 
 ## 📝簡介
 
-Tweetcord是一個discord機器人，它使用tweety-ns模組讓你在discord上接收特定Twitter用戶的推文更新。你只需要設置想要關注的Twitter用戶和discord頻道，Tweetcord就會自動將推文發送到指定的頻道，這樣你就不會錯過任何重要的消息。🐦
+Tweetcord是一個Discord機器人，它使用[tweety-ns](https://github.com/mahrtayyab/tweety)將指定Twitter用戶的即時推文更新傳送到你的Discord伺服器。只需設置想要關注的Twitter用戶和Discord頻道，Tweetcord就會自動將推文轉發到指定頻道，確保你不會錯過重要的更新。🐦
 
 ## ✨功能
 
@@ -22,7 +22,7 @@ Tweetcord是一個discord機器人，它使用tweety-ns模組讓你在discord上
 ### 截圖
 
    </summary>
-👇當你關注的用戶發布了新的推文，你的伺服器也會收到通知。
+👇每當關注的用戶發布新推文時，你的伺服器也會收到通知。
 
 ![](https://i.imgur.com/SXITM0a.png)
 
@@ -67,7 +67,7 @@ Tweetcord是一個discord機器人，它使用tweety-ns模組讓你在discord上
 | `channel` | discord.TextChannel | 機器人發送通知的頻道 |
 | `default` | bool | 是否要還原至預設的設定 _(預設是false)_ |
 
-目前自定義通知訊息有4種特別的變數可以使用，將在下面說明：
+自定義通知訊息為 `f-string` 格式，目前支援4種特別的變數可供使用，將在下面說明：
 
 - `{action}` : 發文者的動作, 包括 `tweeted`, `retweeted` 和 `quoted` _(暫不支持中文)_
 - `{author}` : 發文者的顯示名稱
@@ -83,8 +83,6 @@ Tweetcord是一個discord機器人，它使用tweety-ns模組讓你在discord上
 ```shell
 pip install -r requirements.txt
 ```
-
-在某些作業系統中，你可能需要使用 `pip3` 而不是 `pip` 來進行安裝。
 
 ## ⚡使用
 
@@ -126,8 +124,6 @@ default_message: |                  # (v0.4.1或更新版本) 全域設定預設
 ```shell
 python bot.py
 ```
-
-在某些操作系統中，你可能需要使用 `python3` 而不是 `python`。
 
 🔧機器人權限設定 `2147666944`
 

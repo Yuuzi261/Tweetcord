@@ -1,3 +1,9 @@
+## ⚠️Warning / 警告
+
+Cross-version updates are **NOT SUPPORTED**. For multi-version updates, please iterate through each version to update to the latest version. Before updating, please back up your data using the prefix command `download_data`.
+
+**不支援**跨版本更新，多版本更新請迭代更新至新版本。更新前請先透過前綴指令 `download_data` 進行資料備份。
+
 ## English
 
 <details>

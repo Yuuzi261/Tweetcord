@@ -4,7 +4,7 @@
   
 # Tweetcord
 
-A Twitter Alert Bot For Discord
+A Discord Bot for Twitter Notifications
 
 [**English**](./README.md) | [**繁體中文**](./README_zh.md)
 
@@ -12,7 +12,7 @@ A Twitter Alert Bot For Discord
 
 ## 📝Introduction
 
-Tweetcord is a discord bot that uses the tweety-ns module to let you receive tweet updates from specific Twitter users on discord. You just need to set up the Twitter users and discord channels you want to follow, and Tweetcord will automatically send the tweets to the designated channels, so you won’t miss any important news.🐦
+Tweetcord is a Discord bot that leverages the [tweety-ns module](https://github.com/mahrtayyab/tweety) to provide real-time tweet updates from specific Twitter users directly to your Discord server. Simply configure the Twitter users and Discord channels you want to monitor, and Tweetcord will automatically forward tweets to the designated channels, ensuring you never miss important updates.🐦
 
 ## ✨Features
 
@@ -22,7 +22,7 @@ Tweetcord is a discord bot that uses the tweety-ns module to let you receive twe
 ### Screenshots
 
    </summary>
-👇When the followed user posts a new tweet, your server will also receive a notification.
+👇Whenever a followed user posts a new tweet, your server will receive an instant notification.
 
 ![](https://i.imgur.com/SXITM0a.png)
 
@@ -67,7 +67,7 @@ Tweetcord is a discord bot that uses the tweety-ns module to let you receive twe
 | `channel` | discord.TextChannel | The channel which set to delivers notifications |
 | `default` | bool | Whether to use default setting _(default is false)_ |
 
-There are currently 4 special variables that can be used in customized messages, which will be explained below.
+Custom notification messages are in `f-string format`, currently supporting 4 special variables for use, which will be explained below.
 
 - `{action}` : poster's action, include `tweeted`, `retweeted` and `quoted`
 - `{author}` : poster's display name
@@ -83,8 +83,6 @@ Before running the bot, you need to install the necessary modules.
 ```shell
 pip install -r requirements.txt
 ```
-
-In certain operating systems, you may need to use the command `pip3` instead of `pip` for installation.
 
 ## ⚡Usage
 
@@ -126,8 +124,6 @@ default_message: |                  # (v0.4.1 or later) Set default message form
 ```shell
 python bot.py
 ```
-
-In certain operating systems, you may need to use `python3` instead of `python`.
 
 🔧Bot Permissions Setup `2147666944`
 
