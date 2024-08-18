@@ -1,5 +1,9 @@
 import discord
 import re
+import requests
+from bs4 import BeautifulSoup
+
+from configs.load_configs import configs
 
 def gen_embed(tweet):
     author = tweet.author
@@ -11,9 +15,16 @@ def gen_embed(tweet):
         embed.set_image(url=tweet.media[0].media_url_https)
         return [embed]
     else:
-        imgs_embed = [discord.Embed(url=tweet.url).set_image(url=media.media_url_https) for media in tweet.media]
-        imgs_embed.insert(0, embed)
-        return imgs_embed
+        if configs['fx_image']:
+            fx_url = re.sub(r'twitter', r'fxtwitter', tweet.url)
+            raw = requests.get(fx_url)
+            fximage_url = BeautifulSoup(raw.text, 'html.parser').find('meta', property='og:image')['content']
+            embed.set_image(url=fximage_url)
+            return [embed]
+        else: 
+            imgs_embed = [discord.Embed(url=tweet.url).set_image(url=media.media_url_https) for media in tweet.media]
+            imgs_embed.insert(0, embed)
+            return imgs_embed
 
   
 def get_action(tweet, disable_quoted = False):

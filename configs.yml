@@ -7,6 +7,7 @@ tasks_monitor_log_period: 14400
 auto_turn_off_notification: true
 auto_unfollow: true
 use_fx: false
+fx_image: true
 default_message: |
   {mention}**{author}** just {action} here: 
   {url}
