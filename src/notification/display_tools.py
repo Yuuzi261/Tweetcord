@@ -16,8 +16,7 @@ def gen_embed(tweet):
         return [embed]
     else:
         if configs['fx_image']:
-            fx_url = re.sub(r'twitter', r'fxtwitter', tweet.url)
-            raw = requests.get(fx_url)
+            raw = requests.get(re.sub(r'twitter', r'fxtwitter', tweet.url))
             fximage_url = BeautifulSoup(raw.text, 'html.parser').find('meta', property='og:image')['content']
             embed.set_image(url=fximage_url)
             return [embed]
