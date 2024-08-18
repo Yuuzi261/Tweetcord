@@ -14,7 +14,7 @@ def gen_embed(tweet):
     if len(tweet.media) == 1:
         embed.set_image(url=tweet.media[0].media_url_https)
         return [embed]
-    else:
+    elif len(tweet.media) > 1:
         if configs['fx_image']:
             raw = requests.get(re.sub(r'twitter', r'fxtwitter', tweet.url))
             fximage_url = BeautifulSoup(raw.text, 'html.parser').find('meta', property='og:image')['content']
@@ -24,6 +24,7 @@ def gen_embed(tweet):
             imgs_embed = [discord.Embed(url=tweet.url).set_image(url=media.media_url_https) for media in tweet.media]
             imgs_embed.insert(0, embed)
             return imgs_embed
+    return [embed]
 
   
 def get_action(tweet, disable_quoted = False):
