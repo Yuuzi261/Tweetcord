@@ -4,7 +4,7 @@ from src.notification.date_comparator import date_comparator
 
 def get_tweets(tweets, username):
     
-    conn = sqlite3.connect(f"{os.getenv('DATA_PATH')}tracked_accounts.db")
+    conn = sqlite3.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db'))
     cursor = conn.cursor()
     last_tweet_at = cursor.execute('SELECT lastest_tweet FROM user WHERE username = ?', (username,)).fetchone()[0]
     conn.close()

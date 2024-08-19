@@ -27,7 +27,7 @@ class AccountTracker():
         app = Twitter("session")
         app.load_auth_token(os.getenv('TWITTER_TOKEN'))
         
-        conn = sqlite3.connect(f"{os.getenv('DATA_PATH')}tracked_accounts.db")
+        conn = sqlite3.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db'))
         cursor = conn.cursor()
         
         self.bot.loop.create_task(self.tweetsUpdater(app)).set_name('TweetsUpdater')
@@ -51,7 +51,7 @@ class AccountTracker():
             lastest_tweets = task.result()
             if lastest_tweets == None: continue
             
-            conn = sqlite3.connect(f"{os.getenv('DATA_PATH')}tracked_accounts.db")
+            conn = sqlite3.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db'))
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
 
@@ -112,7 +112,7 @@ class AccountTracker():
             
 
     async def addTask(self, username : str):
-        conn = sqlite3.connect(f"{os.getenv('DATA_PATH')}tracked_accounts.db")
+        conn = sqlite3.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db'))
         cursor = conn.cursor()
         
         self.bot.loop.create_task(self.notification(username)).set_name(username)
@@ -129,7 +129,7 @@ class AccountTracker():
         
 
     async def removeTask(self, username : str):
-        conn = sqlite3.connect(f"{os.getenv('DATA_PATH')}tracked_accounts.db")
+        conn = sqlite3.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db'))
         cursor = conn.cursor()
         
         for task in asyncio.all_tasks():

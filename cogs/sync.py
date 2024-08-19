@@ -22,7 +22,7 @@ class Sync(Cog_Extension):
         
         await itn.response.defer(ephemeral=True)
         
-        conn = sqlite3.connect(f"{os.getenv('DATA_PATH')}tracked_accounts.db")
+        conn = sqlite3.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db'))
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
         

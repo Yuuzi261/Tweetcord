@@ -18,7 +18,7 @@ bot = commands.Bot(command_prefix=configs['prefix'], intents=discord.Intents.all
 @bot.event
 async def on_ready():
     await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=configs['activity_name']))
-    if not(os.path.isfile(f"{os.getenv('DATA_PATH')}tracked_accounts.db")): init_db()
+    if not(os.path.isfile(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db'))): init_db()
     bot.tree.on_error = on_tree_error
     for filename in os.listdir('./cogs'):
         if filename.endswith('.py'):
@@ -57,7 +57,7 @@ async def download_log(ctx : commands.context.Context):
 @bot.command()
 @commands.is_owner()
 async def download_data(ctx : commands.context.Context):
-    message = await ctx.send(file=discord.File(f"{os.getenv('DATA_PATH')}tracked_accounts.db"))
+    message = await ctx.send(file=discord.File(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')))
     await message.delete(delay=15)
 
 
@@ -65,7 +65,7 @@ async def download_data(ctx : commands.context.Context):
 @commands.is_owner()
 async def upload_data(ctx : commands.context.Context):
     raw = await [attachment for attachment in ctx.message.attachments if attachment.filename[-3:] == '.db'][0].read()
-    with open(f"{os.getenv('DATA_PATH')}tracked_accounts.db", 'wb') as wbf:
+    with open(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db'), 'wb') as wbf:
         wbf.write(raw)
     message = await ctx.send('successfully uploaded data')
     await message.delete(delay=5)

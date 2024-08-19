@@ -3,7 +3,7 @@ import sqlite3
 
 def init_db():
     if not os.path.exists(os.getenv('DATA_PATH')): os.mkdir(os.getenv('DATA_PATH'))
-    conn = sqlite3.connect(f"{os.getenv('DATA_PATH')}tracked_accounts.db")
+    conn = sqlite3.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db'))
     cursor = conn.cursor()
     cursor.executescript("""
         CREATE TABLE IF NOT EXISTS user (id TEXT PRIMARY KEY, username TEXT, lastest_tweet TEXT, enabled INTEGER DEFAULT 1);
