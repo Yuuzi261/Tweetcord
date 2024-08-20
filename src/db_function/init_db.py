@@ -1,6 +1,10 @@
 import os
 import sqlite3
 
+from src.log import setup_logger
+
+log = setup_logger(__name__)
+
 def init_db():
     if not os.path.exists(os.getenv('DATA_PATH')): os.mkdir(os.getenv('DATA_PATH'))
     conn = sqlite3.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db'))
@@ -12,3 +16,4 @@ def init_db():
     """)
     conn.commit()
     conn.close()
+    log.info('database file not found, a blank database file has been created')
