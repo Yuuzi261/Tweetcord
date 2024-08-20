@@ -3,6 +3,7 @@ from tweety import Twitter
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
 import os
+import re
 import sqlite3
 import asyncio
 
@@ -69,7 +70,7 @@ class AccountTracker():
                             mention = f"{channel.guild.get_role(int(data['role_id'])).mention} " if data['role_id'] != '' else ''
                             author, action = tweet.author.name, get_action(tweet)
 
-                            url = f"https://fixupx.com/{tweet.author.username}/status/{tweet.id}" if EMBED_TYPE == 'fx_twitter' else tweet.url
+                            url = re.sub(r'twitter', r'fxtwitter', tweet.url) if EMBED_TYPE == 'fx_twitter' else tweet.url
                                 
                             msg = data['customized_msg'] if data['customized_msg'] else configs['default_message']
                             msg = msg.format(mention=mention, author=author, action=action, url=url)
@@ -86,8 +87,8 @@ class AccountTracker():
             try:
                 self.tweets = await asyncio.wait_for(asyncio.to_thread(app.get_tweet_notifications), timeout=8)
             except asyncio.TimeoutError:
-                log.warning('tweets request timed out, will retry in 5 seconds')
-                await asyncio.sleep(5)
+                log.warning('tweets request timed out, will retry in 30 seconds')
+                await asyncio.sleep(30)
                 continue
             except Exception as e:                    
                 log.error(f'{e} (task : tweets updater)')
