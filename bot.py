@@ -3,10 +3,13 @@ from discord.ext import commands
 from discord import app_commands
 from dotenv import load_dotenv
 import os
+import sys
+import asyncio
 
 from src.log import setup_logger
 from src.db_function.init_db import init_db
 from configs.load_configs import configs
+from configs.check_configs import check_configs
 
 log = setup_logger(__name__)
 
@@ -19,6 +22,10 @@ bot = commands.Bot(command_prefix=configs['prefix'], intents=discord.Intents.all
 async def on_ready():
     await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=configs['activity_name']))
     if not(os.path.isfile(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db'))): init_db()
+    if not check_configs(configs):
+        log.warn('incomplete configs file detected, will retry in 30 seconds')
+        await asyncio.sleep(30)
+        os.execv(sys.executable, ['python'] + sys.argv)
     bot.tree.on_error = on_tree_error
     for filename in os.listdir('./cogs'):
         if filename.endswith('.py'):
