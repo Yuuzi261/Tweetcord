@@ -22,6 +22,7 @@ load_dotenv()
 class AccountTracker():
     def __init__(self, bot):
         self.bot = bot
+        self.tweets = []
         self.tasksMonitorLogAt = datetime.utcnow() - timedelta(seconds=configs['tasks_monitor_log_period'])
         bot.loop.create_task(self.setup_tasks())
 
@@ -82,11 +83,17 @@ class AccountTracker():
 
     async def tweetsUpdater(self, app):
         while True:
-            try: self.tweets = app.get_tweet_notifications()
-            except Exception as e:
+            try:
+                self.tweets = await asyncio.wait_for(asyncio.to_thread(app.get_tweet_notifications), timeout=8)
+            except asyncio.TimeoutError:
+                log.warning('tweets request timed out, will retry in 5 seconds')
+                await asyncio.sleep(5)
+                continue
+            except Exception as e:                    
                 log.error(f'{e} (task : tweets updater)')
                 log.error(f"an unexpected error occurred, try again in {configs['tweets_updater_retry_delay'] / 60} minutes")
                 await asyncio.sleep(configs['tweets_updater_retry_delay'])
+                continue
             await asyncio.sleep(configs['tweets_check_period'])
 
 
