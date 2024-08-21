@@ -87,8 +87,9 @@ class AccountTracker():
             try:
                 self.tweets = await asyncio.wait_for(asyncio.to_thread(app.get_tweet_notifications), timeout=8)
             except asyncio.TimeoutError:
-                log.warning('tweets request timed out, will retry in 30 seconds')
-                await asyncio.sleep(30)
+                log.warning('tweets request timed out, will retry in 1 minute')
+                log.info('if warnings appear frequently, please adjust the tweets_check_period attribute in the configs')
+                await asyncio.sleep(60)
                 continue
             except Exception as e:                    
                 log.error(f'{e} (task : tweets updater)')
