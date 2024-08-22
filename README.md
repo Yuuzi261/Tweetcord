@@ -118,7 +118,7 @@ You can retrieve your auth token from cookies, or you can explore other methods 
 
 All configurations are measured in seconds.
 
-- `tweets_check_period` : The check frequency for the posts, it is not recommended to set this value too low to avoid rate limiting. Default value: `10`, Safty value: `18` [(why is this value?)](https://github.com/mahrtayyab/tweety/wiki/FAQs#twitter-new-limits), not recommended below `10`. If the account controlled by Tweetocrd is the same as the account you usually use, please increase the value appropriately to avoid rate limiting.
+- `tweets_check_period` : The check frequency for the posts, it is not recommended to set this value too low to avoid rate limiting. Default value: `10`, Safety value: `18` [(why is this value?)](https://github.com/mahrtayyab/tweety/wiki/FAQs#twitter-new-limits), not recommended below `10`. If the account controlled by Tweetocrd is the same as the account you usually use, please increase the value appropriately to avoid rate limiting.
 - `tweets_updater_retry_delay` : Retry Interval when Tweets Updater encounters exceptions.
 - `tasks_monitor_check_period` : Interval at which to check if each tasks is functioning properly, and if a task has stopped, attempt a restart.
 - `tasks_monitor_log_period` : Interval at which to output the list of currently running tasks to the execution log.
