@@ -73,7 +73,7 @@ Tweetcord是一個Discord機器人，它使用[tweety-ns](https://github.com/mah
 
 自定義通知訊息為 `f-string` 格式，目前支援4種特別的變數可供使用，將在下面說明：
 
-- `{action}` : 發文者的動作, 包括 `tweeted`, `retweeted` 和 `quoted` _(暫不支持中文)_
+- `{action}` : 發文者的動作, 包括 `tweeted`, `retweeted` 和 `quoted` _（暫不支持中文）_
 - `{author}` : 發文者的顯示名稱
 - `{mention}` : 發送到discord時提及的身份組
 - `{url}` : 推文的連結
@@ -118,7 +118,7 @@ DATA_PATH=./data
 
 所有配置都以秒為單位。
 
-- `tweets_check_period` : 檢查推文的頻率，不建議將此值設置得太低，以避免速率限制。預設值：`10`，安全值：`18`([為什麼是這個數值？](https://github.com/mahrtayyab/tweety/wiki/FAQs#twitter-new-limits)), 不推薦低於 `10`. 如果Tweetcord控制的帳號和你平常在使用的帳號相同，請適當提高這個數值以避免速率限制。
+- `tweets_check_period` : 檢查推文的頻率，不建議將此值設置得太低，以避免速率限制。預設值：`10`，安全值：`18`（[為什麼是這個數值？](https://github.com/mahrtayyab/tweety/wiki/FAQs#twitter-new-limits)）, 不推薦低於 `10`. 如果Tweetcord控制的帳號和你平常在使用的帳號相同，請適當提高這個數值以避免速率限制。
 - `tweets_updater_retry_delay` : 當Tweets Updater遇到異常時的重試間隔。
 - `tasks_monitor_check_period` : 檢查每個任務是否正常運行的間隔，如果某個任務停止了，嘗試重新啟動。
 - `tasks_monitor_log_period` : 將當前運行中的任務列表輸出到執行日誌的間隔。
