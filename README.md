@@ -6,6 +6,10 @@
 
 A Discord Bot for Twitter Notifications
 
+[![](https://img.shields.io/badge/python-3.10+-blue?logo=python&logoColor=white)](https://www.python.org/downloads/)
+[![](https://img.shields.io/github/v/release/Yuuzi261/Tweetcord?sort=semver)](https://github.com/Yuuzi261/Tweetcord/releases)
+[![](https://img.shields.io/github/release-date/Yuuzi261/Tweetcord)](https://github.com/Yuuzi261/Tweetcord/releases)
+
 [**English**](./README.md) | [**繁體中文**](./README_zh.md)
 
 </div>
@@ -42,7 +46,7 @@ Tweetcord is a Discord bot that leverages the [tweety-ns module](https://github.
 | `username` | str | The username of the twitter user you want to turn on notifications for |
 | `channel` | discord.TextChannel | The channel to which the bot delivers notifications |
 | `mention` | discord.Role | The role to mention when notifying |
-| `type` | str | Whether to enable notifications for retweets & quotes _(new in 0.4.1)_ |
+| `type` | str | Whether to enable notifications for retweets & quotes |
 
 👉 `/remove notifier` `username` `channel`
 
@@ -55,11 +59,11 @@ Tweetcord is a Discord bot that leverages the [tweety-ns module](https://github.
 
 - List all twitter users whose notifications are enabled on the current server
 
-👉 `/sync` _(new in 0.4)_
+👉 `/sync`
 
 - Sync the notification of new Twitter account with database.  If you change the twitter account used by bot, please use this command
 
-👉 `/customize message` `username` `channel` | `default` _(new in 0.4)_
+👉 `/customize message` `username` `channel` | `default`
 
 | parameters | types | descriptions |
 | --------- | ----- | ----------- |
@@ -95,29 +99,52 @@ pip install -r requirements.txt
 ```env
 BOT_TOKEN=YourDiscordBotToken
 TWITTER_TOKEN=YourTwitterAccountAuthToken
-DATA_PATH=./data/
+DATA_PATH=./data
 ```
 
 You can retrieve your auth token from cookies, or you can explore other methods to obtain it.
 
 ### 2. Configure the configs.yml file
 
-All time-related configurations are measured in seconds.
+> [!IMPORTANT]
+> All configuration instructions here are synchronized with the latest version. For users of the old version, please refer to the old README.
 
-```yml
-prefix: ''                          # The prefix for bot commands.
-activity_name: ''                   # The activity name displayed by the bot.
-tweets_check_period: 10             # The check frequency for the posts (it is not recommended to set this value too low to avoid rate limiting).
-tweets_updater_retry_delay: 300     # Retry Interval when Tweets Updater encounters exceptions (e.g., rate limitations).
-tasks_monitor_check_period: 60      # Interval at which to check if each tasks is functioning properly, and if a task has stopped, attempt a restart.
-tasks_monitor_log_period: 14400     # Interval at which to output the list of currently running tasks to the execution log.
-auto_turn_off_notification: true    # (v0.4 or later) If all notifications for a user are disabled, decide whether to unfollow the user.
-auto_unfollow: true                 # (v0.4 or later) If all notifications for a user is disabled, decide whether to disable notification for the user (twitter side).
-use_fx: false                       # (v0.4.1 or later) Whether to use FxTwitter to embed content instead of using the built-in embed
-default_message: |                  # (v0.4.1 or later) Set default message format globally
-  {mention}**{author}** just {action} here: 
-  {url}
-```
+#### Base
+
+- `prefix` : The prefix for bot commands, only effective for prefix commands.
+- `activity_name` : The activity name displayed by the bot.
+
+#### Timer
+
+All configurations are measured in seconds.
+
+- `tweets_check_period` : The check frequency for the posts, it is not recommended to set this value too low to avoid rate limiting. Default value: `10`, Safty value: `18`([why is this value?](https://github.com/mahrtayyab/tweety/wiki/FAQs#twitter-new-limits)), not recommended below `10`. If the account controlled by Tweetocrd is the same as the account you usually use, please increase the value appropriately to avoid rate limiting.
+- `tweets_updater_retry_delay` : Retry Interval when Tweets Updater encounters exceptions.
+- `tasks_monitor_check_period` : Interval at which to check if each tasks is functioning properly, and if a task has stopped, attempt a restart.
+- `tasks_monitor_log_period` : Interval at which to output the list of currently running tasks to the execution log.
+
+#### Control Account Behavior
+
+- `auto_turn_off_notification` : If all notifications for a user are disabled, decide whether to unfollow the user.
+- `auto_unfollow` : If all notifications for a user is disabled, decide whether to disable notification for the user (twitter side).
+
+#### Embed Style
+
+- `type` : Determine the type of embed, supported types: `built_in` / `fx_twitter`.
+
+built_in:
+
+- `fx_image` : Whether to use FxTwitter's combined image when there are multiple images, friendly for iOS systems that cannot display multiple image embeddings.
+- `video_link_button` : #TODO
+- `footer_logo` : #TODO
+
+fx_twitter:
+
+- `original_url_button` : #TODO
+
+#### Message
+
+- `default_message` : Set default message format globally, the format is the same as the customized message, use f-string and support 4 special variables. For details, please refer to [Commands](#commands).
 
 ### 3. Run and invite the bot to your server
 
@@ -135,7 +162,10 @@ python bot.py
 - [x] Use Slash Commands
 
 > [!NOTE]
-> If you want to host the bot on a server, here is a recommended service that is basically free: [fly.io](https://fly.io).
+> If you want to host the bot on a server, here is a recommended service that is basically free: [fly.io](https://fly.io). _(update: fly.io has stopped offering free plans to new users)_
+
+> [!TIP]
+> Alternatively, you can try this virtual hosting service provided by Taiwanese students: [FreeServer](https://freeserver.tw/index.html)
 
 <details>
    <summary><b>⚙️some configuration files you may need if you use fly.io</b></summary>
@@ -158,7 +188,7 @@ app = "YOUR_APP_NAME"
 primary_region = "YOUR_APP_REGION"
 
 [env]
-  DATA_PATH = "/data/"
+  DATA_PATH = "/data"
 
 [mounts]
   source = "YOUR_APP_VOLUME_NAME"
