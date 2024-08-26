@@ -50,11 +50,9 @@ class AccountTracker():
         while True:
             await asyncio.sleep(configs['tweets_check_period'])
 
-            task = asyncio.create_task(asyncio.to_thread(get_tweets, self.tweets, username))
-            await task
-            lastest_tweets = task.result()
-            if lastest_tweets == None: continue
-            
+            lastest_tweets = await asyncio.to_thread(get_tweets, self.tweets, username)
+            if lastest_tweets is None: continue
+
             conn = sqlite3.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db'))
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
@@ -63,19 +61,21 @@ class AccountTracker():
             execute(conn, 'UPDATE user SET lastest_tweet = ? WHERE username = ?', (str(lastest_tweets[-1].created_on), username), username)
             for tweet in lastest_tweets:
                 log.info(f'find a new tweet from {username}')
-                for data in cursor.execute('SELECT * FROM notification WHERE user_id = ? AND enabled = 1', (user['id'],)):
+                notifications = cursor.execute('SELECT * FROM notification WHERE user_id = ? AND enabled = 1', (user['id'],)).fetchall()
+                for data in notifications:
                     channel = self.bot.get_channel(int(data['channel_id']))
-                    if channel != None and is_match_type(tweet, data['enable_type']):
+                    if channel is not None and is_match_type(tweet, data['enable_type']):
                         try:
-                            mention = f"{channel.guild.get_role(int(data['role_id'])).mention} " if data['role_id'] != '' else ''
+                            mention = f"{channel.guild.get_role(int(data['role_id'])).mention} " if data['role_id'] else ''
                             author, action = tweet.author.name, get_action(tweet)
 
                             url = re.sub(r'twitter', r'fxtwitter', tweet.url) if EMBED_TYPE == 'fx_twitter' else tweet.url
-                                
+
                             msg = data['customized_msg'] if data['customized_msg'] else configs['default_message']
                             msg = msg.format(mention=mention, author=author, action=action, url=url)
 
-                            await channel.send(msg) if EMBED_TYPE == 'fx_twitter' else await channel.send(msg, file = discord.File('images/twitter.png', filename='twitter.png'), embeds = gen_embed(tweet))  
+                            await channel.send(msg) if EMBED_TYPE == 'fx_twitter' else await channel.send(msg, file=discord.File('images/twitter.png', filename='twitter.png'), embeds=gen_embed(tweet))
+
                         except Exception as e:
                             if not isinstance(e, discord.errors.Forbidden): log.error(f'an unexpected error occurred at {channel.mention} while sending notification')
                     
@@ -86,17 +86,15 @@ class AccountTracker():
         while True:
             try:
                 self.tweets = await asyncio.wait_for(asyncio.to_thread(app.get_tweet_notifications), timeout=8)
+                await asyncio.sleep(configs['tweets_check_period'])
             except asyncio.TimeoutError:
-                log.warning('tweets request timed out, will retry in 1 minute')
+                log.warning(f"tweets request timed out, will retry in {configs['tweets_updater_retry_delay'] / 60} minutes")
                 log.info('if warnings appear frequently, please adjust the tweets_check_period attribute in the configs')
-                await asyncio.sleep(60)
-                continue
+                await asyncio.sleep(configs['tweets_updater_retry_delay'])
             except Exception as e:                    
                 log.error(f'{e} (task : tweets updater)')
                 log.error(f"an unexpected error occurred, try again in {configs['tweets_updater_retry_delay'] / 60} minutes")
                 await asyncio.sleep(configs['tweets_updater_retry_delay'])
-                continue
-            await asyncio.sleep(configs['tweets_check_period'])
 
 
     async def tasksMonitor(self, users : set):
