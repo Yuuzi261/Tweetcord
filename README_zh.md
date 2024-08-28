@@ -111,40 +111,54 @@ DATA_PATH=./data
 
 #### 基本
 
-- `prefix` : 機器人命令的前綴，只會對前綴指令生效。
-- `activity_name` : 機器人顯示的活動名稱。
+| 參數 | 描述 |
+|-----------|-------------|
+| `prefix` | 機器人命令的前綴，只會對前綴指令生效。 |
+| `activity_name` | 機器人顯示的活動名稱。 |
 
 #### 計時器
 
 所有配置都以秒為單位。
 
-- `tweets_check_period` : 檢查推文的頻率，不建議將此值設置得太低，以避免速率限制。預設值：`10`，安全值：`18`[（為什麼是這個數值？）](https://github.com/mahrtayyab/tweety/wiki/FAQs#twitter-new-limits)，不推薦低於 `10`。如果Tweetcord控制的帳號和你平常在使用的帳號相同，請適當提高這個數值以避免速率限制。
-- `tweets_updater_retry_delay` : 當Tweets Updater遇到異常時的重試間隔。
-- `tasks_monitor_check_period` : 檢查每個任務是否正常運行的間隔，如果某個任務停止了，嘗試重新啟動。
-- `tasks_monitor_log_period` : 將當前運行中的任務列表輸出到執行日誌的間隔。
+| 參數 | 描述 |
+|-----------|-------------|
+| `tweets_check_period` | 檢查推文的頻率，不建議將此值設置得太低，以避免速率限制。預設值：`10`，安全值：`18`[（為什麼是這個數值？）](https://github.com/mahrtayyab/tweety/wiki/FAQs#twitter-new-limits)，不推薦低於 `10`。如果Tweetcord控制的帳號和你平常在使用的帳號相同，請適當提高這個數值以避免速率限制。 |
+| `tweets_updater_retry_delay` | 當Tweets Updater遇到異常時的重試間隔。 |
+| `tasks_monitor_check_period` | 檢查每個任務是否正常運行的間隔，如果某個任務停止了，嘗試重新啟動。 |
+| `tasks_monitor_log_period` | 將當前運行中的任務列表輸出到執行日誌的間隔。 |
 
 #### 控制帳戶行為
 
-- `auto_turn_off_notification` : 如果某個使用者的所有通知都已停用，決定是否取消追蹤該使用者。
-- `auto_unfollow` : 如果某個使用者的所有通知都已停用，決定是否停用該使用者的通知（Twitter端）。
+| 參數 | 描述 |
+|-----------|-------------|
+| `auto_turn_off_notification` | 如果某個使用者的所有通知都已停用，決定是否取消追蹤該使用者。 |
+| `auto_unfollow` | 如果某個使用者的所有通知都已停用，決定是否停用該使用者的通知（Twitter端）。 |
 
 #### 嵌入內容風格
 
-- `type` : 決定嵌入內容的類型，支援的類型有: `built_in` / `fx_twitter`。
+| 參數 | 描述 |
+|-----------|-------------|
+| `type` | 決定嵌入內容的類型，支援的類型有: `built_in` / `fx_twitter`。 |
 
-built_in:
+##### built_in:
 
-- `fx_image` : 當有多張圖片時是否使用FxTwitter的組合圖片，對於無法顯示多張圖片嵌入的iOS系統友善。
-- `video_link_button` : #TODO
-- `footer_logo` : #TODO
+| 參數 | 描述 |
+|-----------|-------------|
+| `fx_image` | 當有多張圖片時是否使用FxTwitter的組合圖片，對於無法顯示多張圖片嵌入的iOS系統友善。 |
+| `video_link_button` | #TODO |
+| `footer_logo` | #TODO |
 
-fx_twitter:
+##### fx_twitter:
 
-- `original_url_button` : #TODO
+| 參數 | 描述 |
+|-----------|-------------|
+| `original_url_button` | #TODO |
 
 #### 訊息
 
-- `default_message` : 全域設定預設的訊息格式，格式和自定義訊息相同，使用f-字串並支援4個特殊變數。相關細節請參考[Commands](#commands)。
+| 參數 | 描述 |
+|-----------|-------------|
+| `default_message` | 全域設定預設的訊息格式，格式和自定義訊息相同，使用f-字串並支援4個特殊變數。相關細節請參考[Commands](#commands)。 |
 
 ### 3. 運行機器人並邀請至你的伺服器
 

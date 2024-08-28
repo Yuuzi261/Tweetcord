@@ -41,8 +41,8 @@ Tweetcord is a Discord bot that leverages the [tweety-ns module](https://github.
 
 👉 `/add notifier` `username` `channel` | `mention` `type`
 
-| parameters | types | descriptions |
-| --------- | ----- | ----------- |
+| Parameter | Type | Description |
+| --------- | ---- | ----------- |
 | `username` | str | The username of the twitter user you want to turn on notifications for |
 | `channel` | discord.TextChannel | The channel to which the bot delivers notifications |
 | `mention` | discord.Role | The role to mention when notifying |
@@ -50,8 +50,8 @@ Tweetcord is a Discord bot that leverages the [tweety-ns module](https://github.
 
 👉 `/remove notifier` `username` `channel`
 
-| parameters | types | descriptions |
-| --------- | ----- | ----------- |
+| Parameter | Type | Description |
+| --------- | ---- | ----------- |
 | `username` | str | The username of the twitter user you want to turn off notifications for |
 | `channel` | discord.TextChannel | The channel which set to delivers notifications |
 
@@ -65,8 +65,8 @@ Tweetcord is a Discord bot that leverages the [tweety-ns module](https://github.
 
 👉 `/customize message` `username` `channel` | `default`
 
-| parameters | types | descriptions |
-| --------- | ----- | ----------- |
+| Parameter | Type | Description |
+| --------- | ---- | ----------- |
 | `username` | str | The username of the twitter user you want to set customized message |
 | `channel` | discord.TextChannel | The channel which set to delivers notifications |
 | `default` | bool | Whether to use default setting _(default is false)_ |
@@ -111,40 +111,54 @@ You can retrieve your auth token from cookies, or you can explore other methods 
 
 #### Base
 
-- `prefix` : The prefix for bot commands, only effective for prefix commands.
-- `activity_name` : The activity name displayed by the bot.
+| Parameter | Description |
+|-----------|-------------|
+| `prefix` | The prefix for bot commands, only effective for prefix commands. |
+| `activity_name` | The activity name displayed by the bot. |
 
 #### Timer
 
 All configurations are measured in seconds.
 
-- `tweets_check_period` : The check frequency for the posts, it is not recommended to set this value too low to avoid rate limiting. Default value: `10`, Safety value: `18` [(why is this value?)](https://github.com/mahrtayyab/tweety/wiki/FAQs#twitter-new-limits), not recommended below `10`. If the account controlled by Tweetocrd is the same as the account you usually use, please increase the value appropriately to avoid rate limiting.
-- `tweets_updater_retry_delay` : Retry Interval when Tweets Updater encounters exceptions.
-- `tasks_monitor_check_period` : Interval at which to check if each tasks is functioning properly, and if a task has stopped, attempt a restart.
-- `tasks_monitor_log_period` : Interval at which to output the list of currently running tasks to the execution log.
+| Parameter | Description |
+|-----------|-------------|
+| `tweets_check_period` | The check frequency for the posts, it is not recommended to set this value too low to avoid rate limiting. Default value: `10`, Safety value: `18` [(why is this value?)](https://github.com/mahrtayyab/tweety/wiki/FAQs#twitter-new-limits), not recommended below `10`. If the account controlled by Tweetocrd is the same as the account you usually use, please increase the value appropriately to avoid rate limiting. |
+| `tweets_updater_retry_delay` | Retry Interval when Tweets Updater encounters exceptions. |
+| `tasks_monitor_check_period` | Interval at which to check if each tasks is functioning properly, and if a task has stopped, attempt a restart. |
+| `tasks_monitor_log_period` | Interval at which to output the list of currently running tasks to the execution log. |
 
 #### Control Account Behavior
 
-- `auto_turn_off_notification` : If all notifications for a user are disabled, decide whether to unfollow the user.
-- `auto_unfollow` : If all notifications for a user is disabled, decide whether to disable notification for the user (twitter side).
+| Parameter | Description |
+|-----------|-------------|
+| `auto_turn_off_notification` | If all notifications for a user are disabled, decide whether to unfollow the user. |
+| `auto_unfollow` | If all notifications for a user is disabled, decide whether to disable notification for the user (twitter side). |
 
 #### Embed Style
 
-- `type` : Determine the type of embed, supported types: `built_in` / `fx_twitter`.
+| Parameter | Description |
+|-----------|-------------|
+| `type` | Determine the type of embed, supported types: `built_in` / `fx_twitter`. |
 
-built_in:
+##### built_in:
 
-- `fx_image` : Whether to use FxTwitter's combined image when there are multiple images, friendly for iOS systems that cannot display multiple image embeddings.
-- `video_link_button` : #TODO
-- `footer_logo` : #TODO
+| Parameter | Description |
+|-----------|-------------|
+| `fx_image` | Whether to use FxTwitter's combined image when there are multiple images, friendly for iOS systems that cannot display multiple image embeddings. |
+| `video_link_button` | #TODO |
+| `footer_logo` | #TODO |
 
-fx_twitter:
+##### fx_twitter:
 
-- `original_url_button` : #TODO
+| Parameter | Description |
+|-----------|-------------|
+| `original_url_button` | #TODO |
 
 #### Message
 
-- `default_message` : Set default message format globally, the format is the same as the customized message, use f-string and support 4 special variables. For details, please refer to [Commands](#commands).
+| Parameter | Description |
+|-----------|-------------|
+| `default_message` | Set default message format globally, the format is the same as the customized message, use f-string and support 4 special variables. For details, please refer to [Commands](#commands). |
 
 ### 3. Run and invite the bot to your server
 
