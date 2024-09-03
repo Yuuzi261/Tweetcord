@@ -1,5 +1,6 @@
 prefix: '.'
 activity_name: 'Hennyano'
+activity_type: 'watching'
 
 tweets_check_period: 10
 tweets_updater_retry_delay: 300

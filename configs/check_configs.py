@@ -11,7 +11,7 @@ def check_configs(configs):
         return True
 
     required_keys = [
-        'prefix', 'activity_name', 'tweets_check_period', 'tweets_updater_retry_delay',
+        'prefix', 'activity_name', 'activity_type', 'tweets_check_period', 'tweets_updater_retry_delay',
         'tasks_monitor_check_period', 'tasks_monitor_log_period', 'auto_turn_off_notification',
         'auto_unfollow', 'embed', 'default_message'
     ]
