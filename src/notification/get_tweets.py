@@ -1,13 +1,13 @@
 import os
-import sqlite3
+import aiosqlite
 from src.notification.date_comparator import date_comparator
 
-def get_tweets(tweets, username):
+async def get_tweets(tweets, username):
     
-    conn = sqlite3.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db'))
-    cursor = conn.cursor()
-    last_tweet_at = cursor.execute('SELECT lastest_tweet FROM user WHERE username = ?', (username,)).fetchone()[0]
-    conn.close()
+    async with aiosqlite.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
+        async with db.execute('SELECT lastest_tweet FROM user WHERE username = ?', (username,)) as cursor:
+            row = await cursor.fetchone()
+            last_tweet_at = row[0]
     
     tweets = [tweet for tweet in tweets if tweet.author.username == username and date_comparator(tweet.created_on, last_tweet_at) == 1]
     

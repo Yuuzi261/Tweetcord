@@ -5,7 +5,7 @@ from tweety import Twitter
 from datetime import datetime, timezone
 from dotenv import load_dotenv
 import os
-import sqlite3
+import aiosqlite
 
 from src.log import setup_logger
 from src.notification.account_tracker import AccountTracker
@@ -46,47 +46,46 @@ class Notification(Cog_Extension):
         
         await itn.response.defer(ephemeral=True)
         
-        conn = sqlite3.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db'))
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
+        async with aiosqlite.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
+            db.row_factory = aiosqlite.Row
+            async with db.cursor() as cursor:
         
-        cursor.execute('SELECT * FROM user WHERE username = ?', (username,))
-        match_user = cursor.fetchone()
+                await cursor.execute('SELECT * FROM user WHERE username = ?', (username,))
+                match_user = await cursor.fetchone()
         
-        server_id = str(channel.guild.id)
-        roleID = str(mention.id) if mention != None else ''
-        if match_user == None or match_user['enabled'] == 0:
-            app = Twitter("session")
-            app.load_auth_token(os.getenv('TWITTER_TOKEN'))
-            try:
-                new_user = app.get_user_info(username)
-            except:
-                await itn.followup.send(f'user {username} not found', ephemeral=True)
-                return
-            
-            if match_user == None:
-                cursor.execute('INSERT INTO user (id, username, lastest_tweet) VALUES (?, ?, ?)', (str(new_user.id), username, datetime.utcnow().replace(tzinfo=timezone.utc).strftime('%Y-%m-%d %H:%M:%S%z')))
-                cursor.execute('INSERT OR IGNORE INTO channel VALUES (?, ?)', (str(channel.id), server_id))
-                cursor.execute('INSERT INTO notification (user_id, channel_id, role_id, enable_type) VALUES (?, ?, ?, ?)', (str(new_user.id), str(channel.id), roleID, enable_type))
-            else:
-                cursor.execute('INSERT OR IGNORE INTO channel VALUES (?, ?)', (str(channel.id), server_id))
-                cursor.execute('REPLACE INTO notification (user_id, channel_id, role_id, enable_type) VALUES (?, ?, ?, ?)', (match_user['id'], str(channel.id), roleID, enable_type))
-                cursor.execute('UPDATE user SET enabled = 1 WHERE id = ?', (match_user['id'],))
+                server_id = str(channel.guild.id)
+                roleID = str(mention.id) if mention != None else ''
+                if match_user == None or match_user['enabled'] == 0:
+                    app = Twitter("session")
+                    app.load_auth_token(os.getenv('TWITTER_TOKEN'))
+                    try:
+                        new_user = app.get_user_info(username)
+                    except:
+                        await itn.followup.send(f'user {username} not found', ephemeral=True)
+                        return
+                    
+                    if match_user == None:
+                        await cursor.execute('INSERT INTO user (id, username, lastest_tweet) VALUES (?, ?, ?)', (str(new_user.id), username, datetime.utcnow().replace(tzinfo=timezone.utc).strftime('%Y-%m-%d %H:%M:%S%z')))
+                        await cursor.execute('INSERT OR IGNORE INTO channel VALUES (?, ?)', (str(channel.id), server_id))
+                        await cursor.execute('INSERT INTO notification (user_id, channel_id, role_id, enable_type) VALUES (?, ?, ?, ?)', (str(new_user.id), str(channel.id), roleID, enable_type))
+                    else:
+                        await cursor.execute('INSERT OR IGNORE INTO channel VALUES (?, ?)', (str(channel.id), server_id))
+                        await cursor.execute('REPLACE INTO notification (user_id, channel_id, role_id, enable_type) VALUES (?, ?, ?, ?)', (match_user['id'], str(channel.id), roleID, enable_type))
+                        await cursor.execute('UPDATE user SET enabled = 1 WHERE id = ?', (match_user['id'],))
                 
             
-            app.follow_user(new_user)
+                    app.follow_user(new_user)
             
-            if app.enable_user_notification(new_user): log.info(f'successfully turned on notification for {username}')
-            else: log.warning(f'unable to turn on notifications for {username}')
-        else:
-            cursor.execute('INSERT OR IGNORE INTO channel VALUES (?, ?)', (str(channel.id), server_id))
-            cursor.execute('REPLACE INTO notification (user_id, channel_id, role_id, enable_type) VALUES (?, ?, ?, ?)', (match_user['id'], str(channel.id), roleID, enable_type))
+                    if app.enable_user_notification(new_user): log.info(f'successfully turned on notification for {username}')
+                    else: log.warning(f'unable to turn on notifications for {username}')
+                else:
+                    await cursor.execute('INSERT OR IGNORE INTO channel VALUES (?, ?)', (str(channel.id), server_id))
+                    await cursor.execute('REPLACE INTO notification (user_id, channel_id, role_id, enable_type) VALUES (?, ?, ?, ?)', (match_user['id'], str(channel.id), roleID, enable_type))
+            
+            await db.commit()
         
-        conn.commit()
-        conn.close()
-            
         if match_user == None or match_user['enabled'] == 0: await self.account_tracker.addTask(username)
-            
+                    
         await itn.followup.send(f'successfully add notifier of {username}!', ephemeral=True)
 
 
@@ -104,36 +103,34 @@ class Notification(Cog_Extension):
         
         await itn.response.defer(ephemeral=True)
         
-        conn = sqlite3.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db'))
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
+        async with aiosqlite.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
+            db.row_factory = aiosqlite.Row
+            async with db.cursor() as cursor:
         
-        cursor.execute('SELECT user_id FROM notification, user WHERE username = ? AND channel_id = ? AND user_id = id AND notification.enabled = 1', (username, str(channel.id)))
-        match_notifier = cursor.fetchone()
-        if match_notifier != None:
-            cursor.execute('UPDATE notification SET enabled = 0 WHERE user_id = ? AND channel_id = ?', (match_notifier['user_id'], str(channel.id)))
-            conn.commit()
-            await itn.followup.send(f'successfully remove notifier of {username}!', ephemeral=True)
-            cursor.execute('SELECT user_id FROM notification WHERE user_id = ? AND enabled = 1', (match_notifier['user_id'],))
-            
-            if len(cursor.fetchall()) == 0:
-                cursor.execute('UPDATE user SET enabled = 0 WHERE id = ?', (match_notifier['user_id'],))
-                conn.commit()
-                await self.account_tracker.removeTask(username)
-                if configs['auto_unfollow'] or configs['auto_turn_off_notification']:
-                    app = Twitter("session")
-                    app.load_auth_token(os.getenv('TWITTER_TOKEN'))
-                    target_user = app.get_user_info(username)
+                await cursor.execute('SELECT user_id FROM notification, user WHERE username = ? AND channel_id = ? AND user_id = id AND notification.enabled = 1', (username, str(channel.id)))
+                match_notifier = await cursor.fetchone()
+                if match_notifier != None:
+                    await cursor.execute('UPDATE notification SET enabled = 0 WHERE user_id = ? AND channel_id = ?', (match_notifier['user_id'], str(channel.id)))
+                    await db.commit()
+                    await itn.followup.send(f'successfully remove notifier of {username}!', ephemeral=True)
+                    await cursor.execute('SELECT user_id FROM notification WHERE user_id = ? AND enabled = 1', (match_notifier['user_id'],))
                     
-                    if configs['auto_unfollow']: 
-                        log.info(f'successfully unfollowed {username}') if app.unfollow_user(target_user) else log.warning(f'unable to unfollow {username}')
-                    else:
-                        log.info(f'successfully turned off notification for {username}') if app.disable_user_notification(target_user) else log.warning(f'unable to turn off notifications for {username}')
+                    if await cursor.fetchone() is None:
+                        await cursor.execute('UPDATE user SET enabled = 0 WHERE id = ?', (match_notifier['user_id'],))
+                        await db.commit()
+                        await self.account_tracker.removeTask(username)
+                        if configs['auto_unfollow'] or configs['auto_turn_off_notification']:
+                            app = Twitter("session")
+                            app.load_auth_token(os.getenv('TWITTER_TOKEN'))
+                            target_user = app.get_user_info(username)
+                            
+                            if configs['auto_unfollow']: 
+                                log.info(f'successfully unfollowed {username}') if app.unfollow_user(target_user) else log.warning(f'unable to unfollow {username}')
+                            else:
+                                log.info(f'successfully turned off notification for {username}') if app.disable_user_notification(target_user) else log.warning(f'unable to turn off notifications for {username}')
                 
-        else:
-            await itn.followup.send(f'can\'t find notifier {username} in {channel.mention}!', ephemeral=True)
-        
-        conn.close()
+                else:
+                    await itn.followup.send(f'can\'t find notifier {username} in {channel.mention}!', ephemeral=True)
         
         
     @customize_group.command(name='message')
@@ -150,25 +147,23 @@ class Notification(Cog_Extension):
             Whether to use default setting.
         """
         
-        conn = sqlite3.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db'))
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
+        async with aiosqlite.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
+            db.row_factory = aiosqlite.Row
+            async with db.cursor() as cursor:
         
-        cursor.execute('SELECT user_id FROM notification, user WHERE username = ? AND channel_id = ? AND user_id = id AND notification.enabled = 1', (username, str(channel.id)))
-        match_notifier = cursor.fetchone()
-        if match_notifier != None:
-            if default:
-                await itn.response.defer(ephemeral=True)
-                cursor.execute('UPDATE notification SET customized_msg = ? WHERE user_id = ? AND channel_id = ?', (None, match_notifier['user_id'], str(channel.id)))
-                conn.commit()
-                await itn.followup.send('successfully restored to default settings', ephemeral=True)
-            else:
-                modal = CustomizeMsgModal(match_notifier['user_id'], username, channel)
-                await itn.response.send_modal(modal)
-        else:
-            await itn.response.send_message(f'can\'t find notifier {username} in {channel.mention}!', ephemeral=True)
-            
-        conn.close()
+                await cursor.execute('SELECT user_id FROM notification, user WHERE username = ? AND channel_id = ? AND user_id = id AND notification.enabled = 1', (username, str(channel.id)))
+                match_notifier = await cursor.fetchone()
+                if match_notifier != None:
+                    if default:
+                        await itn.response.defer(ephemeral=True)
+                        await cursor.execute('UPDATE notification SET customized_msg = ? WHERE user_id = ? AND channel_id = ?', (None, match_notifier['user_id'], str(channel.id)))
+                        await db.commit()
+                        await itn.followup.send('successfully restored to default settings', ephemeral=True)
+                    else:
+                        modal = CustomizeMsgModal(match_notifier['user_id'], username, channel)
+                        await itn.response.send_modal(modal)
+                else:
+                    await itn.response.send_message(f'can\'t find notifier {username} in {channel.mention}!', ephemeral=True)
 
 
 async def setup(bot):

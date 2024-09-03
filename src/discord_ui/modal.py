@@ -1,6 +1,6 @@
 import discord
 import os
-import sqlite3
+import aiosqlite
 
 class CustomizeMsgModal(discord.ui.Modal, title='customize message'):
     def __init__(self, user_id: str, username: str, channel: discord.TextChannel):
@@ -16,12 +16,9 @@ class CustomizeMsgModal(discord.ui.Modal, title='customize message'):
     async def on_submit(self, itn: discord.Interaction):
         await itn.response.defer(ephemeral=True)
         
-        conn = sqlite3.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db'))
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
-        
-        cursor.execute('UPDATE notification SET customized_msg = ? WHERE user_id = ? AND channel_id = ?', (self.customized_msg.value, self.user_id, str(self.channel.id)))
-        conn.commit()
-        conn.close()
+        async with aiosqlite.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
+            db.row_factory = aiosqlite.Row
+            await db.execute('UPDATE notification SET customized_msg = ? WHERE user_id = ? AND channel_id = ?', (self.customized_msg.value, self.user_id, str(self.channel.id)))
+            await db.commit()
         
         await itn.followup.send('setting successful', ephemeral=True)

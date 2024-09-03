@@ -21,7 +21,7 @@ bot = commands.Bot(command_prefix=configs['prefix'], intents=discord.Intents.all
 @bot.event
 async def on_ready():
     await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=configs['activity_name']))
-    if not(os.path.isfile(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db'))): init_db()
+    if not(os.path.isfile(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db'))): await init_db()
     if not check_configs(configs):
         log.warn('incomplete configs file detected, will retry in 30 seconds')
         await asyncio.sleep(30)

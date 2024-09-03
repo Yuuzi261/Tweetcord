@@ -1,7 +1,7 @@
 import discord
 from discord import app_commands
 from core.classes import Cog_Extension
-import sqlite3
+import aiosqlite
 import os
 
 from src.utils import str_to_bool as stb
@@ -20,22 +20,17 @@ class ListUsers(Cog_Extension):
         
         server_id = itn.guild_id
 
-        db_path = os.path.join(os.getenv('DATA_PATH', ''), 'tracked_accounts.db')
-        conn = sqlite3.connect(db_path)
-        cursor = conn.cursor()
-
-        cursor.execute("""
-            SELECT user.username, channel.id, notification.role_id, notification.enable_type
-            FROM user
-            JOIN notification
-            ON user.id = notification.user_id
-            JOIN channel
-            ON notification.channel_id = channel.id
-            WHERE channel.server_id = ? AND notification.enabled = 1
-        """, (str(server_id),))
-        user_channel_role_data = cursor.fetchall()
-
-        conn.close()
+        async with aiosqlite.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
+            async with db.execute("""
+                SELECT user.username, channel.id, notification.role_id, notification.enable_type
+                FROM user
+                JOIN notification
+                ON user.id = notification.user_id
+                JOIN channel
+                ON notification.channel_id = channel.id
+                WHERE channel.server_id = ? AND notification.enabled = 1
+            """, (str(server_id),)) as cursor:
+                user_channel_role_data = await cursor.fetchall()
 
         formatted_data = [
             f"{i+1}. ```{username}``` <#{channel_id}>{f' <@&{role_id}>' if role_id else ''} {CHECK if stb(enable_type[0]) else XMARK}retweet {CHECK if stb(enable_type[1]) else XMARK}quote"
