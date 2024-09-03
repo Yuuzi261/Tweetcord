@@ -159,8 +159,8 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
-# data
-*.db
+# data & temp
+/data
 
 # automatically generated files
 session.tw_session
