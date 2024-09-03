@@ -3,9 +3,9 @@ activity_name: 'Hennyano'
 activity_type: 'watching'
 
 tweets_check_period: 10
-tweets_updater_retry_delay: 300
-tasks_monitor_check_period: 60
-tasks_monitor_log_period: 14400
+tweets_updater_retry_delay: 5
+tasks_monitor_check_period: 1
+tasks_monitor_log_period: 4
 
 auto_turn_off_notification: true
 auto_unfollow: true

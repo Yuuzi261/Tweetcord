@@ -111,21 +111,20 @@ You can retrieve your auth token from cookies, or you can explore other methods 
 
 #### Base
 
-| Parameter | Description |
-|-----------|-------------|
-| `prefix` | The prefix for bot commands, only effective for prefix commands. |
-| `activity_name` | The activity name displayed by the bot. |
+| Parameter | Description | Restriction |
+|-----------|-------------|-------------|
+| `prefix` | The prefix for bot commands, only effective for prefix commands. | None, but recommended to choose a simple and easily identifiable prefix and avoid using empty strings. |
+| `activity_name` | The activity name displayed by the bot. | None. |
+| `activity_type` | The activity type displayed by the bot. | `playing`, `streaming`, `listening`, `watching` and `competing` only. |
 
 #### Timer
 
-All configurations are measured in seconds.
-
-| Parameter | Description |
-|-----------|-------------|
-| `tweets_check_period` | The check frequency for the posts, it is not recommended to set this value too low to avoid rate limiting. Default value: `10`, Safety value: `18` [(why is this value?)](https://github.com/mahrtayyab/tweety/wiki/FAQs#twitter-new-limits), not recommended below `10`. If the account controlled by Tweetocrd is the same as the account you usually use, please increase the value appropriately to avoid rate limiting. |
-| `tweets_updater_retry_delay` | Retry Interval when Tweets Updater encounters exceptions. |
-| `tasks_monitor_check_period` | Interval at which to check if each tasks is functioning properly, and if a task has stopped, attempt a restart. |
-| `tasks_monitor_log_period` | Interval at which to output the list of currently running tasks to the execution log. |
+| Parameter | Description | Unit |
+|-----------|-------------|------|
+| `tweets_check_period` | The check frequency for the posts, it is not recommended to set this value too low to avoid rate limiting. Default value: `10`, Safety value: `18` [(why is this value?)](https://github.com/mahrtayyab/tweety/wiki/FAQs#twitter-new-limits), not recommended below `10`. If the account controlled by Tweetocrd is the same as the account you usually use, please increase the value appropriately to avoid rate limiting. | seconds |
+| `tweets_updater_retry_delay` | Retry Interval when Tweets Updater encounters exceptions. | minutes |
+| `tasks_monitor_check_period` | Interval at which to check if each tasks is functioning properly, and if a task has stopped, attempt a restart. | minutes |
+| `tasks_monitor_log_period` | Interval at which to output the list of currently running tasks to the execution log. | hours |
 
 #### Control Account Behavior
 

@@ -23,7 +23,7 @@ class AccountTracker():
     def __init__(self, bot):
         self.bot = bot
         self.tweets = []
-        self.tasksMonitorLogAt = datetime.utcnow() - timedelta(seconds=configs['tasks_monitor_log_period'])
+        self.tasksMonitorLogAt = datetime.utcnow() - timedelta(hours=configs['tasks_monitor_log_period'])
         bot.loop.create_task(self.setup_tasks())
 
     async def setup_tasks(self):
@@ -84,8 +84,8 @@ class AccountTracker():
                 await asyncio.sleep(configs['tweets_check_period'])
             except Exception as e:                    
                 log.error(f'{e} (task : tweets updater)')
-                log.error(f"an unexpected error occurred, try again in {configs['tweets_updater_retry_delay'] / 60} minutes")
-                await asyncio.sleep(configs['tweets_updater_retry_delay'])
+                log.error(f"an unexpected error occurred, try again in {configs['tweets_updater_retry_delay']} minutes")
+                await asyncio.sleep(configs['tweets_updater_retry_delay'] * 60)
 
 
     async def tasksMonitor(self, users : set):
@@ -103,12 +103,12 @@ class AccountTracker():
             if 'TweetsUpdater' not in taskSet:
                 log.warning('tweets updater : dead')
                 
-            if (datetime.utcnow() - self.tasksMonitorLogAt).total_seconds() >= configs['tasks_monitor_log_period']:
+            if (datetime.utcnow() - self.tasksMonitorLogAt).total_seconds() / 3600 >= configs['tasks_monitor_log_period']:
                 log.info(f'alive tasks : {list(aliveTasks)}')
                 if 'TweetsUpdater' in taskSet: log.info('tweets updater : alive')
                 self.tasksMonitorLogAt = datetime.utcnow()
                 
-            await asyncio.sleep(configs['tasks_monitor_check_period'])
+            await asyncio.sleep(configs['tasks_monitor_check_period'] * 60)
             
 
     async def addTask(self, username : str):
