@@ -1,11 +1,11 @@
 import discord
 import re
-import requests
+import aiohttp
 from bs4 import BeautifulSoup
 
 from configs.load_configs import configs
 
-def gen_embed(tweet):
+async def gen_embed(tweet):
     author = tweet.author
     embed = discord.Embed(title=f'{author.name} {get_action(tweet, disable_quoted=True)} {get_tweet_type(tweet)}', description=tweet.text, url=tweet.url, color=0x1da0f2, timestamp=tweet.created_on)
     embed.set_author(name=f'{author.name} (@{author.username})', icon_url=author.profile_image_url_https, url=f'https://twitter.com/{author.username}')
@@ -16,8 +16,10 @@ def gen_embed(tweet):
         return [embed]
     elif len(tweet.media) > 1:
         if configs['embed']['built_in']['fx_image']:
-            raw = requests.get(re.sub(r'twitter', r'fxtwitter', tweet.url))
-            fximage_url = BeautifulSoup(raw.text, 'html.parser').find('meta', property='og:image')['content']
+            async with aiohttp.ClientSession() as session:
+                async with session.get(re.sub(r'twitter', r'fxtwitter', tweet.url)) as response:
+                    raw = await response.text()
+            fximage_url = BeautifulSoup(raw, 'html.parser').find('meta', property='og:image')['content']
             embed.set_image(url=fximage_url)
             return [embed]
         else: 

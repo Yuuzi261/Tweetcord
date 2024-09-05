@@ -70,7 +70,7 @@ class AccountTracker():
                                     msg = data['customized_msg'] if data['customized_msg'] else configs['default_message']
                                     msg = msg.format(mention=mention, author=author, action=action, url=url)
 
-                                    await channel.send(msg) if EMBED_TYPE == 'fx_twitter' else await channel.send(msg, file=discord.File('images/twitter.png', filename='twitter.png'), embeds=gen_embed(tweet))
+                                    await channel.send(msg) if EMBED_TYPE == 'fx_twitter' else await channel.send(msg, file=discord.File('images/twitter.png', filename='twitter.png'), embeds=await gen_embed(tweet))
 
                                 except Exception as e:
                                     if not isinstance(e, discord.errors.Forbidden): log.error(f'an unexpected error occurred at {channel.mention} while sending notification')
