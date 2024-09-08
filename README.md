@@ -45,8 +45,10 @@ Tweetcord is a Discord bot that leverages the [tweety-ns module](https://github.
 | --------- | ---- | ----------- |
 | `username` | str | The username of the twitter user you want to turn on notifications for |
 | `channel` | discord.TextChannel | The channel to which the bot delivers notifications |
+| `account_used` | str | The twitter client used by the bot to monitor the user's tweets |
 | `mention` | discord.Role | The role to mention when notifying |
 | `type` | str | Whether to enable notifications for retweets & quotes |
+| `media_type` | str | Whether to enable notifications for only media tweets |
 
 👉 `/remove notifier` `username` `channel`
 
@@ -98,7 +100,14 @@ pip install -r requirements.txt
 
 ```env
 BOT_TOKEN=YourDiscordBotToken
-TWITTER_TOKEN=YourTwitterAccountAuthToken
+TWITTER_TOKEN=NameForYourTwitterToken:YourTwitterAccountAuthToken
+DATA_PATH=./data
+```
+
+#### Example
+```env
+BOT_TOKEN=a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6
+TWITTER_TOKEN=MyTwitterToken:AAAAAAAAAAAAAAAAAAAAAA,MyTwitterToken2:BBBBBBBBBBBBBBBBBBBBBB
 DATA_PATH=./data
 ```
 
@@ -117,6 +126,10 @@ You can retrieve your auth token from cookies, or you can explore other methods 
 | `activity_name` | The activity name displayed by the bot. | None. |
 | `activity_type` | The activity type displayed by the bot. | `playing`, `streaming`, `listening`, `watching` and `competing` only. |
 
+Custom activity messages are in f-string format, currently supporting 1 special variable for use, which will be explained below.
+
+- `{count}` : the number of users currently being monitored
+
 #### Timer
 
 | Parameter | Description | Unit |
@@ -130,6 +143,7 @@ You can retrieve your auth token from cookies, or you can explore other methods 
 
 | Parameter | Description |
 |-----------|-------------|
+| `auto_change_client` | If a new client is specified for an exisiting user, automatically use the new client to monitor the user. |
 | `auto_turn_off_notification` | If all notifications for a user are disabled, decide whether to unfollow the user. |
 | `auto_unfollow` | If all notifications for a user is disabled, decide whether to disable notification for the user (twitter side). |
 

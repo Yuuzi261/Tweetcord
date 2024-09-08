@@ -1,28 +1,31 @@
-import discord
-from discord import app_commands
-from core.classes import Cog_Extension
-import aiosqlite
 import os
 
-from src.utils import str_to_bool as stb
+import aiosqlite
+import discord
+from discord import app_commands
+from discord.ext import commands
+
+from core.classes import Cog_Extension
 from src.permission import ADMINISTRATOR
+from src.utils import str_to_bool as stb
 
 CHECK = '\u2705'
 XMARK = '\u274C'
 
+
 class ListUsers(Cog_Extension):
-    
+
     list_group = app_commands.Group(name='list', description='List something', default_permissions=ADMINISTRATOR)
 
     @list_group.command(name='users')
     async def list_users(self, itn: discord.Interaction):
         """Lists all exists notifier on your server."""
-        
+
         server_id = itn.guild_id
 
         async with aiosqlite.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
             async with db.execute("""
-                SELECT user.username, channel.id, notification.role_id, notification.enable_type
+                SELECT user.username, channel.id, notification.role_id, notification.enable_type, user.client_used
                 FROM user
                 JOIN notification
                 ON user.id = notification.user_id
@@ -33,15 +36,15 @@ class ListUsers(Cog_Extension):
                 user_channel_role_data = await cursor.fetchall()
 
         formatted_data = [
-            f"{i+1}. ```{username}``` <#{channel_id}>{f' <@&{role_id}>' if role_id else ''} {CHECK if stb(enable_type[0]) else XMARK}retweet {CHECK if stb(enable_type[1]) else XMARK}quote"
-            for i, (username, channel_id, role_id, enable_type) in enumerate(user_channel_role_data)
+            f"{i + 1}. ```{username}``` <#{channel_id}>{f' <@&{role_id}>' if role_id else ''} {CHECK if stb(enable_type[0]) else XMARK}retweet {CHECK if stb(enable_type[1]) else XMARK}quote, using {client_used}"
+            for i, (username, channel_id, role_id, enable_type, client_used) in enumerate(user_channel_role_data)
         ]
-        
+
         if not formatted_data:
             description = "***No users are registered on this server.***"
         else:
             description = '\n'.join(formatted_data)
-            
+
         embed = discord.Embed(
             title=f'Notification List in __***{itn.guild.name}***__ ',
             description=description,
@@ -51,5 +54,5 @@ class ListUsers(Cog_Extension):
         await itn.response.send_message(embed=embed, ephemeral=True)
 
 
-async def setup(bot):
+async def setup(bot: commands.Bot):
     await bot.add_cog(ListUsers(bot))

@@ -163,7 +163,7 @@ cython_debug/
 /data
 
 # automatically generated files
-session.tw_session
+*.tw_session
 
 # docker & fly.io
 Dockerfile
