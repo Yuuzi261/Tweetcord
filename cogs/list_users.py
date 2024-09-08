@@ -13,6 +13,10 @@ CHECK = '\u2705'
 XMARK = '\u274C'
 
 
+def symbol(value: str) -> str:
+    return CHECK if stb(value) else XMARK
+
+
 class ListUsers(Cog_Extension):
 
     list_group = app_commands.Group(name='list', description='List something', default_permissions=ADMINISTRATOR)
@@ -25,7 +29,7 @@ class ListUsers(Cog_Extension):
 
         async with aiosqlite.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
             async with db.execute("""
-                SELECT user.username, channel.id, notification.role_id, notification.enable_type, user.client_used
+                SELECT user.username, channel.id, notification.role_id, notification.enable_type, notification.enable_media_type, user.client_used
                 FROM user
                 JOIN notification
                 ON user.id = notification.user_id
@@ -36,8 +40,8 @@ class ListUsers(Cog_Extension):
                 user_channel_role_data = await cursor.fetchall()
 
         formatted_data = [
-            f"{i + 1}. ```{username}``` <#{channel_id}>{f' <@&{role_id}>' if role_id else ''} {CHECK if stb(enable_type[0]) else XMARK}retweet {CHECK if stb(enable_type[1]) else XMARK}quote, using {client_used}"
-            for i, (username, channel_id, role_id, enable_type, client_used) in enumerate(user_channel_role_data)
+            f"{i + 1}. ```{username}``` <#{channel_id}>{f' <@&{role_id}>' if role_id else ''} {symbol(enable_type[0])}retweet {symbol(enable_type[1])}quote {symbol(enable_media_type[0])}text {symbol(enable_media_type[1])}media, using {client_used}"
+            for i, (username, channel_id, role_id, enable_type, enable_media_type, client_used) in enumerate(user_channel_role_data)
         ]
 
         if not formatted_data:
