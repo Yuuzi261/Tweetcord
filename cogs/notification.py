@@ -117,7 +117,7 @@ class Notification(Cog_Extension):
             await self.account_tracker.addTask(username, account_used)
             await itn.followup.send(f'successfully add notifier of {username} under {account_used}!', ephemeral=True)
         else:
-            await itn.followup.send(f'{username} already exists under {match_user['client_used']}. Using the same account to deliver notifications', ephemeral=True)
+            await itn.followup.send(f'{username} already exists under {match_user["client_used"]}. Using the same account to deliver notifications', ephemeral=True)
 
     @remove_group.command(name='notifier')
     async def r_notifier(self, itn: discord.Interaction, username: str, channel: discord.TextChannel):
