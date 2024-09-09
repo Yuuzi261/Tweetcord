@@ -120,17 +120,19 @@ class Notification(Cog_Extension):
             await itn.followup.send(f'{username} already exists under {match_user["client_used"]}. Using the same account to deliver notifications', ephemeral=True)
 
     @remove_group.command(name='notifier')
-    async def r_notifier(self, itn: discord.Interaction, username: str, channel: discord.TextChannel):
+    @app_commands.rename(channel_id='channel')
+    async def r_notifier(self, itn: discord.Interaction, channel_id: str, username: str):
         """Remove a notifier on your server.
 
         Parameters
         -----------
+        channel_id: str
+            The channel id which is set to delivers notifications.
         username: str
             The username of the twitter user you want to turn off notifications for.
-        channel: discord.TextChannel
-            The channel which set to delivers notifications.
         """
 
+        channel = itn.guild.get_channel(int(channel_id))
         await itn.response.defer(ephemeral=True)
 
         async with aiosqlite.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
@@ -165,16 +167,27 @@ class Notification(Cog_Extension):
                 else:
                     await itn.followup.send(f'can\'t find notifier {username} in {channel.mention}!', ephemeral=True)
 
-    @r_notifier.autocomplete('username')
-    async def get_enabled_users(self, itn: discord.Interaction, username: str) -> list[app_commands.Choice[str]]:
+    @r_notifier.autocomplete('channel_id')
+    async def get_channels(self, itn: discord.Interaction, input_channel: str) -> list[app_commands.Choice[str]]:
         async with aiosqlite.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
             db.row_factory = aiosqlite.Row
             async with db.cursor() as cursor:
-                if username:
-                    await cursor.execute('SELECT username FROM user WHERE username LIKE ? AND enabled = 1', (f'%{username}%',))
-                else:
-                    await cursor.execute('SELECT username FROM user WHERE enabled = 1')
-                return [app_commands.Choice(name=row['username'], value=row['username']) async for row in cursor]
+                await cursor.execute('SELECT id FROM channel WHERE server_id = ?', (str(itn.guild_id),))
+                result = [itn.guild.get_channel(int(row['id'])) async for row in cursor]
+                return [app_commands.Choice(name=f'#{channel.name}', value=str(channel.id)) for channel in result if input_channel.lower().replace("#", "") in channel.name.lower()]
+
+    @r_notifier.autocomplete('username')
+    async def get_enabled_users(self, itn: discord.Interaction, username: str) -> list[app_commands.Choice[str]]:
+        selected_channel_id = itn.data['options'][0]['options'][0]['value']
+        if selected_channel_id is None:
+            return []
+
+        async with aiosqlite.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
+            db.row_factory = aiosqlite.Row
+            async with db.cursor() as cursor:
+                await cursor.execute('SELECT user.username FROM user JOIN notification ON user.id = notification.user_id WHERE notification.channel_id = ? AND notification.enabled = 1', (selected_channel_id,))
+                users = [row['username'] async for row in cursor]
+                return [app_commands.Choice(name=row, value=row) for row in users if username.lower() in row.lower()]
 
     @customize_group.command(name='message')
     async def customize_message(self, itn: discord.Interaction, username: str, channel: discord.TextChannel, default: bool = False):

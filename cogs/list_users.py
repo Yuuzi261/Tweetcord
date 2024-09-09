@@ -22,8 +22,15 @@ class ListUsers(Cog_Extension):
     list_group = app_commands.Group(name='list', description='List something', default_permissions=ADMINISTRATOR)
 
     @list_group.command(name='users')
-    async def list_users(self, itn: discord.Interaction):
-        """Lists all exists notifier on your server."""
+    async def list_users(self, itn: discord.Interaction, account: str = '', channel: str = '') -> None:
+        """Lists all exists notifier on your server.
+
+        Parameters:
+        account: str, optional
+            The client name that you want to filter.
+        channel: str, optional
+            The channel name that you want to filter.
+        """
 
         server_id = itn.guild_id
 
@@ -36,7 +43,9 @@ class ListUsers(Cog_Extension):
                 JOIN channel
                 ON notification.channel_id = channel.id
                 WHERE channel.server_id = ? AND notification.enabled = 1
-            """, (str(server_id),)) as cursor:
+                AND (user.client_used = ? OR '' = ?)
+                AND (channel.id = ? OR '' = ?)
+            """, (str(server_id), account, account, channel, channel)) as cursor:
                 user_channel_role_data = await cursor.fetchall()
 
         formatted_data = [
@@ -47,15 +56,37 @@ class ListUsers(Cog_Extension):
         if not formatted_data:
             description = "***No users are registered on this server.***"
         else:
-            description = '\n'.join(formatted_data)
+            descriptions = ["\n".join(formatted_data[i:i + 20]) for i in range(0, len(formatted_data), 20)]  # Prevent cutting off the message
 
-        embed = discord.Embed(
-            title=f'Notification List in __***{itn.guild.name}***__ ',
-            description=description,
-            color=0x778899
-        )
+        for index, description in enumerate(descriptions):
+            embed = discord.Embed(
+                title=f'Notification List in __***{itn.guild.name}***__  Page [{descriptions.index(description) + 1}/{len(descriptions)}]',
+                description=description,
+                color=0x778899
+            )
 
-        await itn.response.send_message(embed=embed, ephemeral=True)
+            if index == 0:
+                await itn.response.send_message(embed=embed, ephemeral=True)
+            else:
+                await itn.followup.send(embed=embed, ephemeral=True)
+
+    @list_users.autocomplete('account')
+    async def get_clients(self, itn: discord.Interaction, account: str) -> list[app_commands.Choice[str]]:
+        async with aiosqlite.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
+            db.row_factory = aiosqlite.Row
+            async with db.cursor() as cursor:
+                await cursor.execute('SELECT client_used FROM user WHERE enabled = 1')
+                client_used = list(set([row['client_used'] async for row in cursor]))
+                return [app_commands.Choice(name=row, value=row) for row in client_used if account.lower() in row.lower()]
+
+    @list_users.autocomplete('channel')
+    async def get_channel(self, itn: discord.Interaction, input_channel: str) -> list[app_commands.Choice[str]]:
+        async with aiosqlite.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
+            db.row_factory = aiosqlite.Row
+            async with db.cursor() as cursor:
+                await cursor.execute('SELECT id FROM channel WHERE server_id = ?', (str(itn.guild_id),))
+                channel_list = [itn.guild.get_channel(int(row['id'])) async for row in cursor]
+                return [app_commands.Choice(name=f'#{channel.name}', value=str(channel.id)) for channel in channel_list if input_channel.lower() in channel.name.lower()]
 
 
 async def setup(bot: commands.Bot):
