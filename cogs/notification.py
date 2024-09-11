@@ -37,7 +37,7 @@ class Notification(Cog_Extension):
         account_used=[app_commands.Choice(name=account_name, value=account_name) for account_name, _ in get_accounts().items()]
     )
     @app_commands.rename(enable_type='type')
-    async def notifier(self, itn: discord.Interaction, username: str, channel: discord.TextChannel, account_used: str, mention: discord.Role = None, enable_type: str = '11', media_type: str = '11'):
+    async def notifier(self, itn: discord.Interaction, username: str, channel: discord.TextChannel, mention: discord.Role = None, enable_type: str = '11', media_type: str = '11', account_used: str = list(get_accounts().values())[0]):
         """Add a twitter user to specific channel on your server.
 
         Parameters
@@ -46,14 +46,14 @@ class Notification(Cog_Extension):
             The username of the twitter user you want to turn on notifications for.
         channel: discord.TextChannel
             The channel to which the bot delivers notifications.
-        account_used: str
-            The account used to deliver notifications.
         mention: discord.Role
             The role to mention when notifying.
         enable_type: str
             Whether to enable notifications for retweets & quotes.
         media_type: str
             Whether to enable notifications for All Tweets, Tweets with Media, or Tweets without Media Only.
+        account_used: str
+            The account used to deliver notifications.
         """
 
         await itn.response.defer(ephemeral=True)
