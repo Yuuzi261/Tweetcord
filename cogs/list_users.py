@@ -54,7 +54,7 @@ class ListUsers(Cog_Extension):
         ]
 
         if not formatted_data:
-            description = "***No users are registered on this server.***"
+            descriptions = ["***No users are registered on this server.***"]
         else:
             descriptions = ["\n".join(formatted_data[i:i + 20]) for i in range(0, len(formatted_data), 20)]  # Prevent cutting off the message
 

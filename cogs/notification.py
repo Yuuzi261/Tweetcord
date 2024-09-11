@@ -50,7 +50,7 @@ class Notification(Cog_Extension):
             The account used to deliver notifications.
         mention: discord.Role
             The role to mention when notifying.
-        type: str
+        enable_type: str
             Whether to enable notifications for retweets & quotes.
         media_type: str
             Whether to enable notifications for All Tweets, Tweets with Media, or Tweets without Media Only.
