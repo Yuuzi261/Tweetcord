@@ -4,6 +4,86 @@
 > Cross-version updates are **NOT SUPPORTED**. For multi-version updates, please iterate through each version to update to the latest version. Before updating, please back up your data using the prefix command `download_data`.
 
 <details>
+   <summary><b>⬆️click here to upgrade from 0.4.1 to 0.5</b></summary>
+
+<!-- Create a python file in the `cogs` folder and name it `upgrade.py`. Paste the following code and run the bot. Use the slash command `/upgrade version` to upgrade. This cog can be removed after the upgrade is completed. -->
+
+\# TODO
+
+```py
+import asyncio
+import os
+
+import aiosqlite
+import dotenv
+from src.utils import get_accounts
+
+dotenv.load_dotenv()
+
+
+async def upgrade():
+    # Set the default value of enable_media_type to 11 (both)
+    # Set the default value of client_used to the first account in the list of accounts
+    first_account = list(get_accounts().keys())[0]
+    try:
+        async with aiosqlite.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
+            await db.executescript(f"""
+                PRAGMA foreign_keys=off;
+                
+                BEGIN TRANSACTION;
+                
+                ALTER TABLE notification ADD enable_media_type TEXT DEFAULT 11;
+                ALTER TABLE user ADD client_used TEXT DEFAULT '{first_account}';
+            
+                CREATE TABLE new_user (
+                    id TEXT PRIMARY KEY,
+                    username TEXT,
+                    lastest_tweet TEXT,
+                    client_used TEXT,
+                    enabled INTEGER DEFAULT 1
+                );
+                INSERT INTO new_user (id, username, lastest_tweet, client_used, enabled)
+                SELECT id, username, lastest_tweet, client_used, enabled
+                FROM user;
+                DROP TABLE user;
+                ALTER TABLE new_user RENAME TO user;
+                
+                CREATE TABLE new_notification (
+                    user_id TEXT,
+                    channel_id TEXT,
+                    role_id TEXT,
+                    enabled INTEGER DEFAULT 1,
+                    enable_type TEXT DEFAULT 11,
+                    enable_media_type TEXT DEFAULT 11,
+                    customized_msg TEXT DEFAULT NULL,
+                    FOREIGN KEY (user_id) REFERENCES user (id),
+                    FOREIGN KEY (channel_id) REFERENCES channel (id),
+                    PRIMARY KEY(user_id, channel_id)
+                );
+                INSERT INTO new_notification (user_id, channel_id, role_id, enabled, enable_type, enable_media_type, customized_msg)
+                SELECT user_id, channel_id, role_id, enabled, enable_type, enable_media_type, customized_msg
+                FROM notification;
+                DROP TABLE notification;
+                ALTER TABLE new_notification RENAME TO notification;
+                
+                COMMIT;
+                
+                PRAGMA foreign_keys=on;
+            """)
+            await db.commit()
+            print('Successfully upgraded to 0.5. You can remove this script and start the bot.')
+    except Exception as e:
+        print(e)
+        print('upgrading to 0.5 failed, please try again or contact the author.')
+
+
+if __name__ == '__main__':
+    asyncio.run(upgrade())
+```
+
+</details>
+
+<details>
    <summary><b>⬆️click here to upgrade from 0.4 to 0.4.1</b></summary>
 
 Create a python file in the `cogs` folder and name it `upgrade.py`. Paste the following code and run the bot. Use the slash command `/upgrade version` to upgrade. This cog can be removed after the upgrade is completed.

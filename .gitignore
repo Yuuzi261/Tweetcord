@@ -159,11 +159,14 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
-# data & temp
+# configs
+configs.yml
+
+# data
 /data
 
 # automatically generated files
-session.tw_session
+*.tw_session
 
 # docker & fly.io
 Dockerfile
