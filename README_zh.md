@@ -47,6 +47,8 @@ Tweetcord是一個Discord機器人，它使用[tweety-ns](https://github.com/mah
 | `channel` | discord.TextChannel | 機器人發送通知的頻道 |
 | `mention` | discord.Role | 通知時提及的身分組 |
 | `type` | str | 設定是否啟用轉推和引用的通知 |
+| `media_type` | str | 設定是否啟用包含多媒體的通知，或僅啟用包含多媒體的通知 |
+| `account_used` | str | 用來追蹤用戶推文的Twitter客戶端 |
 
 👉 `/remove notifier` `username` `channel`
 
@@ -102,9 +104,18 @@ TWITTER_TOKEN=YourTwitterAccountAuthToken
 DATA_PATH=./data
 ```
 
+#### 範例
+```env
+BOT_TOKEN=FAKE1234567890ABCDEFGHIJKLMNO.PQRSTUVWXYZ1234567890.ABCDEFGHIJKLMNOPQRSTUVWXYZ123456
+TWITTER_TOKEN=MyTwitterToken:12345abcde67890fghij12345klmnop67890qrstuv,MyTwitterToken2:abcdef123456ghijkl7890mnopqrst123456uvwx
+DATA_PATH=./data
+```
+
 你可以從cookies中獲取你的token，或是你可以探索其他獲取它的方法。
 
 ### 2. 配置configs.yml文件
+
+建立`configs.yml`並將`configs.example.yml`的內容複製過去，並依照自己的喜好編輯它。
 
 > [!IMPORTANT]
 > 這裡的所有配置說明和最新版本同步，舊版用戶請參考舊版README。
@@ -116,6 +127,10 @@ DATA_PATH=./data
 | `prefix` | 機器人命令的前綴，只會對前綴指令生效。 | 無，但建議選擇簡單且易於識別的前綴，並避免使用空字串。 |
 | `activity_name` | 機器人顯示的活動名稱。 | 無。 |
 | `activity_type` | 機器人顯示的活動類型。 | 僅限 `playing`、`streaming`、`listening`、`watching` 和 `competing`。 |
+
+自定義活動訊息為 `f-string` 格式，目前支援1種特別的變數可供使用，將在下面說明：
+
+- `{count}` : 目前被機器人追蹤的使用者數量
 
 #### 計時器
 
@@ -130,8 +145,15 @@ DATA_PATH=./data
 
 | 參數 | 描述 |
 |------|------|
+| `auto_change_client` | 如果為現有使用者指定新用戶端，則自動使用新用戶端對該使用者進行追蹤。 |
 | `auto_turn_off_notification` | 如果某個使用者的所有通知都已停用，決定是否取消追蹤該使用者。 |
 | `auto_unfollow` | 如果某個使用者的所有通知都已停用，決定是否停用該使用者的通知（Twitter端）。 |
+
+#### 資料庫
+
+| 參數 | 描述 |
+|------|------|
+| `auto_repair_mismatched_clients` | 當資料庫中含有環境變數未定義的`client_used`的話，是否自動使用目前環境變數所定義的第一個客戶端取代這些無效的客戶端名稱。 |
 
 #### 嵌入內容風格
 
@@ -157,7 +179,7 @@ DATA_PATH=./data
 
 | 參數 | 描述 |
 |------|------|
-| `default_message` | 全域設定預設的訊息格式，格式和自定義訊息相同，使用f-字串並支援4個特殊變數。相關細節請參考[Commands](#指令)。 |
+| `default_message` | 全域設定預設的訊息格式，格式和自定義訊息相同，使用f-字串並支援4個特殊變數。相關細節請參考[指令](#指令)。 |
 
 ### 3. 運行機器人並邀請至你的伺服器
 

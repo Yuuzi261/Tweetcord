@@ -47,7 +47,7 @@ Tweetcord is a Discord bot that leverages the [tweety-ns module](https://github.
 | `channel` | discord.TextChannel | The channel to which the bot delivers notifications |
 | `mention` | discord.Role | The role to mention when notifying |
 | `type` | str | Whether to enable notifications for retweets & quotes |
-| `media_type` | str | Whether to enable notifications for only media tweets |
+| `media_type` | str | Whether to enable notifications that include media, or only enable notifications that include media |
 | `account_used` | str | The twitter client used by the bot to monitor the user's tweets |
 
 👉 `/remove notifier` `username` `channel`
@@ -106,8 +106,8 @@ DATA_PATH=./data
 
 #### Example
 ```env
-BOT_TOKEN=a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6
-TWITTER_TOKEN=MyTwitterToken:AAAAAAAAAAAAAAAAAAAAAA,MyTwitterToken2:BBBBBBBBBBBBBBBBBBBBBB
+BOT_TOKEN=FAKE1234567890ABCDEFGHIJKLMNO.PQRSTUVWXYZ1234567890.ABCDEFGHIJKLMNOPQRSTUVWXYZ123456
+TWITTER_TOKEN=MyTwitterToken:12345abcde67890fghij12345klmnop67890qrstuv,MyTwitterToken2:abcdef123456ghijkl7890mnopqrst123456uvwx
 DATA_PATH=./data
 ```
 
@@ -115,7 +115,7 @@ You can retrieve your auth token from cookies, or you can explore other methods 
 
 ### 2. Configure the configs.yml file
 
-Create `configs.yml` and copy the contents of `configs.example.yml` into it, then edit it.
+Create `configs.yml` and copy the contents of `configs.example.yml` into it, and edit it to your liking.
 
 > [!IMPORTANT]
 > All configuration instructions here are synchronized with the latest version. For users of the old version, please refer to the old README.
@@ -128,7 +128,7 @@ Create `configs.yml` and copy the contents of `configs.example.yml` into it, the
 | `activity_name` | The activity name displayed by the bot. | None. |
 | `activity_type` | The activity type displayed by the bot. | `playing`, `streaming`, `listening`, `watching` and `competing` only. |
 
-Custom activity messages are in f-string format, currently supporting 1 special variable for use, which will be explained below.
+Custom activity message is in f-string format, currently supporting 1 special variable for use, which will be explained below.
 
 - `{count}` : the number of users currently being monitored
 
@@ -148,6 +148,12 @@ Custom activity messages are in f-string format, currently supporting 1 special 
 | `auto_change_client` | If a new client is specified for an exisiting user, automatically use the new client to monitor the user. |
 | `auto_turn_off_notification` | If all notifications for a user are disabled, decide whether to unfollow the user. |
 | `auto_unfollow` | If all notifications for a user is disabled, decide whether to disable notification for the user (twitter side). |
+
+#### Database
+
+| Parameter | Description |
+|-----------|-------------|
+| `auto_repair_mismatched_clients` | Whether the system should automatically use the first client defined in the current environment variables to replace invalid `client_used` values in the database when they are not defined in the environment variables. |
 
 #### Embed Style
 
