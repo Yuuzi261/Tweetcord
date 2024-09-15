@@ -1,6 +1,6 @@
 <div align="center">
 
-<img alt="LOGO" src="https://i.imgur.com/WKXJDZL.png" width="300" height="300" />
+<a href="./AVATAR.md"><img alt="LOGO" src="/images/md/avatar.png" width="300" height="300" /></a>
   
 # Tweetcord
 
@@ -28,7 +28,7 @@ Tweetcord is a Discord bot that leverages the [tweety-ns module](https://github.
    </summary>
 👇Whenever a followed user posts a new tweet, your server will receive an instant notification.
 
-![](https://i.imgur.com/SXITM0a.png)
+![](/images/md/screenshot.png)
 
 </details>
 
@@ -241,3 +241,7 @@ Now you can go back to Discord and use the `/add notifier` command to set up not
 This project exists thanks to all the people who contribute.
 
 [![](https://contrib.rocks/image?repo=Yuuzi261/Tweetcord)](https://github.com/Yuuzi261/Tweetcord/graphs/contributors)
+
+This project also benefits from the creative contributions of artists who provide our logo.
+
+<a href="./AVATAR.md"><img alt="LOGO" src="/images/md/MarcoDK.png" width="64" height="64" /></a>

@@ -1,6 +1,6 @@
 <div align="center">
 
-<img alt="LOGO" src="https://i.imgur.com/WKXJDZL.png" width="300" height="300" />
+<a href="./AVATAR.md"><img alt="LOGO" src="/images/md/avatar.png" width="300" height="300" /><a>
   
 # Tweetcord
 
@@ -28,7 +28,7 @@ Tweetcord是一個Discord機器人，它使用[tweety-ns](https://github.com/mah
    </summary>
 👇每當關注的用戶發布新推文時，你的伺服器也會收到通知。
 
-![](https://i.imgur.com/SXITM0a.png)
+![](/images/md/screenshot.png)
 
 </details>
 
@@ -241,3 +241,7 @@ primary_region = "你的APP地區"
 感謝所有貢獻者。
 
 [![](https://contrib.rocks/image?repo=Yuuzi261/Tweetcord)](https://github.com/Yuuzi261/Tweetcord/graphs/contributors)
+
+這個專案也受益於提供我們標誌的藝術家的創意貢獻。
+
+<a href="./AVATAR.md"><img alt="LOGO" src="/images/md/MarcoDK.png" width="64" height="64" /></a>
