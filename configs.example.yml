@@ -11,6 +11,8 @@ auto_change_client: false
 auto_turn_off_notification: true
 auto_unfollow: true
 
+auto_repair_mismatched_clients: false
+
 embed:
   type: 'built_in'
 

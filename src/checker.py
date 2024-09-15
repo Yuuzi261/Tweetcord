@@ -1,5 +1,6 @@
 import os
 
+import aiosqlite
 import dotenv
 
 from src.log import setup_logger
@@ -54,10 +55,24 @@ def check_env():
         return False
 
     twitter_token = os.getenv('TWITTER_TOKEN')
-    first_entry = twitter_token.split(',')[0].split(':')
-    if len(first_entry) != 2 or not all(first_entry):
+    if not all([(lambda e : len(e) == 2 and all(e))(entry.split(':')) for entry in twitter_token.split(',')]):
         log.error('invalid TWITTER_TOKEN format, must be in the form of "account_name:twitter_token"')
         return False
 
     log.info('environment variables check passed')
     return True
+
+# currently only client_used is checked
+async def check_db() -> set[str]:
+    twitter_token = os.getenv('TWITTER_TOKEN')
+    
+    async with aiosqlite.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
+        async with db.execute('SELECT client_used FROM user') as cursor:
+            row = await cursor.fetchall()
+            
+    db_clients = set(client[0] for client in row)
+    env_clients = set(entry.split(':')[0] for entry in twitter_token.split(','))
+    invalid_clients = db_clients - env_clients
+    
+    return invalid_clients
+            

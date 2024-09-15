@@ -8,9 +8,10 @@ from discord import app_commands
 from discord.ext import commands
 from dotenv import load_dotenv
 
-from configs.check_configs import check_configs, check_env
 from configs.load_configs import configs
+from src.checker import check_configs, check_env, check_db
 from src.db_function.init_db import init_db
+from src.db_function.repair_db import auto_repair_mismatched_clients
 from src.log import setup_logger
 
 log = setup_logger(__name__)
@@ -24,16 +25,27 @@ bot = commands.Bot(command_prefix=configs['prefix'], intents=discord.Intents.all
 async def on_ready():
     if not (os.path.isfile(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db'))):
         await init_db()
-
-    if not check_configs(configs):
-        log.warning('incomplete configs file detected, will retry in 30 seconds')
-        await asyncio.sleep(30)
-        os.execv(sys.executable, ['python'] + sys.argv)
-
+        
     if not check_env():
         log.warning('incomplete environment variables detected, will retry in 30 seconds')
         await asyncio.sleep(30)
         os.execv(sys.executable, ['python'] + sys.argv)
+        
+    if not check_configs(configs):
+        log.warning('incomplete configs file detected, will retry in 30 seconds')
+        await asyncio.sleep(30)
+        os.execv(sys.executable, ['python'] + sys.argv)
+        
+    invalid_clients = await check_db()
+    if invalid_clients:
+        log.warning('detected environment variable undefined client name in database')
+        if configs['auto_repair_mismatched_clients']:
+            await auto_repair_mismatched_clients(invalid_clients)
+            log.info('automatically replace mismatched client names with the first client name in the environment variable, use the sync slash command in discord to ensure notifications are turned on')
+        else:
+            log.warning('set auto_repair_mismatched_clients to true in configs to automatically fix this error or manually update the database or environment variables')
+    else:
+        log.info('database check passed')
 
     async with aiosqlite.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
         async with db.execute('SELECT username FROM user WHERE enabled = 1') as cursor:
