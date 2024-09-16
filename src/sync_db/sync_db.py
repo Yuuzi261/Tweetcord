@@ -1,6 +1,5 @@
 import asyncio
 
-from dotenv import load_dotenv
 from tweety import Twitter
 
 from src.log import setup_logger
