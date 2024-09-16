@@ -20,8 +20,6 @@ EMBED_TYPE = configs['embed']['type']
 
 log = setup_logger(__name__)
 
-load_dotenv()
-
 
 class AccountTracker():
     def __init__(self, bot: commands.Bot):

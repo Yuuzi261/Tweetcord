@@ -5,7 +5,6 @@ import dotenv
 
 from src.log import setup_logger
 
-dotenv.load_dotenv()
 log = setup_logger(__name__)
 
 

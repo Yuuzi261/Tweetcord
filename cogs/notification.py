@@ -18,8 +18,6 @@ from src.utils import get_accounts
 
 log = setup_logger(__name__)
 
-load_dotenv()
-
 
 class Notification(Cog_Extension):
     def __init__(self, bot):

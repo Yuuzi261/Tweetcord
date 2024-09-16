@@ -1,10 +1,5 @@
 import os
 
-import dotenv
-
-dotenv.load_dotenv()
-
-
 def bool_to_str(boo: bool):
     return '1' if boo else '0'
 

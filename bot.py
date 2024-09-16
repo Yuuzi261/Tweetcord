@@ -29,7 +29,7 @@ async def on_ready():
     if not check_env():
         log.warning('incomplete environment variables detected, will retry in 30 seconds')
         await asyncio.sleep(30)
-        os.execv(sys.executable, ['python'] + sys.argv)
+        load_dotenv()
         
     if not check_configs(configs):
         log.warning('incomplete configs file detected, will retry in 30 seconds')

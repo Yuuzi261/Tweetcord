@@ -12,8 +12,6 @@ from src.sync_db.sync_db import sync_db
 
 log = setup_logger(__name__)
 
-load_dotenv()
-
 
 class Sync(Cog_Extension):
 

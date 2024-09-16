@@ -1,9 +1,6 @@
 import os
 
 import aiosqlite
-import dotenv
-
-dotenv.load_dotenv()
 
 async def auto_repair_mismatched_clients(invalid_clients: set[str]):
     default_client = os.getenv('TWITTER_TOKEN').split(',')[0].split(':')[0]

@@ -8,8 +8,6 @@ from src.utils import get_accounts
 
 log = setup_logger(__name__)
 
-load_dotenv()
-
 
 async def sync_db(follow_list: dict[str, str]) -> None:
 
