@@ -100,7 +100,7 @@ pip install -r requirements.txt
 
 ```env
 BOT_TOKEN=YourDiscordBotToken
-TWITTER_TOKEN=YourTwitterAccountAuthToken
+TWITTER_TOKEN=NameForYourTwitterToken:YourTwitterAccountAuthToken
 DATA_PATH=./data
 ```
 
