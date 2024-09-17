@@ -6,15 +6,12 @@
 <details>
    <summary><b>⬆️click here to upgrade from 0.4.1 to 0.5</b></summary>
 
-<!-- Create a python file in the `cogs` folder and name it `upgrade.py`. Paste the following code and run the bot. Use the slash command `/upgrade version` to upgrade. This cog can be removed after the upgrade is completed. -->
+**📢Version 0.5 involves changes to dependency packages. Please ensure that all required packages are correctly installed in your environment.**
+**📢This update includes significant changes to environment variables and configuration files. Please refer to the [README](./README.md) for details to ensure proper operation.**
 
-### Script Version
+Create a Python file named `upgrade.py` in the root directory of the project, paste the following code, and run the script using `python upgrade.py`. Alternatively, you can directly start the bot, which will check for the existence of the update script and automatically update. After the upgrade is complete, please remove this script to avoid repeated updates.
 
 [![Gist Card](https://github-readme-stats-yuuzi261s-projects.vercel.app/api/gist?id=aadbd934efe8a36fd23b307d14683e41)](https://gist.github.com/Yuuzi261/aadbd934efe8a36fd23b307d14683e41)
-
-### Slash Command Version
-
-\# TODO
 
 </details>
 
@@ -64,13 +61,12 @@ Because the database structure has been updated, you must use the following code
 <details>
    <summary><b>⬆️0.4.1升級到0.5請點這裡</b></summary>
 
-### 腳本版
+**📢0.5版本涉及依賴套件更動，請確定環境正確安裝所有所需的套件**
+**📢本次更新對環境變數、設定檔進行了大量改動，詳情請見[README](./README_zh.md)以確保運作正常**
+
+在專案根目錄創建一個python檔案並命名為 `upgrade.py`，貼上下面的程式碼並執行該腳本：`python upgrade.py`，或是直接啟動機器人，會檢查是否存在更新腳本並自動更新。升級結束後請移除這個腳本避免重複更新。
 
 [![Gist Card](https://github-readme-stats-yuuzi261s-projects.vercel.app/api/gist?id=aadbd934efe8a36fd23b307d14683e41)](https://gist.github.com/Yuuzi261/aadbd934efe8a36fd23b307d14683e41)
-
-### 斜線指令版
-
-\# TODO
 
 </details>
 

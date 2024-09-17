@@ -39,7 +39,7 @@ Tweetcord is a Discord bot that leverages the [tweety-ns module](https://github.
 
    </summary>
 
-👉 `/add notifier` `username` `channel` | `mention` `type`
+👉 `/add notifier` `username` `channel` | `mention` `type` `media_type` `account_used`
 
 | Parameter | Type | Description |
 | --------- | ---- | ----------- |
@@ -92,7 +92,7 @@ pip install -r requirements.txt
 
 ## ⚡Usage
 
-**📢This tutorial is suitable for version 0.3.2 or later. (Recommended: 0.3.5 or later)**
+**📢This tutorial applies to version 0.5 or higher. For settings of older versions, please refer to the README files of the respective historical versions.**
 
 ### [⬆️View Version Upgrade Guides](./UPGRADE_GUIDE.md)
 
@@ -166,14 +166,14 @@ Custom activity message is in f-string format, currently supporting 1 special va
 | Parameter | Description |
 |-----------|-------------|
 | `fx_image` | Whether to use FxTwitter's combined image when there are multiple images, friendly for iOS systems that cannot display multiple image embeddings. |
-| `video_link_button` | #TODO |
-| `footer_logo` | #TODO |
+| `video_link_button` | _coming soon_ |
+| `footer_logo` | _coming soon_ |
 
 ##### fx_twitter:
 
 | Parameter | Description |
 |-----------|-------------|
-| `original_url_button` | #TODO |
+| `original_url_button` | _coming soon_ |
 
 #### Message
 

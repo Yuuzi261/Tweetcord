@@ -39,7 +39,7 @@ Tweetcord是一個Discord機器人，它使用[tweety-ns](https://github.com/mah
 
    </summary>
 
-👉 `/add notifier` `username` `channel` | `mention` `type`
+👉 `/add notifier` `username` `channel` | `mention` `type` `media_type` `account_used`
 
 | 參數 | 類型 | 描述 |
 |------|------|-----|
@@ -92,7 +92,7 @@ pip install -r requirements.txt
 
 ## ⚡使用
 
-**📢本教學適用於0.3.2或更高版本。（建議：0.3.5或更高版本）**
+**📢本教學適用於0.5或更高版本，舊版設定請參考各個歷史版本的README。**
 
 ### [⬆️查看歷史版本升級指南](./UPGRADE_GUIDE.md)
 
@@ -166,14 +166,14 @@ DATA_PATH=./data
 | 參數 | 描述 |
 |------|------|
 | `fx_image` | 當有多張圖片時是否使用FxTwitter的組合圖片，對於無法顯示多張圖片嵌入的iOS系統友善。 |
-| `video_link_button` | #TODO |
-| `footer_logo` | #TODO |
+| `video_link_button` | _即將推出_ |
+| `footer_logo` | _即將推出_ |
 
 ##### fx_twitter:
 
 | 參數 | 描述 |
 |------|------|
-| `original_url_button` | #TODO |
+| `original_url_button` | _即將推出_ |
 
 #### 訊息
 
@@ -242,6 +242,6 @@ primary_region = "你的APP地區"
 
 [![](https://contrib.rocks/image?repo=Yuuzi261/Tweetcord)](https://github.com/Yuuzi261/Tweetcord/graphs/contributors)
 
-這個專案也受益於提供我們標誌的藝術家的創意貢獻。
+這個專案也受益於為我們提供標誌的藝術家的創意貢獻。
 
 <a href="./AVATAR.md"><img alt="LOGO" src="/images/md/MarcoDK.png" width="64" height="64" /></a>
