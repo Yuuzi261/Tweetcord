@@ -1,7 +1,6 @@
 import os
 
 import aiosqlite
-import dotenv
 
 from src.log import setup_logger
 
@@ -74,4 +73,8 @@ async def check_db() -> set[str]:
     invalid_clients = db_clients - env_clients
     
     return invalid_clients
-            
+
+def check_upgrade():
+    if os.path.isfile('upgrade.py'):
+        log.info('found upgrade.py, executing...')
+        os.system('python upgrade.py')

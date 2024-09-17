@@ -9,7 +9,7 @@ from discord.ext import commands
 from dotenv import load_dotenv
 
 from configs.load_configs import configs
-from src.checker import check_configs, check_env, check_db
+from src.checker import check_configs, check_env, check_db, check_upgrade
 from src.db_function.init_db import init_db
 from src.db_function.repair_db import auto_repair_mismatched_clients
 from src.log import setup_logger
@@ -25,6 +25,8 @@ bot = commands.Bot(command_prefix=configs['prefix'], intents=discord.Intents.all
 async def on_ready():
     if not (os.path.isfile(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db'))):
         await init_db()
+        
+    check_upgrade()
         
     if not check_env():
         log.warning('incomplete environment variables detected, will retry in 30 seconds')
