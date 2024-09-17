@@ -34,7 +34,7 @@ class Notification(Cog_Extension):
         account_used=[app_commands.Choice(name=account_name, value=account_name) for account_name, _ in get_accounts().items()]
     )
     @app_commands.rename(enable_type='type')
-    async def notifier(self, itn: discord.Interaction, username: str, channel: discord.TextChannel, mention: discord.Role = None, enable_type: str = '11', media_type: str = '11', account_used: str = list(get_accounts().values())[0]):
+    async def notifier(self, itn: discord.Interaction, username: str, channel: discord.TextChannel, mention: discord.Role = None, enable_type: str = '11', media_type: str = '11', account_used: str = list(get_accounts().keys())[0]):
         """Add a twitter user to specific channel on your server.
 
         Parameters
