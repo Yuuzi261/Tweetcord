@@ -1,10 +1,10 @@
-import os
 import logging
 import logging.handlers
+import os
 
 
 class LogFormatter(logging.Formatter):
-    
+
     LEVEL_COLORS = [
         (logging.DEBUG, '\x1b[40;1m'),
         (logging.INFO, '\x1b[34;1m'),
@@ -12,7 +12,7 @@ class LogFormatter(logging.Formatter):
         (logging.ERROR, '\x1b[31m'),
         (logging.CRITICAL, '\x1b[41m'),
     ]
-    
+
     def setFORMATS(self, is_exc_info_colored):
         if is_exc_info_colored:
             self.FORMATS = {
@@ -30,9 +30,8 @@ class LogFormatter(logging.Formatter):
                 )
                 for item in self.LEVEL_COLORS
             }
-            
 
-    def format(self, record, is_exc_info_colored = False):
+    def format(self, record, is_exc_info_colored=False):
         self.setFORMATS(is_exc_info_colored)
         formatter = self.FORMATS.get(record.levelno)
         if formatter is None:
@@ -41,8 +40,10 @@ class LogFormatter(logging.Formatter):
         # Override the traceback to always print in red (if is_exc_info_colored is True)
         if record.exc_info:
             text = formatter.formatException(record.exc_info)
-            if is_exc_info_colored: record.exc_text = f'\x1b[31m{text}\x1b[0m'
-            else: record.exc_text = text
+            if is_exc_info_colored:
+                record.exc_text = f'\x1b[31m{text}\x1b[0m'
+            else:
+                record.exc_text = text
 
         output = formatter.format(record)
 
@@ -52,13 +53,13 @@ class LogFormatter(logging.Formatter):
 
 
 class ConsoleFormatter(LogFormatter):
-    
+
     def format(self, record):
-        return super().format(record, is_exc_info_colored = True)
+        return super().format(record, is_exc_info_colored=True)
 
 
-def setup_logger(module_name:str) -> logging.Logger:
-    
+def setup_logger(module_name: str) -> logging.Logger:
+
     # create logger
     library, _, _ = module_name.partition('.py')
     logger = logging.getLogger(library)
@@ -69,12 +70,12 @@ def setup_logger(module_name:str) -> logging.Logger:
         console_handler = logging.StreamHandler()
         console_handler.setLevel(logging.INFO)
         console_handler.setFormatter(ConsoleFormatter())
-        
+
         # specify that the log file path is the same as `main.py` file path
         grandparent_dir = os.path.abspath(__file__ + "/../../")
-        log_name='console.log'
+        log_name = 'console.log'
         log_path = os.path.join(grandparent_dir, log_name)
-        
+
         # create local log handler
         log_handler = logging.handlers.RotatingFileHandler(
             filename=log_path,
@@ -83,7 +84,7 @@ def setup_logger(module_name:str) -> logging.Logger:
             backupCount=2,  # Rotate through 5 files
         )
         log_handler.setFormatter(LogFormatter())
-        
+
         # Add handlers to logger
         logger.addHandler(log_handler)
         logger.addHandler(console_handler)

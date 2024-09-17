@@ -1,154 +1,159 @@
-import discord
-from tweety import Twitter
-from dotenv import load_dotenv
-from datetime import datetime, timedelta
-import os
-import sqlite3
 import asyncio
+import os
+import re
+from datetime import datetime, timedelta
 
+import aiosqlite
+import discord
+from discord.ext import commands
+from tweety import Twitter
+
+from configs.load_configs import configs
 from src.log import setup_logger
 from src.notification.display_tools import gen_embed, get_action
 from src.notification.get_tweets import get_tweets
-from src.notification.utils import is_match_type
-from src.db_function.db_executor import execute
-from configs.load_configs import configs
+from src.notification.utils import is_match_media_type, is_match_type
+from src.utils import get_accounts
+
+EMBED_TYPE = configs['embed']['type']
 
 log = setup_logger(__name__)
 
-load_dotenv()
 
 class AccountTracker():
-    def __init__(self, bot):
+    def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.tasksMonitorLogAt = datetime.utcnow() - timedelta(seconds=configs['tasks_monitor_log_period'])
+        self.accounts_data = get_accounts()
+        self.db_path = os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')
+        self.tweets = {account_name: [] for account_name in self.accounts_data.keys()}
+        self.tasksMonitorLogAt = datetime.utcnow() - timedelta(hours=configs['tasks_monitor_log_period'])
         bot.loop.create_task(self.setup_tasks())
 
     async def setup_tasks(self):
-        app = Twitter("session")
-        app.load_auth_token(os.getenv('TWITTER_TOKEN'))
-        
-        conn = sqlite3.connect(f"{os.getenv('DATA_PATH')}tracked_accounts.db")
-        cursor = conn.cursor()
-        
-        self.bot.loop.create_task(self.tweetsUpdater(app)).set_name('TweetsUpdater')
-        cursor.execute('SELECT username FROM user WHERE enabled = 1')
-        usernames = []
-        for user in cursor:
-            username = user[0]
-            usernames.append(username)
-            self.bot.loop.create_task(self.notification(username)).set_name(username)
-        self.bot.loop.create_task(self.tasksMonitor(set(usernames))).set_name('TasksMonitor')
-        
-        conn.close()
+        self.apps = []
+        for account_name, account_token in self.accounts_data.items():
+            app = Twitter(account_name)
+            app.load_auth_token(account_token)
+            self.bot.loop.create_task(self.tweetsUpdater(app)).set_name(f'TweetsUpdater_{account_name}')
+            self.apps.append(app)
 
+        async with aiosqlite.connect(self.db_path) as db:
+            async with db.execute('SELECT username, client_used FROM user WHERE enabled = 1') as cursor:
+                usernames_and_clients = {row[0]: row[1] async for row in cursor}
 
-    async def notification(self, username):
+        for username, client_used in usernames_and_clients.items():
+            self.bot.loop.create_task(self.notification(username, client_used)).set_name(username)
+        self.bot.loop.create_task(self.tasksMonitor(usernames_and_clients)).set_name('TasksMonitor')
+
+    async def notification(self, username: str, client_used: str):
         while True:
             await asyncio.sleep(configs['tweets_check_period'])
 
-            task = asyncio.create_task(asyncio.to_thread(get_tweets, self.tweets, username))
-            await task
-            lastest_tweets = task.result()
-            if lastest_tweets == None: continue
-            
-            conn = sqlite3.connect(f"{os.getenv('DATA_PATH')}tracked_accounts.db")
-            conn.row_factory = sqlite3.Row
-            cursor = conn.cursor()
+            lastest_tweets = await get_tweets(self.tweets[client_used], username)
+            if lastest_tweets is None:
+                continue
 
-            user = cursor.execute('SELECT * FROM user WHERE username = ?', (username,)).fetchone()
-            execute(conn, 'UPDATE user SET lastest_tweet = ? WHERE username = ?', (str(lastest_tweets[-1].created_on), username), username)
-            for tweet in lastest_tweets:
-                log.info(f'find a new tweet from {username}')
-                for data in cursor.execute('SELECT * FROM notification WHERE user_id = ? AND enabled = 1', (user['id'],)):
-                    channel = self.bot.get_channel(int(data['channel_id']))
-                    if channel != None and is_match_type(tweet, data['enable_type']):
-                        try:
-                            mention = f"{channel.guild.get_role(int(data['role_id'])).mention} " if data['role_id'] != '' else ''
-                            author, action = tweet.author.name, get_action(tweet)
+            async with aiosqlite.connect(self.db_path) as db:
+                db.row_factory = aiosqlite.Row
+                async with db.cursor() as cursor:
+                    await cursor.execute('SELECT * FROM user WHERE username = ?', (username,))
+                    user = await cursor.fetchone()
+                    await cursor.execute('UPDATE user SET lastest_tweet = ? WHERE username = ?', (str(lastest_tweets[-1].created_on), username))
 
-                            if configs['use_fx']:
-                                url = f"https://fixupx.com/{tweet.author.username}/status/{tweet.id}"
-                            else:
-                                url = tweet.url
-                                
-                            msg = data['customized_msg'] if data['customized_msg'] else configs['default_message']
-                            msg = msg.format(mention=mention, author=author, action=action, url=url)
+                    for tweet in lastest_tweets:
+                        log.info(f'find a new tweet from {username}')
+                        await cursor.execute('SELECT * FROM notification WHERE user_id = ? AND enabled = 1', (user['id'],))
+                        notifications = await cursor.fetchall()
+                        for data in notifications:
+                            channel = self.bot.get_channel(int(data['channel_id']))
+                            if channel is not None and is_match_type(tweet, data['enable_type']) and is_match_media_type(tweet, data['enable_media_type']):
+                                try:
+                                    mention = f"{channel.guild.get_role(int(data['role_id'])).mention} " if data['role_id'] else ''
+                                    author, action = tweet.author.name, get_action(tweet)
 
-                            if configs['use_fx']:
-                                await channel.send(msg)
-                            else:
-                                await channel.send(msg, file = discord.File('images/twitter.png', filename='twitter.png'), embeds = gen_embed(tweet))     
-                        except Exception as e:
-                            if not isinstance(e, discord.errors.Forbidden): log.error(f'an unexpected error occurred at {channel.mention} while sending notification')
-                    
-            conn.close()
+                                    url = re.sub(r'twitter', r'fxtwitter', tweet.url) if EMBED_TYPE == 'fx_twitter' else tweet.url
 
+                                    msg = data['customized_msg'] if data['customized_msg'] else configs['default_message']
+                                    msg = msg.format(mention=mention, author=author, action=action, url=url)
 
-    async def tweetsUpdater(self, app):
+                                    await channel.send(msg) if EMBED_TYPE == 'fx_twitter' else await channel.send(msg, file=discord.File('images/twitter.png', filename='twitter.png'), embeds=await gen_embed(tweet))
+
+                                except Exception as e:
+                                    if not isinstance(e, discord.errors.Forbidden):
+                                        log.error(f'an unexpected error occurred at {channel.mention} while sending notification')
+                await db.commit()
+
+    async def tweetsUpdater(self, app: Twitter):
+        updater_name = asyncio.current_task().get_name().split('_', 1)[1]
         while True:
-            try: self.tweets = app.get_tweet_notifications()
+            try:
+                self.tweets[updater_name] = app.get_tweet_notifications()
+                await asyncio.sleep(configs['tweets_check_period'])
             except Exception as e:
-                log.error(f'{e} (task : tweets updater)')
-                log.error(f"an unexpected error occurred, try again in {configs['tweets_updater_retry_delay'] / 60} minutes")
-                await asyncio.sleep(configs['tweets_updater_retry_delay'])
-            await asyncio.sleep(configs['tweets_check_period'])
+                log.error(f'{e} (task : tweets updater {updater_name})')
+                log.error(f"an unexpected error occurred, try again in {configs['tweets_updater_retry_delay']} minutes")
+                await asyncio.sleep(configs['tweets_updater_retry_delay'] * 60)
 
-
-    async def tasksMonitor(self, users : set):
+    async def tasksMonitor(self, users_and_clients: dict[str, str]):
         while True:
             taskSet = {task.get_name() for task in asyncio.all_tasks()}
+            users = {username for username, _ in users_and_clients.items()}
             aliveTasks = taskSet & users
-            
+
             if aliveTasks != users:
                 deadTasks = list(users - aliveTasks)
                 log.warning(f'dead tasks : {deadTasks}')
                 for deadTask in deadTasks:
-                    self.bot.loop.create_task(self.notification(deadTask)).set_name(deadTask)
-                    log.info(f'restart {deadTask} successfully')
-                
-            if 'TweetsUpdater' not in taskSet:
-                log.warning('tweets updater : dead')
-                
-            if (datetime.utcnow() - self.tasksMonitorLogAt).total_seconds() >= configs['tasks_monitor_log_period']:
+                    self.bot.loop.create_task(self.notification(deadTask, users_and_clients[deadTask])).set_name(deadTask)
+                    log.info(f'restart {deadTask} successfully using {users_and_clients[deadTask]}')
+
+            for client in self.accounts_data.keys():
+                if f'TweetsUpdater_{client}' not in taskSet:
+                    log.warning(f'tweets updater {client} : dead')
+
+            if (datetime.utcnow() - self.tasksMonitorLogAt).total_seconds() / 3600 >= configs['tasks_monitor_log_period']:
                 log.info(f'alive tasks : {list(aliveTasks)}')
-                if 'TweetsUpdater' in taskSet: log.info('tweets updater : alive')
+                for client in self.accounts_data.keys():
+                    if f'TweetsUpdater_{client}' in taskSet:
+                        log.info(f'tweets updater {client} : alive')
                 self.tasksMonitorLogAt = datetime.utcnow()
-                
-            await asyncio.sleep(configs['tasks_monitor_check_period'])
-            
 
-    async def addTask(self, username : str):
-        conn = sqlite3.connect(f"{os.getenv('DATA_PATH')}tracked_accounts.db")
-        cursor = conn.cursor()
-        
-        self.bot.loop.create_task(self.notification(username)).set_name(username)
-        log.info(f'new task {username} added successfully')
-        
+            await asyncio.sleep(configs['tasks_monitor_check_period'] * 60)
+
+    async def addTask(self, username: str, client_used: str):
+        self.bot.loop.create_task(self.notification(username, client_used)).set_name(username)
+        log.info(f'new task {username} added successfully using {client_used}')
+
         for task in asyncio.all_tasks():
             if task.get_name() == 'TasksMonitor':
-                try: log.info(f'existing TasksMonitor has been closed') if task.cancel() else log.info('existing TasksMonitor failed to close')
-                except Exception as e: log.warning(f'addTask : {e}')
-        self.bot.loop.create_task(self.tasksMonitor({user[0] for user in cursor.execute('SELECT username FROM user WHERE enabled = 1').fetchall()})).set_name('TasksMonitor')
-        log.info(f'new TasksMonitor has been started')
-        
-        conn.close()
-        
+                try:
+                    log.info('existing TasksMonitor has been closed') if task.cancel() else log.info('existing TasksMonitor failed to close')
+                except Exception as e:
+                    log.warning(f'addTask : {e}')
 
-    async def removeTask(self, username : str):
-        conn = sqlite3.connect(f"{os.getenv('DATA_PATH')}tracked_accounts.db")
-        cursor = conn.cursor()
-        
+        async with aiosqlite.connect(self.db_path) as db:
+            async with db.execute('SELECT username, client_used FROM user WHERE enabled = 1') as cursor:
+                usernames_and_clients = {row[0]: row[1] async for row in cursor}
+        self.bot.loop.create_task(self.tasksMonitor(usernames_and_clients)).set_name('TasksMonitor')
+        log.info('new TasksMonitor has been started')
+
+    async def removeTask(self, username: str):
         for task in asyncio.all_tasks():
             if task.get_name() == 'TasksMonitor':
-                try: log.info(f'existing TasksMonitor has been closed') if task.cancel() else log.info('existing TasksMonitor failed to close')
-                except Exception as e: log.warning(f'removeTask : {e}')
-                
+                try:
+                    log.info('existing TasksMonitor has been closed') if task.cancel() else log.info('existing TasksMonitor failed to close')
+                except Exception as e:
+                    log.warning(f'removeTask : {e}')
+
         for task in asyncio.all_tasks():
             if task.get_name() == username:
-                try: log.info(f'existing task {username} has been closed') if task.cancel() else log.info(f'existing task {username} failed to close')
-                except Exception as e: log.warning(f'removeTask : {e}')
-        
-        self.bot.loop.create_task(self.tasksMonitor({user[0] for user in cursor.execute('SELECT username FROM user WHERE enabled = 1').fetchall()})).set_name('TasksMonitor')
-        log.info(f'new TasksMonitor has been started')
-        
-        conn.close()
+                try:
+                    log.info(f'existing task {username} has been closed') if task.cancel() else log.info(f'existing task {username} failed to close')
+                except Exception as e:
+                    log.warning(f'removeTask : {e}')
+
+        async with aiosqlite.connect(self.db_path) as db:
+            async with db.execute('SELECT username, client_used FROM user WHERE enabled = 1') as cursor:
+                usernames_and_clients = {row[0]: row[1] async for row in cursor}
+        self.bot.loop.create_task(self.tasksMonitor(usernames_and_clients)).set_name('TasksMonitor')
+        log.info('new TasksMonitor has been started')
