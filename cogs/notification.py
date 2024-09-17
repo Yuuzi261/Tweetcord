@@ -34,7 +34,7 @@ class Notification(Cog_Extension):
         account_used=[app_commands.Choice(name=account_name, value=account_name) for account_name, _ in get_accounts().items()]
     )
     @app_commands.rename(enable_type='type')
-    async def notifier(self, itn: discord.Interaction, username: str, channel: discord.TextChannel, mention: discord.Role = None, enable_type: str = '11', media_type: str = '11', account_used: str = list(get_accounts().values())[0]):
+    async def notifier(self, itn: discord.Interaction, username: str, channel: discord.TextChannel, mention: discord.Role = None, enable_type: str = '11', media_type: str = '11', account_used: str = list(get_accounts().keys())[0]):
         """Add a twitter user to specific channel on your server.
 
         Parameters
@@ -78,25 +78,27 @@ class Notification(Cog_Extension):
                         await cursor.execute('INSERT OR IGNORE INTO channel VALUES (?, ?)', (str(channel.id), server_id))
                         await cursor.execute('INSERT INTO notification (user_id, channel_id, role_id, enable_type, enable_media_type) VALUES (?, ?, ?, ?, ?)', (str(new_user.id), str(channel.id), roleID, enable_type, media_type))
                     else:
-                        if match_user['client_used'] != account_used and configs['auto_change_client']:
-                            if configs['auto_unfollow'] or configs['auto_turn_off_notification']:
-                                old_client_used = match_user['client_used']
-                                old_app = Twitter(old_client_used)
-                                old_app.load_auth_token(get_accounts()[old_client_used])
-                                target_user = old_app.get_user_info(username)
+                        if match_user['client_used'] != account_used:
+                            if configs['auto_change_client']:
+                                if configs['auto_unfollow'] or configs['auto_turn_off_notification']:
+                                    old_client_used = match_user['client_used']
+                                    old_app = Twitter(old_client_used)
+                                    old_app.load_auth_token(get_accounts()[old_client_used])
+                                    target_user = old_app.get_user_info(username)
 
-                                if configs['auto_unfollow']:
-                                    log.info(f'successfully unfollowed {username} (due to client change)') if old_app.unfollow_user(target_user) else log.warning(f'unable to unfollow {username}')
-                                else:
-                                    log.info(f'successfully turned off notification for {username} (due to client change)') if old_app.disable_user_notification(target_user) else log.warning(f'unable to turn off notifications for {username}')
+                                    if configs['auto_unfollow']:
+                                        log.info(f'successfully unfollowed {username} (due to client change)') if old_app.unfollow_user(target_user) else log.warning(f'unable to unfollow {username}')
+                                    else:
+                                        log.info(f'successfully turned off notification for {username} (due to client change)') if old_app.disable_user_notification(target_user) else log.warning(f'unable to turn off notifications for {username}')
 
-                            await cursor.execute('REPLACE INTO user (client_used) VALUES (?) WHERE id = ?', (account_used, match_user['id']))
-                            await cursor.execute('INSERT OR IGNORE INTO channel VALUES (?, ?)', (str(channel.id), server_id))
-                            await cursor.execute('REPLACE INTO notification (user_id, channel_id, role_id, enable_type, enable_media_type) VALUES (?, ?, ?, ?, ?)', (match_user['id'], str(channel.id), roleID, enable_type, media_type))
-                            await cursor.execute('UPDATE user SET enabled = 1 WHERE id = ?', (match_user['id'],))
-                        else:
-                            await itn.followup.send(f'user {username} already exists under {account_used}. No changes due to `auto_change_client` setting', ephemeral=True)
-                            return
+                                await cursor.execute('REPLACE INTO user (client_used) VALUES (?) WHERE id = ?', (account_used, match_user['id']))
+                            else:
+                                await itn.followup.send(f'user {username} already exists under {account_used}. No changes due to `auto_change_client` setting', ephemeral=True)
+                                return
+                            
+                        await cursor.execute('INSERT OR IGNORE INTO channel VALUES (?, ?)', (str(channel.id), server_id))
+                        await cursor.execute('REPLACE INTO notification (user_id, channel_id, role_id, enable_type, enable_media_type) VALUES (?, ?, ?, ?, ?)', (match_user['id'], str(channel.id), roleID, enable_type, media_type))
+                        await cursor.execute('UPDATE user SET enabled = 1 WHERE id = ?', (match_user['id'],))
 
                     app.follow_user(new_user)
 
