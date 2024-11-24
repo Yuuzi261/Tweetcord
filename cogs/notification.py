@@ -66,9 +66,9 @@ class Notification(Cog_Extension):
                 roleID = str(mention.id) if mention is not None else ''
                 if match_user is None or match_user['enabled'] == 0:
                     app = Twitter(account_used)
-                    app.load_auth_token(get_accounts()[account_used])
+                    await app.load_auth_token(get_accounts()[account_used])
                     try:
-                        new_user = app.get_user_info(username)
+                        new_user = await app.get_user_info(username)
                     except Exception:
                         await itn.followup.send(f'user {username} not found', ephemeral=True)
                         return
@@ -83,13 +83,15 @@ class Notification(Cog_Extension):
                                 if configs['auto_unfollow'] or configs['auto_turn_off_notification']:
                                     old_client_used = match_user['client_used']
                                     old_app = Twitter(old_client_used)
-                                    old_app.load_auth_token(get_accounts()[old_client_used])
-                                    target_user = old_app.get_user_info(username)
+                                    await old_app.load_auth_token(get_accounts()[old_client_used])
+                                    target_user = await old_app.get_user_info(username)
 
                                     if configs['auto_unfollow']:
-                                        log.info(f'successfully unfollowed {username} (due to client change)') if old_app.unfollow_user(target_user) else log.warning(f'unable to unfollow {username}')
+                                        status = await old_app.unfollow_user(target_user)
+                                        log.info(f'successfully unfollowed {username} (due to client change)') if status else log.warning(f'unable to unfollow {username}')
                                     else:
-                                        log.info(f'successfully turned off notification for {username} (due to client change)') if old_app.disable_user_notification(target_user) else log.warning(f'unable to turn off notifications for {username}')
+                                        status = await old_app.disable_user_notification(target_user)
+                                        log.info(f'successfully turned off notification for {username} (due to client change)') if status else log.warning(f'unable to turn off notifications for {username}')
 
                                 await cursor.execute('REPLACE INTO user (client_used) VALUES (?) WHERE id = ?', (account_used, match_user['id']))
                             else:
@@ -100,9 +102,10 @@ class Notification(Cog_Extension):
                         await cursor.execute('REPLACE INTO notification (user_id, channel_id, role_id, enable_type, enable_media_type) VALUES (?, ?, ?, ?, ?)', (match_user['id'], str(channel.id), roleID, enable_type, media_type))
                         await cursor.execute('UPDATE user SET enabled = 1 WHERE id = ?', (match_user['id'],))
 
-                    app.follow_user(new_user)
+                    await app.follow_user(new_user)
 
-                    if app.enable_user_notification(new_user):
+                    status = await app.enable_user_notification(new_user)
+                    if status:
                         log.info(f'successfully turned on notification for {username}')
                     else:
                         log.warning(f'unable to turn on notifications for {username}')
@@ -155,13 +158,15 @@ class Notification(Cog_Extension):
                             result = await cursor.fetchone()
                             client_used = result['client_used']
                             app = Twitter(client_used)
-                            app.load_auth_token(get_accounts()[client_used])
-                            target_user = app.get_user_info(username)
+                            await app.load_auth_token(get_accounts()[client_used])
+                            target_user = await app.get_user_info(username)
 
                             if configs['auto_unfollow']:
-                                log.info(f'successfully unfollowed {username}') if app.unfollow_user(target_user) else log.warning(f'unable to unfollow {username}')
+                                status = await app.unfollow_user(target_user)
+                                log.info(f'successfully unfollowed {username}') if status else log.warning(f'unable to unfollow {username}')
                             else:
-                                log.info(f'successfully turned off notification for {username}') if app.disable_user_notification(target_user) else log.warning(f'unable to turn off notifications for {username}')
+                                status = await app.disable_user_notification(target_user)
+                                log.info(f'successfully turned off notification for {username}') if status else log.warning(f'unable to turn off notifications for {username}')
 
                 else:
                     await itn.followup.send(f'can\'t find notifier {username} in {channel.mention}!', ephemeral=True)

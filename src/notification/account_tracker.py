@@ -33,7 +33,7 @@ class AccountTracker():
         self.apps = []
         for account_name, account_token in self.accounts_data.items():
             app = Twitter(account_name)
-            app.load_auth_token(account_token)
+            await app.load_auth_token(account_token)
             self.bot.loop.create_task(self.tweetsUpdater(app)).set_name(f'TweetsUpdater_{account_name}')
             self.apps.append(app)
 
@@ -87,7 +87,7 @@ class AccountTracker():
         updater_name = asyncio.current_task().get_name().split('_', 1)[1]
         while True:
             try:
-                self.tweets[updater_name] = app.get_tweet_notifications()
+                self.tweets[updater_name] = await app.get_tweet_notifications()
                 await asyncio.sleep(configs['tweets_check_period'])
             except Exception as e:
                 log.error(f'{e} (task : tweets updater {updater_name})')
