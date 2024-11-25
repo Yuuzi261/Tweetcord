@@ -88,7 +88,6 @@ Tweetcord是一個Discord機器人，它使用[tweety-ns](https://github.com/mah
 
 ```shell
 pip install -r requirements.txt
-pip install https://github.com/mahrtayyab/tweety/archive/main.zip --upgrade
 ```
 
 ## ⚡使用

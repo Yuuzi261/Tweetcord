@@ -88,7 +88,6 @@ Before running the bot, you need to install the necessary modules.
 
 ```shell
 pip install -r requirements.txt
-pip install https://github.com/mahrtayyab/tweety/archive/main.zip --upgrade
 ```
 
 ## ⚡Usage
