@@ -4,9 +4,20 @@
 > Cross-version updates are **NOT SUPPORTED**. For multi-version updates, please iterate through each version to update to the latest version. Before updating, please back up your data using the prefix command `download_data`.
 
 <details>
-   <summary><b>⬆️click here to upgrade from 0.4.1 to 0.5</b></summary>
+   <summary><b>⬆️Click Here to Upgrade from 0.5.1 to 0.5.2</b></summary>
 
-**📢Version 0.5 involves changes to dependency packages. Please ensure that all required packages are correctly installed in your environment.**
+This update does not involve any changes to the database structure, so there is no need to use an upgrade script. Simply pull the updated code and upgrade the environment to complete the update.
+
+```bash
+pip install --upgrade -r requirements.txt
+```
+
+</details>
+
+<details>
+   <summary><b>⬆️click here to upgrade from 0.4.1 to 0.5.1</b></summary>
+
+**📢Version 0.5.1 involves changes to dependency packages. Please ensure that all required packages are correctly installed in your environment.**
 
 **📢This update includes significant changes to environment variables and configuration files. Please refer to the [README](./README.md) for details to ensure proper operation.**
 
@@ -60,9 +71,20 @@ Because the database structure has been updated, you must use the following code
 > **不支援**跨版本更新，多版本更新請迭代更新至新版本。更新前請先透過前綴指令 `download_data` 進行資料備份。
 
 <details>
-   <summary><b>⬆️0.4.1升級到0.5請點這裡</b></summary>
+   <summary><b>⬆️0.5.1升級到0.5.2請點這裡</b></summary>
 
-**📢0.5版本涉及依賴套件更動，請確定環境正確安裝所有所需的套件**
+本次更新不涉及資料庫結構更新，因此不用使用升級腳本來完成升級，請直接拉取程式碼並升級環境即可完成更新。
+
+```bash
+pip install --upgrade -r requirements.txt
+```
+
+</details>
+
+<details>
+   <summary><b>⬆️0.4.1升級到0.5.1請點這裡</b></summary>
+
+**📢0.5.1版本涉及依賴套件更動，請確定環境正確安裝所有所需的套件**
 
 **📢本次更新對環境變數、設定檔進行了大量改動，詳情請見[README](./README_zh.md)以確保運作正常**
 
