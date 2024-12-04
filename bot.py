@@ -11,7 +11,7 @@ from configs.load_configs import configs
 from src.checker import check_configs, check_env, check_db, check_upgrade
 from src.db_function.init_db import init_db
 from src.db_function.repair_db import auto_repair_mismatched_clients
-from src.update_presence import update_presence
+from src.presence_updater import update_presence
 from src.log import setup_logger
 
 log = setup_logger(__name__)
@@ -118,6 +118,7 @@ async def on_command_error(ctx: commands.context.Context, error: commands.errors
     else:
         await ctx.send(error)
     log.warning(f'an error occurred but was handled by the command error handler, error message : {error}')
+
 
 if __name__ == '__main__':
     bot.run(os.getenv('BOT_TOKEN'))

@@ -4,6 +4,7 @@ from discord.ext import commands
 import aiosqlite
 from configs.load_configs import configs
 
+
 async def update_presence(bot: commands.Bot):
     """
     Updates the bot's presence based on the number of enabled accounts in the database.

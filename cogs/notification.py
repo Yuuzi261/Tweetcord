@@ -14,7 +14,7 @@ from src.log import setup_logger
 from src.notification.account_tracker import AccountTracker
 from src.permission import ADMINISTRATOR
 from src.utils import get_accounts
-from src.update_presence import update_presence
+from src.presence_updater import update_presence
 
 log = setup_logger(__name__)
 
@@ -148,7 +148,6 @@ class Notification(Cog_Extension):
                 if match_notifier is not None:
                     await cursor.execute('UPDATE notification SET enabled = 0 WHERE user_id = ? AND channel_id = ?', (match_notifier['user_id'], str(channel.id)))
                     await db.commit()
-                    await update_presence(self.bot)
                     await itn.followup.send(f'successfully remove notifier of {username}!', ephemeral=True)
                     await cursor.execute('SELECT user_id FROM notification WHERE user_id = ? AND enabled = 1', (match_notifier['user_id'],))
 
@@ -166,12 +165,12 @@ class Notification(Cog_Extension):
 
                             if configs['auto_unfollow']:
                                 status = await app.unfollow_user(target_user)
-                                await update_presence(self.bot)
                                 log.info(f'successfully unfollowed {username}') if status else log.warning(f'unable to unfollow {username}')
                             else:
                                 status = await app.disable_user_notification(target_user)
-                                await update_presence(self.bot)
                                 log.info(f'successfully turned off notification for {username}') if status else log.warning(f'unable to turn off notifications for {username}')
+                                
+                            await update_presence(self.bot)
 
                 else:
                     await itn.followup.send(f'can\'t find notifier {username} in {channel.mention}!', ephemeral=True)
