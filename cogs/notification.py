@@ -14,6 +14,7 @@ from src.log import setup_logger
 from src.notification.account_tracker import AccountTracker
 from src.permission import ADMINISTRATOR
 from src.utils import get_accounts
+from src.presence_updater import update_presence
 
 log = setup_logger(__name__)
 
@@ -117,6 +118,7 @@ class Notification(Cog_Extension):
 
         if match_user is None or match_user['enabled'] == 0:
             await self.account_tracker.addTask(username, account_used)
+            await update_presence(self.bot)
             await itn.followup.send(f'successfully add notifier of {username} under {account_used}!', ephemeral=True)
         else:
             await itn.followup.send(f'{username} already exists under {match_user["client_used"]}. Using the same account to deliver notifications', ephemeral=True)
@@ -167,6 +169,8 @@ class Notification(Cog_Extension):
                             else:
                                 status = await app.disable_user_notification(target_user)
                                 log.info(f'successfully turned off notification for {username}') if status else log.warning(f'unable to turn off notifications for {username}')
+                                
+                            await update_presence(self.bot)
 
                 else:
                     await itn.followup.send(f'can\'t find notifier {username} in {channel.mention}!', ephemeral=True)

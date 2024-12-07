@@ -3,7 +3,6 @@ import os
 import sys
 
 import discord
-import aiosqlite
 from discord import app_commands
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -12,6 +11,7 @@ from configs.load_configs import configs
 from src.checker import check_configs, check_env, check_db, check_upgrade
 from src.db_function.init_db import init_db
 from src.db_function.repair_db import auto_repair_mismatched_clients
+from src.presence_updater import update_presence
 from src.log import setup_logger
 
 log = setup_logger(__name__)
@@ -49,11 +49,7 @@ async def on_ready():
     else:
         log.info('database check passed')
 
-    async with aiosqlite.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
-        async with db.execute('SELECT username FROM user WHERE enabled = 1') as cursor:
-            count = len(await cursor.fetchall())
-            presence_message = configs["activity_name"].format(count=str(count))
-    await bot.change_presence(activity=discord.Activity(name=presence_message, type=getattr(discord.ActivityType, configs['activity_type'])))
+    await update_presence(bot)
 
     bot.tree.on_error = on_tree_error
     for filename in os.listdir('./cogs'):
