@@ -35,7 +35,7 @@ class ListUsers(Cog_Extension):
 
         server_id = itn.guild_id
 
-        async with aiosqlite.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
+        async with aiosqlite.connect('file:' + os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db') + '?mode=ro', uri=True) as db:
             async with db.execute("""
                 SELECT user.username, channel.id, notification.role_id, notification.enable_type, notification.enable_media_type, user.client_used
                 FROM user
@@ -71,7 +71,7 @@ class ListUsers(Cog_Extension):
 
     @list_users.autocomplete('account')
     async def get_clients(self, itn: discord.Interaction, account: str) -> list[app_commands.Choice[str]]:
-        async with aiosqlite.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
+        async with aiosqlite.connect('file:' + os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db') + '?mode=ro', uri=True) as db:
             db.row_factory = aiosqlite.Row
             async with db.cursor() as cursor:
                 await cursor.execute('SELECT client_used FROM user WHERE enabled = 1')
@@ -80,7 +80,7 @@ class ListUsers(Cog_Extension):
 
     @list_users.autocomplete('channel')
     async def get_channel(self, itn: discord.Interaction, input_channel: str) -> list[app_commands.Choice[str]]:
-        async with aiosqlite.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
+        async with aiosqlite.connect('file:' + os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db') + '?mode=ro', uri=True) as db:
             db.row_factory = aiosqlite.Row
             async with db.cursor() as cursor:
                 await cursor.execute('SELECT id FROM channel WHERE server_id = ?', (str(itn.guild_id),))

@@ -21,7 +21,7 @@ class Sync(Cog_Extension):
 
         await itn.response.defer(ephemeral=True)
 
-        async with aiosqlite.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
+        async with aiosqlite.connect('file:' + os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db') + '?mode=ro', uri=True) as db:
             db.row_factory = aiosqlite.Row
             async with db.execute('SELECT id, client_used FROM user') as cursor:
                 follow_list = {row[0]: row[1] async for row in cursor}
