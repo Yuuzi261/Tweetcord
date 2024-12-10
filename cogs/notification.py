@@ -184,13 +184,11 @@ class Notification(Cog_Extension):
                                     else:
                                         status = await app.disable_user_notification(target_user)
                                         log.info(f'successfully turned off notification for {username}') if status else log.warning(f'unable to turn off notifications for {username}')
-                                        
-                                    await update_presence(self.bot)
-
                             else:
                                 await itn.followup.send(f'can\'t find notifier {username} in {channel.mention}!', ephemeral=True)
                             
                             await db.commit()
+                            await update_presence(self.bot)
                     except Exception as e:
                         log.error(f'transaction failed: {e}')
                         await itn.followup.send(f"Transaction failed. Please try again later.")
