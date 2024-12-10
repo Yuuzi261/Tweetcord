@@ -8,6 +8,7 @@ from discord.ext import commands
 from core.classes import Cog_Extension
 from src.permission import ADMINISTRATOR
 from src.utils import str_to_bool as stb
+from src.discord_ui.pagination import Pagination
 
 CHECK = '\u2705'
 XMARK = '\u274C'
@@ -52,23 +53,21 @@ class ListUsers(Cog_Extension):
             f"{i + 1}. ```{username}``` <#{channel_id}>{f' <@&{role_id}>' if role_id else ''} {symbol(enable_type[0])}retweet {symbol(enable_type[1])}quote {symbol(enable_media_type[0])}text {symbol(enable_media_type[1])}media, using {client_used}"
             for i, (username, channel_id, role_id, enable_type, enable_media_type, client_used) in enumerate(user_channel_role_data)
         ]
+        L = 10 # elements per page
 
-        if not formatted_data:
-            descriptions = ["***No users are registered on this server.***"]
-        else:
-            descriptions = ["\n".join(formatted_data[i:i + 20]) for i in range(0, len(formatted_data), 20)]  # Prevent cutting off the message
-
-        for index, description in enumerate(descriptions):
+        async def get_page(page: int):
+            offset = (page - 1) * L
+            page_data = formatted_data[offset:offset + L]
             embed = discord.Embed(
-                title=f'Notification List in __***{itn.guild.name}***__  Page [{descriptions.index(description) + 1}/{len(descriptions)}]',
-                description=description,
+                title=f'Notification List in __***{itn.guild.name}***__',
+                description="\n".join(page_data),
                 color=0x778899
             )
+            n = Pagination.compute_total_pages(len(formatted_data), L)
+            embed.set_footer(text=f"Page {page} of {n}")
+            return embed, n
 
-            if index == 0:
-                await itn.response.send_message(embed=embed, ephemeral=True)
-            else:
-                await itn.followup.send(embed=embed, ephemeral=True)
+        await Pagination(itn, get_page).navegate()
 
     @list_users.autocomplete('account')
     async def get_clients(self, itn: discord.Interaction, account: str) -> list[app_commands.Choice[str]]:
