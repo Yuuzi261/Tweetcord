@@ -8,6 +8,7 @@ from discord.ext import commands
 from core.classes import Cog_Extension
 from src.log import setup_logger
 from src.sync_db.sync_db import sync_db
+from src.db_function.readonly_db import connect_readonly
 
 log = setup_logger(__name__)
 
@@ -21,7 +22,7 @@ class Sync(Cog_Extension):
 
         await itn.response.defer(ephemeral=True)
 
-        async with aiosqlite.connect('file:' + os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db') + '?mode=ro', uri=True) as db:
+        async with await connect_readonly(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
             db.row_factory = aiosqlite.Row
             async with db.execute('SELECT id, client_used FROM user') as cursor:
                 follow_list = {row[0]: row[1] async for row in cursor}

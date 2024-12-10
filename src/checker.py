@@ -2,6 +2,7 @@ import os
 
 import aiosqlite
 
+from src.db_function.readonly_db import connect_readonly
 from src.log import setup_logger
 
 log = setup_logger(__name__)
@@ -64,7 +65,7 @@ def check_env():
 async def check_db() -> set[str]:
     twitter_token = os.getenv('TWITTER_TOKEN')
     
-    async with aiosqlite.connect('file:' + os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db') + '?mode=ro', uri=True) as db:
+    async with await connect_readonly(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
         async with db.execute('SELECT client_used FROM user') as cursor:
             row = await cursor.fetchall()
             
