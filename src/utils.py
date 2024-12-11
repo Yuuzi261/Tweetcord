@@ -1,4 +1,17 @@
+import asyncio
 import os
+
+class LockManager:
+    _instance = None
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+            cls._instance.lock = asyncio.Lock()
+        return cls._instance
+
+def get_lock():
+    return LockManager().lock
 
 def bool_to_str(boo: bool):
     return '1' if boo else '0'

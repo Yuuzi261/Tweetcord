@@ -15,11 +15,11 @@ from src.log import setup_logger
 from src.notification.account_tracker import AccountTracker
 from src.permission import ADMINISTRATOR
 from src.db_function.readonly_db import connect_readonly
-from src.utils import get_accounts
+from src.utils import get_accounts, get_lock
 from src.presence_updater import update_presence
 
 log = setup_logger(__name__)
-lock = asyncio.Lock()
+lock = get_lock()
 
 class Notification(Cog_Extension):
     def __init__(self, bot):
