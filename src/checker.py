@@ -29,7 +29,7 @@ def check_configs(configs):
         embed_required_keys = {
             'type': [],
             'built_in': ['fx_image', 'video_link_button', 'footer_logo'],
-            'fx_twitter': ['original_url_button']
+            'fx_twitter': ['domain_name', 'original_url_button']
         }
 
         for section, keys in embed_required_keys.items():
@@ -38,6 +38,9 @@ def check_configs(configs):
 
     if True not in [_ in configs['embed']['type'] for _ in ['built_in', 'fx_twitter']]:
         log.warning(f"invalid type: {configs['embed']['type']}, will be treated as 'built_in' and continue execution")
+        
+    if True not in [_ in configs['embed']['fx_twitter']['domain_name'] for _ in ['fxtwitter', 'fixupx']]:
+        log.warning(f"invalid domain name: {configs['embed']['fx_twitter']['domain_name']}, will be treated as 'fxtwitter' and continue execution")
 
     log.info('configs check passed')
     return True

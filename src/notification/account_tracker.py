@@ -17,7 +17,7 @@ from src.utils import get_accounts, get_lock
 from src.db_function.readonly_db import connect_readonly
 
 EMBED_TYPE = configs['embed']['type']
-DOMAIN_NAME = configs['embed']['fx_twitter']['domain_name']
+DOMAIN_NAME = configs['embed']['fx_twitter']['domain_name'] if configs['embed']['fx_twitter']['domain_name'] in ['fxtwitter', 'fixupx'] else 'fxtwitter'
 
 log = setup_logger(__name__)
 lock = get_lock()
