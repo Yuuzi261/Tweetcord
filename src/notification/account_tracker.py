@@ -17,6 +17,7 @@ from src.utils import get_accounts, get_lock
 from src.db_function.readonly_db import connect_readonly
 
 EMBED_TYPE = configs['embed']['type']
+DOMAIN_NAME = configs['embed']['fx_twitter']['domain_name']
 
 log = setup_logger(__name__)
 lock = get_lock()
@@ -73,7 +74,7 @@ class AccountTracker():
                                         mention = f"{channel.guild.get_role(int(data['role_id'])).mention} " if data['role_id'] else ''
                                         author, action = tweet.author.name, get_action(tweet)
 
-                                        url = re.sub(r'twitter', r'fxtwitter', tweet.url) if EMBED_TYPE == 'fx_twitter' else tweet.url
+                                        url = re.sub('twitter', DOMAIN_NAME, tweet.url) if EMBED_TYPE == 'fx_twitter' else tweet.url
 
                                         msg = data['customized_msg'] if data['customized_msg'] else configs['default_message']
                                         msg = msg.format(mention=mention, author=author, action=action, url=url)

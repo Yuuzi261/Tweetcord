@@ -22,6 +22,7 @@ embed:
     footer_logo: 'blue_bird'
     
   fx_twitter:
+    domain_name: 'fxtwitter'
     original_url_button: false
 
 default_message: |
