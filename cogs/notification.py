@@ -82,7 +82,7 @@ class Notification(Cog_Extension):
                                 return
 
                             if match_user is None:
-                                await cursor.execute('INSERT INTO user (id, username, lastest_tweet, client_used) VALUES (?, ?, ?, ?)', (str(new_user.id), username, datetime.utcnow().replace(tzinfo=timezone.utc).strftime('%Y-%m-%d %H:%M:%S%z'), account_used))
+                                await cursor.execute('INSERT INTO user (id, username, lastest_tweet, client_used) VALUES (?, ?, ?, ?)', (str(new_user.id), username, datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S%z'), account_used))
                                 await cursor.execute('INSERT OR IGNORE INTO channel VALUES (?, ?)', (str(channel.id), server_id))
                                 await cursor.execute('INSERT INTO notification (user_id, channel_id, role_id, enable_type, enable_media_type) VALUES (?, ?, ?, ?, ?)', (str(new_user.id), str(channel.id), roleID, enable_type, media_type))
                             else:

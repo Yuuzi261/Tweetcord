@@ -1,7 +1,7 @@
 import asyncio
 import os
 import re
-from datetime import datetime, timedelta
+from datetime import datetime, timezone, timedelta
 
 import aiosqlite
 import discord
@@ -28,7 +28,7 @@ class AccountTracker():
         self.accounts_data = get_accounts()
         self.db_path = os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')
         self.tweets = {account_name: [] for account_name in self.accounts_data.keys()}
-        self.tasksMonitorLogAt = datetime.utcnow() - timedelta(hours=configs['tasks_monitor_log_period'])
+        self.tasksMonitorLogAt = datetime.now(timezone.utc) - timedelta(hours=configs['tasks_monitor_log_period'])
         bot.loop.create_task(self.setup_tasks())
 
     async def setup_tasks(self):
@@ -114,12 +114,12 @@ class AccountTracker():
                 if f'TweetsUpdater_{client}' not in taskSet:
                     log.warning(f'tweets updater {client} : dead')
 
-            if (datetime.utcnow() - self.tasksMonitorLogAt).total_seconds() / 3600 >= configs['tasks_monitor_log_period']:
+            if (datetime.now(timezone.utc) - self.tasksMonitorLogAt).total_seconds() / 3600 >= configs['tasks_monitor_log_period']:
                 log.info(f'alive tasks : {list(aliveTasks)}')
                 for client in self.accounts_data.keys():
                     if f'TweetsUpdater_{client}' in taskSet:
                         log.info(f'tweets updater {client} : alive')
-                self.tasksMonitorLogAt = datetime.utcnow()
+                self.tasksMonitorLogAt = datetime.now(timezone.utc)
 
             await asyncio.sleep(configs['tasks_monitor_check_period'] * 60)
 
