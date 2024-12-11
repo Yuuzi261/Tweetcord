@@ -65,7 +65,7 @@ def check_env():
 async def check_db() -> set[str]:
     twitter_token = os.getenv('TWITTER_TOKEN')
     
-    async with await connect_readonly(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
+    async with connect_readonly(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
         async with db.execute('SELECT client_used FROM user') as cursor:
             row = await cursor.fetchall()
             

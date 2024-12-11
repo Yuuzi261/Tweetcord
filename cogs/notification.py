@@ -200,7 +200,7 @@ class Notification(Cog_Extension):
 
     @r_notifier.autocomplete('channel_id')
     async def get_channels(self, itn: discord.Interaction, input_channel: str) -> list[app_commands.Choice[str]]:
-        async with await connect_readonly(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
+        async with connect_readonly(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
             db.row_factory = aiosqlite.Row
             async with db.cursor() as cursor:
                 await cursor.execute('SELECT id FROM channel WHERE server_id = ?', (str(itn.guild_id),))
@@ -213,7 +213,7 @@ class Notification(Cog_Extension):
         if selected_channel_id is None:
             return []
 
-        async with await connect_readonly(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
+        async with connect_readonly(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
             db.row_factory = aiosqlite.Row
             async with db.cursor() as cursor:
                 await cursor.execute('SELECT user.username FROM user JOIN notification ON user.id = notification.user_id WHERE notification.channel_id = ? AND notification.enabled = 1', (selected_channel_id,))
