@@ -167,8 +167,9 @@ class Notification(Cog_Extension):
 
                             if await cursor.fetchone() is None:
                                 await cursor.execute('UPDATE user SET enabled = 0 WHERE id = ?', (match_notifier['user_id'],))
-                                await self.account_tracker.removeTask(username)
                                 await db.commit()
+                                
+                                await self.account_tracker.removeTask(username)
                                 
                                 if configs['auto_unfollow'] or configs['auto_turn_off_notification']:
                                     await cursor.execute('SELECT client_used FROM user WHERE id = ?', (match_notifier['user_id'],))
