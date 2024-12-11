@@ -1,8 +1,5 @@
 import os
-from datetime import datetime, timezone
-
 import aiosqlite
-import asyncio
 import discord
 from discord import app_commands
 from discord.ext import commands
@@ -15,7 +12,7 @@ from src.log import setup_logger
 from src.notification.account_tracker import AccountTracker
 from src.permission import ADMINISTRATOR
 from src.db_function.readonly_db import connect_readonly
-from src.utils import get_accounts, get_lock
+from src.utils import get_accounts, get_lock, get_utcnow
 from src.presence_updater import update_presence
 
 log = setup_logger(__name__)
@@ -82,7 +79,7 @@ class Notification(Cog_Extension):
                                 return
 
                             if match_user is None:
-                                await cursor.execute('INSERT INTO user (id, username, lastest_tweet, client_used) VALUES (?, ?, ?, ?)', (str(new_user.id), username, datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S%z'), account_used))
+                                await cursor.execute('INSERT INTO user (id, username, lastest_tweet, client_used) VALUES (?, ?, ?, ?)', (str(new_user.id), username, get_utcnow(), account_used))
                                 await cursor.execute('INSERT OR IGNORE INTO channel VALUES (?, ?)', (str(channel.id), server_id))
                                 await cursor.execute('INSERT INTO notification (user_id, channel_id, role_id, enable_type, enable_media_type) VALUES (?, ?, ?, ?, ?)', (str(new_user.id), str(channel.id), roleID, enable_type, media_type))
                             else:

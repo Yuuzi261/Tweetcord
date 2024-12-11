@@ -1,6 +1,8 @@
 import asyncio
 import os
 
+from datetime import datetime, timezone
+
 class LockManager:
     _instance = None
 
@@ -25,3 +27,6 @@ def get_accounts():
     accounts_str = os.getenv('TWITTER_TOKEN').strip(",")
     accounts = {account.split(':')[0]: account.split(':')[1] for account in accounts_str.split(',')}  # accounts_str = 'username:token,username:token'
     return accounts
+
+def get_utcnow():
+    return datetime.now(timezone.utc).isoformat(timespec='seconds')
