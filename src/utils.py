@@ -3,6 +3,7 @@ import os
 
 from datetime import datetime, timezone
 
+
 class LockManager:
     _instance = None
 
@@ -12,8 +13,10 @@ class LockManager:
             cls._instance.lock = asyncio.Lock()
         return cls._instance
 
+
 def get_lock():
     return LockManager().lock
+
 
 def bool_to_str(boo: bool):
     return '1' if boo else '0'
@@ -28,5 +31,6 @@ def get_accounts():
     accounts = {account.split(':')[0]: account.split(':')[1] for account in accounts_str.split(',')}  # accounts_str = 'username:token,username:token'
     return accounts
 
+
 def get_utcnow():
-    return datetime.now(timezone.utc).isoformat(timespec='seconds')
+    return datetime.now(timezone.utc).isoformat(timespec='seconds').replace('T', ' ')
