@@ -1,5 +1,6 @@
 import asyncio
 import os
+import sys
 import re
 from datetime import datetime, timezone, timedelta
 
@@ -33,11 +34,29 @@ class AccountTracker():
 
     async def setup_tasks(self):
         self.apps = []
-        for account_name, account_token in self.accounts_data.items():
+        
+        async def authenticate_account(account_name, account_token):
             app = Twitter(account_name)
-            await app.load_auth_token(account_token)
-            self.bot.loop.create_task(self.tweetsUpdater(app)).set_name(f'TweetsUpdater_{account_name}')
-            self.apps.append(app)
+            max_attempts = 2
+            for attempt in range(max_attempts):
+                try:
+                    await app.load_auth_token(account_token)
+                    return app
+                except Exception as e:
+                    log.error(f"Authentication failed for account: {account_name} [Attempt {attempt + 1}/{max_attempts}]")
+                    if attempt < max_attempts - 1:
+                        await asyncio.sleep(5)
+                    else:
+                        log.error(f"Persistent authentication failure for account {account_name}")
+                        raise
+        
+        for account_name, account_token in self.accounts_data.items():
+            try:
+                app = await authenticate_account(account_name, account_token)
+                self.bot.loop.create_task(self.tweetsUpdater(app)).set_name(f'TweetsUpdater_{account_name}')
+                self.apps.append(app)
+            except Exception:
+                sys.exit(1)
 
         async with connect_readonly(self.db_path) as db:
             async with db.execute('SELECT username, client_used FROM user WHERE enabled = 1') as cursor:
