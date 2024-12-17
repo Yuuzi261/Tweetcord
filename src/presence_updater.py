@@ -1,6 +1,5 @@
 import os
 import discord
-import aiosqlite
 
 from discord.ext import commands
 from configs.load_configs import configs

@@ -1,7 +1,5 @@
 import os
 
-import aiosqlite
-
 from src.db_function.readonly_db import connect_readonly
 from src.log import setup_logger
 
