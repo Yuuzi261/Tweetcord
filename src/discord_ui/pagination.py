@@ -56,4 +56,4 @@ class Pagination(discord.ui.View):
 
     @staticmethod
     def compute_total_pages(total_results: int, results_per_page: int) -> int:
-        return ((total_results - 1) // results_per_page) + 1
+        return max(((total_results - 1) // results_per_page) + 1, 1)

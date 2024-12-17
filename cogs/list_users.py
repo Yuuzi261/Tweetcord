@@ -59,9 +59,10 @@ class ListUsers(Cog_Extension):
         async def get_page(page: int):
             offset = (page - 1) * L
             page_data = formatted_data[offset:offset + L]
+            descriptions = "***No users are registered on this server.***" if not formatted_data else "\n".join(page_data)
             embed = discord.Embed(
                 title=f'Notification List in __***{itn.guild.name}***__',
-                description="\n".join(page_data),
+                description=descriptions,
                 color=0x778899
             )
             n = Pagination.compute_total_pages(len(formatted_data), L)
