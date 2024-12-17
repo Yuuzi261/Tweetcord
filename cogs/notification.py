@@ -170,7 +170,7 @@ class Notification(Cog_Extension):
                             await itn.followup.send(f'successfully remove notifier of {username}!', ephemeral=True)
                             await cursor.execute('SELECT user_id FROM notification WHERE user_id = ? AND enabled = 1', (match_notifier['user_id'],))
 
-                            is_turn_off_task = await cursor.fetchone() is not None
+                            is_turn_off_task = (await cursor.fetchall()) is not None
                             if is_turn_off_task:
                                 await cursor.execute('UPDATE user SET enabled = 0 WHERE id = ?', (match_notifier['user_id'],))
                             await db.commit()
