@@ -33,8 +33,6 @@ class AccountTracker():
         bot.loop.create_task(self.setup_tasks())
 
     async def setup_tasks(self):
-        self.apps = []
-        
         async def authenticate_account(account_name, account_token):
             app = Twitter(account_name)
             max_attempts = 2
@@ -54,7 +52,6 @@ class AccountTracker():
             try:
                 app = await authenticate_account(account_name, account_token)
                 self.bot.loop.create_task(self.tweetsUpdater(app)).set_name(f'TweetsUpdater_{account_name}')
-                self.apps.append(app)
             except Exception:
                 sys.exit(1)
 

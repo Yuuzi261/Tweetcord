@@ -69,7 +69,7 @@ class Notification(Cog_Extension):
                     roleID = str(mention.id) if mention is not None else ''
                     if match_user is None or match_user['enabled'] == 0:
                         app = Twitter(account_used)
-                        await app.load_auth_token(get_accounts()[account_used])
+                        await app.connect()
                         try:
                             new_user = await app.get_user_info(username)
                         except Exception:
@@ -90,7 +90,7 @@ class Notification(Cog_Extension):
                                     if configs['auto_unfollow'] or configs['auto_turn_off_notification']:
                                         old_client_used = match_user['client_used']
                                         old_app = Twitter(old_client_used)
-                                        await old_app.load_auth_token(get_accounts()[old_client_used])
+                                        await app.connect()
                                         target_user = await old_app.get_user_info(username)
 
                                         if configs['auto_unfollow']:
@@ -184,7 +184,7 @@ class Notification(Cog_Extension):
                                 result = await cursor.fetchone()
                                 client_used = result['client_used']
                                 app = Twitter(client_used)
-                                await app.load_auth_token(get_accounts()[client_used])
+                                await app.connect()
                                 target_user = await app.get_user_info(username)
 
                                 if configs['auto_unfollow']:

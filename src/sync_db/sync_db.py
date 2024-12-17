@@ -11,9 +11,9 @@ log = setup_logger(__name__)
 async def sync_db(follow_list: dict[str, str]) -> None:
 
     apps: dict[str, Twitter] = {}
-    for account_name, account_token in get_accounts().items():
+    for account_name, _ in get_accounts().items():
         app = Twitter(account_name)
-        await app.load_auth_token(account_token)
+        await app.connect()
         apps[account_name] = app
 
     for user_id, client_used in follow_list.items():
