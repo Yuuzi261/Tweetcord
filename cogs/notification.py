@@ -56,12 +56,11 @@ class Notification(Cog_Extension):
         await itn.response.defer(ephemeral=True)
 
         async with aiosqlite.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
-            await db.execute('PRAGMA synchronous = OFF;')
-            await db.execute('PRAGMA count_changes = OFF;')
+            await db.execute('PRAGMA synchronous = OFF')
+            await db.execute('PRAGMA count_changes = OFF')
 
             db.row_factory = aiosqlite.Row
             async with db.cursor() as cursor:
-                await db.execute('BEGIN')
                 try:
                     await cursor.execute('SELECT * FROM user WHERE username = ?', (username,))
                     match_user = await cursor.fetchone()
@@ -79,6 +78,7 @@ class Notification(Cog_Extension):
                         
                         if match_user is None:
                             async with lock:
+                                await db.execute('BEGIN')
                                 await cursor.execute('INSERT INTO user (id, username, lastest_tweet, client_used) VALUES (?, ?, ?, ?)', (str(new_user.id), username, get_utcnow(), account_used))
                                 await cursor.execute('INSERT OR IGNORE INTO channel VALUES (?, ?)', (str(channel.id), server_id))
                                 await cursor.execute('INSERT INTO notification (user_id, channel_id, role_id, enable_type, enable_media_type) VALUES (?, ?, ?, ?, ?)', (str(new_user.id), str(channel.id), roleID, enable_type, media_type))
@@ -105,6 +105,7 @@ class Notification(Cog_Extension):
                                     await itn.followup.send(f'user {username} already exists under {account_used}. No changes due to `auto_change_client` setting', ephemeral=True)
                                     return
                             async with lock:
+                                await db.execute('BEGIN')
                                 if is_changed_client:
                                     await cursor.execute('REPLACE INTO user (client_used) VALUES (?) WHERE id = ?', (account_used, match_user['id']))
                                 await cursor.execute('INSERT OR IGNORE INTO channel VALUES (?, ?)', (str(channel.id), server_id))
@@ -121,12 +122,13 @@ class Notification(Cog_Extension):
                             log.warning(f'unable to turn on notifications for {username}')
                     else:
                         async with lock:
+                            await db.execute('BEGIN')
                             await cursor.execute('INSERT OR IGNORE INTO channel VALUES (?, ?)', (str(channel.id), server_id))
                             await cursor.execute('REPLACE INTO notification (user_id, channel_id, role_id, enable_type, enable_media_type) VALUES (?, ?, ?, ?, ?)', (match_user['id'], str(channel.id), roleID, enable_type, media_type))
                             await db.commit()
                 except Exception as e:
-                    log.error(f'transaction failed: {e}')
-                    await itn.followup.send(f"Transaction failed. Please try again later.")
+                    log.error(f'an error occurred while adding notifier: {e}')
+                    await itn.followup.send(f"failed to add notifier, please try again later.")
                     await db.rollback()
                     return
 
@@ -154,18 +156,17 @@ class Notification(Cog_Extension):
         await itn.response.defer(ephemeral=True)
 
         async with aiosqlite.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
-            await db.execute('PRAGMA synchronous = OFF;')
-            await db.execute('PRAGMA count_changes = OFF;')
+            await db.execute('PRAGMA synchronous = OFF')
+            await db.execute('PRAGMA count_changes = OFF')
             
             db.row_factory = aiosqlite.Row
             async with db.cursor() as cursor:
-                await db.execute('BEGIN')
-
                 try:
                     await cursor.execute('SELECT user_id FROM notification, user WHERE username = ? AND channel_id = ? AND user_id = id AND notification.enabled = 1', (username, str(channel.id)))
                     match_notifier = await cursor.fetchone()
                     if match_notifier is not None:
                         async with lock:
+                            await db.execute('BEGIN')
                             await cursor.execute('UPDATE notification SET enabled = 0 WHERE user_id = ? AND channel_id = ?', (match_notifier['user_id'], str(channel.id)))
                             await itn.followup.send(f'successfully remove notifier of {username}!', ephemeral=True)
                             await cursor.execute('SELECT user_id FROM notification WHERE user_id = ? AND enabled = 1', (match_notifier['user_id'],))
@@ -197,8 +198,8 @@ class Notification(Cog_Extension):
                     else:
                         await itn.followup.send(f'can\'t find notifier {username} in {channel.mention}!', ephemeral=True)
                 except Exception as e:
-                    log.error(f'transaction failed: {e}')
-                    await itn.followup.send(f"Transaction failed. Please try again later.")
+                    log.error(f'an error occurred while removing notifier: {e}')
+                    await itn.followup.send(f"failed to remove notifier, please try again later.")
                     await db.rollback()
 
     @r_notifier.autocomplete('channel_id')
@@ -237,8 +238,8 @@ class Notification(Cog_Extension):
             Whether to use default setting.
         """
         async with aiosqlite.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
-            await db.execute('PRAGMA synchronous = OFF;')
-            await db.execute('PRAGMA count_changes = OFF;')
+            await db.execute('PRAGMA synchronous = OFF')
+            await db.execute('PRAGMA count_changes = OFF')
 
             db.row_factory = aiosqlite.Row
             async with db.cursor() as cursor:
