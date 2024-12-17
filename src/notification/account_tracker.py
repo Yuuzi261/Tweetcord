@@ -100,7 +100,7 @@ class AccountTracker():
 
                                 except Exception as e:
                                     if not isinstance(e, discord.errors.Forbidden):
-                                        log.error(f'an unexpected error occurred at {channel.mention} while sending notification')
+                                        log.error(f'an error occurred at {channel.mention} while sending notification: {e}')
 
     async def tweetsUpdater(self, app: Twitter):
         updater_name = asyncio.current_task().get_name().split('_', 1)[1]
