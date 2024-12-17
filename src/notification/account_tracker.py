@@ -74,36 +74,36 @@ class AccountTracker():
             if lastest_tweets is None:
                 continue
             
-            async with lock:
-                async with aiosqlite.connect(self.db_path) as db:
-                    db.row_factory = aiosqlite.Row
-                    async with db.cursor() as cursor:
-                        await cursor.execute('SELECT * FROM user WHERE username = ?', (username,))
-                        user = await cursor.fetchone()
+            async with aiosqlite.connect(self.db_path) as db:
+                db.row_factory = aiosqlite.Row
+                async with db.cursor() as cursor:
+                    await cursor.execute('SELECT * FROM user WHERE username = ?', (username,))
+                    user = await cursor.fetchone()
+                    async with lock:
                         await cursor.execute('UPDATE user SET lastest_tweet = ? WHERE username = ?', (str(lastest_tweets[-1].created_on), username))
+                        await db.commit()
 
-                        for tweet in lastest_tweets:
-                            log.info(f'find a new tweet from {username}')
-                            await cursor.execute('SELECT * FROM notification WHERE user_id = ? AND enabled = 1', (user['id'],))
-                            notifications = await cursor.fetchall()
-                            for data in notifications:
-                                channel = self.bot.get_channel(int(data['channel_id']))
-                                if channel is not None and is_match_type(tweet, data['enable_type']) and is_match_media_type(tweet, data['enable_media_type']):
-                                    try:
-                                        mention = f"{channel.guild.get_role(int(data['role_id'])).mention} " if data['role_id'] else ''
-                                        author, action = tweet.author.name, get_action(tweet)
+                    for tweet in lastest_tweets:
+                        log.info(f'find a new tweet from {username}')
+                        await cursor.execute('SELECT * FROM notification WHERE user_id = ? AND enabled = 1', (user['id'],))
+                        notifications = await cursor.fetchall()
+                        for data in notifications:
+                            channel = self.bot.get_channel(int(data['channel_id']))
+                            if channel is not None and is_match_type(tweet, data['enable_type']) and is_match_media_type(tweet, data['enable_media_type']):
+                                try:
+                                    mention = f"{channel.guild.get_role(int(data['role_id'])).mention} " if data['role_id'] else ''
+                                    author, action = tweet.author.name, get_action(tweet)
 
-                                        url = re.sub('twitter', DOMAIN_NAME, tweet.url) if EMBED_TYPE == 'fx_twitter' else tweet.url
+                                    url = re.sub('twitter', DOMAIN_NAME, tweet.url) if EMBED_TYPE == 'fx_twitter' else tweet.url
 
-                                        msg = data['customized_msg'] if data['customized_msg'] else configs['default_message']
-                                        msg = msg.format(mention=mention, author=author, action=action, url=url)
+                                    msg = data['customized_msg'] if data['customized_msg'] else configs['default_message']
+                                    msg = msg.format(mention=mention, author=author, action=action, url=url)
 
-                                        await channel.send(msg) if EMBED_TYPE == 'fx_twitter' else await channel.send(msg, file=discord.File('images/twitter.png', filename='twitter.png'), embeds=await gen_embed(tweet))
+                                    await channel.send(msg) if EMBED_TYPE == 'fx_twitter' else await channel.send(msg, file=discord.File('images/twitter.png', filename='twitter.png'), embeds=await gen_embed(tweet))
 
-                                    except Exception as e:
-                                        if not isinstance(e, discord.errors.Forbidden):
-                                            log.error(f'an unexpected error occurred at {channel.mention} while sending notification')
-                    await db.commit()
+                                except Exception as e:
+                                    if not isinstance(e, discord.errors.Forbidden):
+                                        log.error(f'an unexpected error occurred at {channel.mention} while sending notification')
 
     async def tweetsUpdater(self, app: Twitter):
         updater_name = asyncio.current_task().get_name().split('_', 1)[1]
