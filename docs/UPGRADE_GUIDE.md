@@ -12,8 +12,7 @@ This update does not involve any changes to the database structure, so there is 
 pip install --upgrade -r requirements.txt
 ```
 
-> [!NOTE]
-> Because configs has added more parameters, please refer to `configs.example.yml` to fill in the necessary parameters.
+Because configs has added more parameters, please refer to `configs.example.yml` to fill in the necessary parameters.
 
 </details>
 
@@ -93,8 +92,7 @@ Because the database structure has been updated, you must use the following code
 pip install --upgrade -r requirements.txt
 ```
 
-> [!NOTE]
-> 因為configs新增了更多參數，更新後請參考 `configs.example.yml` 補上必要的參數。
+因為configs新增了更多參數，更新後請參考 `configs.example.yml` 補上必要的參數。
 
 </details>
 
