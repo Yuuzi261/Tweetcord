@@ -6,11 +6,16 @@ from discord import app_commands
 from discord.ext import commands
 
 from core.classes import Cog_Extension
+from configs.load_configs import configs
 from src.permission import ADMINISTRATOR
 from src.utils import str_to_bool as stb
+from src.db_function.readonly_db import connect_readonly
+from src.discord_ui.pagination import Pagination
 
 CHECK = '\u2705'
 XMARK = '\u274C'
+PSIZE = configs['users_list_pagination_size']
+PCPOS = configs['users_list_page_counter_position'] if configs['users_list_page_counter_position'] in ['title', 'footer'] else 'title'
 
 
 def symbol(value: str) -> str:
@@ -34,7 +39,7 @@ class ListUsers(Cog_Extension):
 
         server_id = itn.guild_id
 
-        async with aiosqlite.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
+        async with connect_readonly(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
             async with db.execute("""
                 SELECT user.username, channel.id, notification.role_id, notification.enable_type, notification.enable_media_type, user.client_used
                 FROM user
@@ -53,26 +58,22 @@ class ListUsers(Cog_Extension):
             for i, (username, channel_id, role_id, enable_type, enable_media_type, client_used) in enumerate(user_channel_role_data)
         ]
 
-        if not formatted_data:
-            descriptions = ["***No users are registered on this server.***"]
-        else:
-            descriptions = ["\n".join(formatted_data[i:i + 20]) for i in range(0, len(formatted_data), 20)]  # Prevent cutting off the message
+        async def get_page(page: int):
+            offset = (page - 1) * PSIZE
+            page_data = formatted_data[offset:offset + PSIZE]
+            total_pages = Pagination.compute_total_pages(len(formatted_data), PSIZE)
+            title = f"Notification List in __***{itn.guild.name}***__{f'  Page [{page}/{total_pages}]' if PCPOS == 'title' else ''}"
+            descriptions = '***No users are registered on this server.***' if not formatted_data else "\n".join(page_data)
+            embed = discord.Embed(title=title, description=descriptions, color=0x778899)
+            if PCPOS == 'footer':
+                embed.set_footer(text=f"Page {page} of {total_pages}")
+            return embed, total_pages
 
-        for index, description in enumerate(descriptions):
-            embed = discord.Embed(
-                title=f'Notification List in __***{itn.guild.name}***__  Page [{descriptions.index(description) + 1}/{len(descriptions)}]',
-                description=description,
-                color=0x778899
-            )
-
-            if index == 0:
-                await itn.response.send_message(embed=embed, ephemeral=True)
-            else:
-                await itn.followup.send(embed=embed, ephemeral=True)
+        await Pagination(itn, get_page).navegate()
 
     @list_users.autocomplete('account')
     async def get_clients(self, itn: discord.Interaction, account: str) -> list[app_commands.Choice[str]]:
-        async with aiosqlite.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
+        async with connect_readonly(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
             db.row_factory = aiosqlite.Row
             async with db.cursor() as cursor:
                 await cursor.execute('SELECT client_used FROM user WHERE enabled = 1')
@@ -81,7 +82,7 @@ class ListUsers(Cog_Extension):
 
     @list_users.autocomplete('channel')
     async def get_channel(self, itn: discord.Interaction, input_channel: str) -> list[app_commands.Choice[str]]:
-        async with aiosqlite.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
+        async with connect_readonly(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
             db.row_factory = aiosqlite.Row
             async with db.cursor() as cursor:
                 await cursor.execute('SELECT id FROM channel WHERE server_id = ?', (str(itn.guild_id),))

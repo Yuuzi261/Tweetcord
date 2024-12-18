@@ -6,7 +6,7 @@
 
 A Discord Bot for Twitter Notifications
 
-[![](https://img.shields.io/badge/python-3.10+-blue?logo=python&logoColor=white)](https://www.python.org/downloads/)
+[![](https://img.shields.io/badge/python-3.11+-blue?logo=python&logoColor=white)](https://www.python.org/downloads/)
 [![](https://img.shields.io/github/v/release/Yuuzi261/Tweetcord?sort=semver)](https://github.com/Yuuzi261/Tweetcord/releases)
 [![](https://img.shields.io/github/release-date/Yuuzi261/Tweetcord)](https://github.com/Yuuzi261/Tweetcord/releases)
 
@@ -80,6 +80,20 @@ Custom notification messages are in `f-string format`, currently supporting 4 sp
 - `{mention}` : the role to mention when sending to discord
 - `{url}` : the link of the tweet
 
+Using the default notification as an example, if the message is customized to the following format (supporting Discord's markdown format):
+
+```plaintext
+{mention}**{author}** just {action} here: 
+{url}
+```
+
+The notification will be sent in this format when a tweet is posted (here is a real-world example):
+
+```plaintext
+@Ping_SubTweet ﾅﾁｮﾈｺ just tweeted here: 
+https://twitter.com/nyachodayo/status/1869000108697960952
+```
+
 </details>
 
 ## 📥Installation
@@ -104,10 +118,13 @@ TWITTER_TOKEN=NameForYourTwitterToken:YourTwitterAccountAuthToken
 DATA_PATH=./data
 ```
 
+> [!NOTE]  
+> The `NameForYourTwitterToken` here can be freely defined. It is only used as an alias to specify the account when entering commands and does not need to match the Twitter account name.
+
 #### Example
 ```env
 BOT_TOKEN=FAKE1234567890ABCDEFGHIJKLMNO.PQRSTUVWXYZ1234567890.ABCDEFGHIJKLMNOPQRSTUVWXYZ123456
-TWITTER_TOKEN=MyTwitterToken:12345abcde67890fghij12345klmnop67890qrstuv,MyTwitterToken2:abcdef123456ghijkl7890mnopqrst123456uvwx
+TWITTER_TOKEN=Account1:12345abcde67890fghij12345klmnop67890qrstuv,Account2:abcdef123456ghijkl7890mnopqrst123456uvwx
 DATA_PATH=./data
 ```
 
@@ -127,12 +144,14 @@ Create `configs.yml` and copy the contents of `configs.example.yml` into it, and
 | `prefix` | The prefix for bot commands, only effective for prefix commands. | None, but recommended to choose a simple and easily identifiable prefix and avoid using empty strings. |
 | `activity_name` | The activity name displayed by the bot. | None. |
 | `activity_type` | The activity type displayed by the bot. | `playing`, `streaming`, `listening`, `watching` and `competing` only. |
+| `users_list_pagination_size` | `list users` command's pagination size. | Only accepts integers, and it is not recommended to use too large or too small values. |
+| `users_list_page_counter_position` | `list users` command's pagination counter position. | `title` and `footer` only. |
 
-Custom activity message is in f-string format, currently supporting 1 special variable for use, which will be explained below.
+Custom activity name is in `f-string` format, currently supporting 1 special variable for use, which will be explained below.
 
-- `{count}` : the number of users currently being monitored
+- `{count}` : the number of users currently being monitored, it will be updated in real time
 
-#### Timer
+#### Timer & Counter
 
 | Parameter | Description | Unit |
 |-----------|-------------|------|
@@ -140,6 +159,7 @@ Custom activity message is in f-string format, currently supporting 1 special va
 | `tweets_updater_retry_delay` | Retry Interval when Tweets Updater encounters exceptions. | minutes |
 | `tasks_monitor_check_period` | Interval at which to check if each tasks is functioning properly, and if a task has stopped, attempt a restart. | minutes |
 | `tasks_monitor_log_period` | Interval at which to output the list of currently running tasks to the execution log. | hours |
+| `auth_max_attempts` | The maximum number of attempts to log in to the Twitter account, if the number of failures exceeds this number, the bot will be forced to stop running. | times |
 
 #### Control Account Behavior
 
@@ -173,6 +193,7 @@ Custom activity message is in f-string format, currently supporting 1 special va
 
 | Parameter | Description |
 |-----------|-------------|
+| `domain_name` | The domain name to be used when sending tweet links, can be `fxtwitter` or `fixupx`. |
 | `original_url_button` | _coming soon_ |
 
 #### Message
@@ -208,7 +229,7 @@ python bot.py
 - dockerfile
 
 ```dockerfile
-FROM python:3.10.9
+FROM python:3.11.11
 WORKDIR /bot
 COPY requirements.txt /bot/
 RUN pip install -r requirements.txt

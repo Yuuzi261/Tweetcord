@@ -1,42 +1,55 @@
 import os
 
-import aiosqlite
-
+from src.db_function.readonly_db import connect_readonly
 from src.log import setup_logger
 
 log = setup_logger(__name__)
 
 
 def check_configs(configs):
+    REQUIRED_KEYS = {
+        'root': [
+            'prefix', 'activity_name', 'activity_type', 'users_list_pagination_size',
+            'users_list_page_counter_position', 'tweets_check_period', 'tweets_updater_retry_delay',
+            'tasks_monitor_check_period', 'tasks_monitor_log_period', 'auth_max_attempts',
+            'auto_change_client', 'auto_turn_off_notification', 'auto_unfollow',
+            'auto_repair_mismatched_clients', 'embed', 'default_message'
+        ],
+        'embed': {
+            'type': [],
+            'built_in': ['fx_image', 'video_link_button', 'footer_logo'],
+            'fx_twitter': ['domain_name', 'original_url_button']
+        }
+    }
+    
     def check_missing_keys(required_keys, config_section, section_name=''):
         missing_keys = [key for key in required_keys if key not in config_section]
         if missing_keys:
             log.error(f'missing required {section_name}config keys: {missing_keys}')
             return False
         return True
-
-    required_keys = [
-        'prefix', 'activity_name', 'activity_type', 'tweets_check_period', 'tweets_updater_retry_delay',
-        'tasks_monitor_check_period', 'tasks_monitor_log_period', 'auto_turn_off_notification',
-        'auto_unfollow', 'auto_change_client', 'embed', 'default_message'
-    ]
-
-    if not check_missing_keys(required_keys, configs):
+    
+    if not check_missing_keys(REQUIRED_KEYS['root'], configs):
         return False
 
-    if 'embed' in configs:
-        embed_required_keys = {
-            'type': [],
-            'built_in': ['fx_image', 'video_link_button', 'footer_logo'],
-            'fx_twitter': ['original_url_button']
-        }
+    embed = configs['embed']
+    for section, keys in REQUIRED_KEYS['embed'].items():
+        if section not in embed:
+            log.error(f'missing required embed config keys: {section}')
+            return False
+        
+        if not check_missing_keys(keys, embed[section], f'{section} '):
+            return False
+        
+    pcpos = configs['users_list_page_counter_position']
+    if True not in [_ in pcpos for _ in ['title', 'footer']]:
+        log.warning(f"invalid page counter position: {pcpos}, will be treated as 'title' and continue execution")
 
-        for section, keys in embed_required_keys.items():
-            if section in configs['embed'] and not check_missing_keys(keys, configs['embed'][section], f'{section} '):
-                return False
-
-    if True not in [_ in configs['embed']['type'] for _ in ['built_in', 'fx_twitter']]:
-        log.warning(f"invalid type: {configs['embed']['type']}, will be treated as 'built_in' and continue execution")
+    if True not in [_ in embed['type'] for _ in ['built_in', 'fx_twitter']]:
+        log.warning(f"invalid type: {embed['type']}, will be treated as 'built_in' and continue execution")
+        
+    if True not in [_ in embed['fx_twitter']['domain_name'] for _ in ['fxtwitter', 'fixupx']]:
+        log.warning(f"invalid domain name: {embed['fx_twitter']['domain_name']}, will be treated as 'fxtwitter' and continue execution")
 
     log.info('configs check passed')
     return True
@@ -64,7 +77,7 @@ def check_env():
 async def check_db() -> set[str]:
     twitter_token = os.getenv('TWITTER_TOKEN')
     
-    async with aiosqlite.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
+    async with connect_readonly(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
         async with db.execute('SELECT client_used FROM user') as cursor:
             row = await cursor.fetchall()
             

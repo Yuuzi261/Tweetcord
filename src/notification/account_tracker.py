@@ -1,7 +1,8 @@
 import asyncio
 import os
+import sys
 import re
-from datetime import datetime, timedelta
+from datetime import datetime, timezone, timedelta
 
 import aiosqlite
 import discord
@@ -13,12 +14,14 @@ from src.log import setup_logger
 from src.notification.display_tools import gen_embed, get_action
 from src.notification.get_tweets import get_tweets
 from src.notification.utils import is_match_media_type, is_match_type
-from src.utils import get_accounts
+from src.utils import get_accounts, get_lock
+from src.db_function.readonly_db import connect_readonly
 
 EMBED_TYPE = configs['embed']['type']
+DOMAIN_NAME = configs['embed']['fx_twitter']['domain_name'] if configs['embed']['fx_twitter']['domain_name'] in ['fxtwitter', 'fixupx'] else 'fxtwitter'
 
 log = setup_logger(__name__)
-
+lock = get_lock()
 
 class AccountTracker():
     def __init__(self, bot: commands.Bot):
@@ -26,18 +29,33 @@ class AccountTracker():
         self.accounts_data = get_accounts()
         self.db_path = os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')
         self.tweets = {account_name: [] for account_name in self.accounts_data.keys()}
-        self.tasksMonitorLogAt = datetime.utcnow() - timedelta(hours=configs['tasks_monitor_log_period'])
+        self.tasksMonitorLogAt = datetime.now(timezone.utc) - timedelta(hours=configs['tasks_monitor_log_period'])
         bot.loop.create_task(self.setup_tasks())
 
     async def setup_tasks(self):
-        self.apps = []
-        for account_name, account_token in self.accounts_data.items():
+        async def authenticate_account(account_name, account_token):
             app = Twitter(account_name)
-            await app.load_auth_token(account_token)
-            self.bot.loop.create_task(self.tweetsUpdater(app)).set_name(f'TweetsUpdater_{account_name}')
-            self.apps.append(app)
+            max_attempts = configs['auth_max_attempts']
+            for attempt in range(max_attempts):
+                try:
+                    await app.load_auth_token(account_token)
+                    return app
+                except Exception as e:
+                    log.error(f"Authentication failed for account: {account_name} [Attempt {attempt + 1}/{max_attempts}]")
+                    if attempt < max_attempts - 1:
+                        await asyncio.sleep(5)
+                    else:
+                        log.error(f"Persistent authentication failure for account {account_name}")
+                        raise
+        
+        for account_name, account_token in self.accounts_data.items():
+            try:
+                app = await authenticate_account(account_name, account_token)
+                self.bot.loop.create_task(self.tweetsUpdater(app)).set_name(f'TweetsUpdater_{account_name}')
+            except Exception:
+                sys.exit(1)
 
-        async with aiosqlite.connect(self.db_path) as db:
+        async with connect_readonly(self.db_path) as db:
             async with db.execute('SELECT username, client_used FROM user WHERE enabled = 1') as cursor:
                 usernames_and_clients = {row[0]: row[1] async for row in cursor}
 
@@ -52,13 +70,15 @@ class AccountTracker():
             lastest_tweets = await get_tweets(self.tweets[client_used], username)
             if lastest_tweets is None:
                 continue
-
+            
             async with aiosqlite.connect(self.db_path) as db:
                 db.row_factory = aiosqlite.Row
                 async with db.cursor() as cursor:
                     await cursor.execute('SELECT * FROM user WHERE username = ?', (username,))
                     user = await cursor.fetchone()
-                    await cursor.execute('UPDATE user SET lastest_tweet = ? WHERE username = ?', (str(lastest_tweets[-1].created_on), username))
+                    async with lock:
+                        await cursor.execute('UPDATE user SET lastest_tweet = ? WHERE username = ?', (str(lastest_tweets[-1].created_on), username))
+                        await db.commit()
 
                     for tweet in lastest_tweets:
                         log.info(f'find a new tweet from {username}')
@@ -71,7 +91,7 @@ class AccountTracker():
                                     mention = f"{channel.guild.get_role(int(data['role_id'])).mention} " if data['role_id'] else ''
                                     author, action = tweet.author.name, get_action(tweet)
 
-                                    url = re.sub(r'twitter', r'fxtwitter', tweet.url) if EMBED_TYPE == 'fx_twitter' else tweet.url
+                                    url = re.sub('twitter', DOMAIN_NAME, tweet.url) if EMBED_TYPE == 'fx_twitter' else tweet.url
 
                                     msg = data['customized_msg'] if data['customized_msg'] else configs['default_message']
                                     msg = msg.format(mention=mention, author=author, action=action, url=url)
@@ -80,8 +100,7 @@ class AccountTracker():
 
                                 except Exception as e:
                                     if not isinstance(e, discord.errors.Forbidden):
-                                        log.error(f'an unexpected error occurred at {channel.mention} while sending notification')
-                await db.commit()
+                                        log.error(f'an error occurred at {channel.mention} while sending notification: {e}')
 
     async def tweetsUpdater(self, app: Twitter):
         updater_name = asyncio.current_task().get_name().split('_', 1)[1]
@@ -111,12 +130,12 @@ class AccountTracker():
                 if f'TweetsUpdater_{client}' not in taskSet:
                     log.warning(f'tweets updater {client} : dead')
 
-            if (datetime.utcnow() - self.tasksMonitorLogAt).total_seconds() / 3600 >= configs['tasks_monitor_log_period']:
+            if (datetime.now(timezone.utc) - self.tasksMonitorLogAt).total_seconds() / 3600 >= configs['tasks_monitor_log_period']:
                 log.info(f'alive tasks : {list(aliveTasks)}')
                 for client in self.accounts_data.keys():
                     if f'TweetsUpdater_{client}' in taskSet:
                         log.info(f'tweets updater {client} : alive')
-                self.tasksMonitorLogAt = datetime.utcnow()
+                self.tasksMonitorLogAt = datetime.now(timezone.utc)
 
             await asyncio.sleep(configs['tasks_monitor_check_period'] * 60)
 
@@ -131,7 +150,7 @@ class AccountTracker():
                 except Exception as e:
                     log.warning(f'addTask : {e}')
 
-        async with aiosqlite.connect(self.db_path) as db:
+        async with connect_readonly(self.db_path) as db:
             async with db.execute('SELECT username, client_used FROM user WHERE enabled = 1') as cursor:
                 usernames_and_clients = {row[0]: row[1] async for row in cursor}
         self.bot.loop.create_task(self.tasksMonitor(usernames_and_clients)).set_name('TasksMonitor')
@@ -152,7 +171,7 @@ class AccountTracker():
                 except Exception as e:
                     log.warning(f'removeTask : {e}')
 
-        async with aiosqlite.connect(self.db_path) as db:
+        async with connect_readonly(self.db_path) as db:
             async with db.execute('SELECT username, client_used FROM user WHERE enabled = 1') as cursor:
                 usernames_and_clients = {row[0]: row[1] async for row in cursor}
         self.bot.loop.create_task(self.tasksMonitor(usernames_and_clients)).set_name('TasksMonitor')

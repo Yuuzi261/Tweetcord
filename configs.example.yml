@@ -1,11 +1,14 @@
 prefix: '.'
 activity_name: '{count} accounts'
 activity_type: 'watching'
+users_list_pagination_size: 8
+users_list_page_counter_position: 'title'
 
 tweets_check_period: 10
 tweets_updater_retry_delay: 5
 tasks_monitor_check_period: 1
 tasks_monitor_log_period: 4
+auth_max_attempts: 2
 
 auto_change_client: false
 auto_turn_off_notification: true
@@ -22,6 +25,7 @@ embed:
     footer_logo: 'blue_bird'
     
   fx_twitter:
+    domain_name: 'fxtwitter'
     original_url_button: false
 
 default_message: |

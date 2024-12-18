@@ -4,6 +4,19 @@
 > Cross-version updates are **NOT SUPPORTED**. For multi-version updates, please iterate through each version to update to the latest version. Before updating, please back up your data using the prefix command `download_data`.
 
 <details>
+   <summary><b>⬆️Click Here to Upgrade from 0.5.2 to 0.5.3</b></summary>
+
+This update does not involve any changes to the database structure, so there is no need to use an upgrade script. Simply pull the updated code and upgrade the environment to complete the update.
+
+```bash
+pip install --upgrade -r requirements.txt
+```
+
+Because configs has added more parameters, please refer to `configs.example.yml` to fill in the necessary parameters.
+
+</details>
+
+<details>
    <summary><b>⬆️Click Here to Upgrade from 0.5.1 to 0.5.2</b></summary>
 
 This update does not involve any changes to the database structure, so there is no need to use an upgrade script. Simply pull the updated code and upgrade the environment to complete the update.
@@ -69,6 +82,19 @@ Because the database structure has been updated, you must use the following code
 
 > [!WARNING]
 > **不支援**跨版本更新，多版本更新請迭代更新至新版本。更新前請先透過前綴指令 `download_data` 進行資料備份。
+
+<details>
+   <summary><b>⬆️0.5.2升級到0.5.3請點這裡</b></summary>
+
+本次更新不涉及資料庫結構更新，因此不用使用升級腳本來完成升級，請直接拉取程式碼並升級環境即可完成更新。
+
+```bash
+pip install --upgrade -r requirements.txt
+```
+
+因為configs新增了更多參數，更新後請參考 `configs.example.yml` 補上必要的參數。
+
+</details>
 
 <details>
    <summary><b>⬆️0.5.1升級到0.5.2請點這裡</b></summary>

@@ -1,7 +1,7 @@
 import os
 from typing import Optional
 
-import aiosqlite
+from src.db_function.readonly_db import connect_readonly
 from tweety.types import Tweet
 
 from src.notification.date_comparator import date_comparator
@@ -9,7 +9,7 @@ from src.notification.date_comparator import date_comparator
 
 async def get_tweets(tweets: list[Tweet], username: str) -> Optional[list[Tweet]]:
 
-    async with aiosqlite.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
+    async with connect_readonly(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
         async with db.execute('SELECT lastest_tweet FROM user WHERE username = ?', (username,)) as cursor:
             row = await cursor.fetchone()
             last_tweet_at = row[0]
