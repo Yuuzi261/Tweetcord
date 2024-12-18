@@ -144,7 +144,8 @@ Create `configs.yml` and copy the contents of `configs.example.yml` into it, and
 | `prefix` | The prefix for bot commands, only effective for prefix commands. | None, but recommended to choose a simple and easily identifiable prefix and avoid using empty strings. |
 | `activity_name` | The activity name displayed by the bot. | None. |
 | `activity_type` | The activity type displayed by the bot. | `playing`, `streaming`, `listening`, `watching` and `competing` only. |
-| `users_list_pagination_size` | `list users` command's pagination size. | Only accepts integers, and it is not recommended to use large or small values. |
+| `users_list_pagination_size` | `list users` command's pagination size. | Only accepts integers, and it is not recommended to use too large or too small values. |
+| `users_list_page_counter_position` | `list users` command's pagination counter position. | `title` and `footer` only. |
 
 Custom activity name is in `f-string` format, currently supporting 1 special variable for use, which will be explained below.
 
