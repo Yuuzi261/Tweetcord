@@ -6,6 +6,7 @@ from discord import app_commands
 from discord.ext import commands
 
 from core.classes import Cog_Extension
+from configs.load_configs import configs
 from src.permission import ADMINISTRATOR
 from src.utils import str_to_bool as stb
 from src.db_function.readonly_db import connect_readonly
@@ -13,6 +14,7 @@ from src.discord_ui.pagination import Pagination
 
 CHECK = '\u2705'
 XMARK = '\u274C'
+PSIZE = configs['users_list_pagination_size']
 
 
 def symbol(value: str) -> str:
@@ -54,18 +56,17 @@ class ListUsers(Cog_Extension):
             f"{i + 1}. ```{username}``` <#{channel_id}>{f' <@&{role_id}>' if role_id else ''} {symbol(enable_type[0])}retweet {symbol(enable_type[1])}quote {symbol(enable_media_type[0])}text {symbol(enable_media_type[1])}media, using {client_used}"
             for i, (username, channel_id, role_id, enable_type, enable_media_type, client_used) in enumerate(user_channel_role_data)
         ]
-        L = 10 # elements per page
 
         async def get_page(page: int):
-            offset = (page - 1) * L
-            page_data = formatted_data[offset:offset + L]
+            offset = (page - 1) * PSIZE
+            page_data = formatted_data[offset:offset + PSIZE]
             descriptions = "***No users are registered on this server.***" if not formatted_data else "\n".join(page_data)
             embed = discord.Embed(
                 title=f'Notification List in __***{itn.guild.name}***__',
                 description=descriptions,
                 color=0x778899
             )
-            n = Pagination.compute_total_pages(len(formatted_data), L)
+            n = Pagination.compute_total_pages(len(formatted_data), PSIZE)
             embed.set_footer(text=f"Page {page} of {n}")
             return embed, n
 

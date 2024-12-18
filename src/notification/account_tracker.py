@@ -35,7 +35,7 @@ class AccountTracker():
     async def setup_tasks(self):
         async def authenticate_account(account_name, account_token):
             app = Twitter(account_name)
-            max_attempts = 2
+            max_attempts = configs['auth_max_attempts']
             for attempt in range(max_attempts):
                 try:
                     await app.load_auth_token(account_token)
