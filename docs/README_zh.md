@@ -192,6 +192,7 @@ DATA_PATH=./data
 
 | 參數 | 描述 |
 |------|------|
+| `domain_name` | 傳送推文連結時的域名，可以是 `fxtwitter` 或 `fixupx`。 |
 | `original_url_button` | _即將推出_ |
 
 #### 訊息

@@ -192,6 +192,7 @@ Custom activity name is in `f-string` format, currently supporting 1 special var
 
 | Parameter | Description |
 |-----------|-------------|
+| `domain_name` | The domain name to be used when sending tweet links, can be `fxtwitter` or `fixupx`. |
 | `original_url_button` | _coming soon_ |
 
 #### Message
