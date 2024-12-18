@@ -10,10 +10,10 @@ def check_configs(configs):
     REQUIRED_KEYS = {
         'root': [
             'prefix', 'activity_name', 'activity_type', 'users_list_pagination_size',
-            'tweets_check_period', 'tweets_updater_retry_delay', 'tasks_monitor_check_period',
-            'tasks_monitor_log_period', 'auth_max_attempts', 'auto_change_client',
-            'auto_turn_off_notification', 'auto_unfollow', 'auto_repair_mismatched_clients',
-            'embed', 'default_message'
+            'users_list_page_counter_position', 'tweets_check_period', 'tweets_updater_retry_delay',
+            'tasks_monitor_check_period', 'tasks_monitor_log_period', 'auth_max_attempts',
+            'auto_change_client', 'auto_turn_off_notification', 'auto_unfollow',
+            'auto_repair_mismatched_clients', 'embed', 'default_message'
         ],
         'embed': {
             'type': [],
@@ -40,6 +40,10 @@ def check_configs(configs):
         
         if not check_missing_keys(keys, embed[section], f'{section} '):
             return False
+        
+    pcpos = configs['users_list_page_counter_position']
+    if True not in [_ in pcpos for _ in ['title', 'footer']]:
+        log.warning(f"invalid page counter position: {pcpos}, will be treated as 'title' and continue execution")
 
     if True not in [_ in embed['type'] for _ in ['built_in', 'fx_twitter']]:
         log.warning(f"invalid type: {embed['type']}, will be treated as 'built_in' and continue execution")

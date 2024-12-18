@@ -15,6 +15,7 @@ from src.discord_ui.pagination import Pagination
 CHECK = '\u2705'
 XMARK = '\u274C'
 PSIZE = configs['users_list_pagination_size']
+PCPOS = configs['users_list_page_counter_position'] if configs['users_list_page_counter_position'] in ['title', 'footer'] else 'title'
 
 
 def symbol(value: str) -> str:
@@ -60,15 +61,13 @@ class ListUsers(Cog_Extension):
         async def get_page(page: int):
             offset = (page - 1) * PSIZE
             page_data = formatted_data[offset:offset + PSIZE]
-            descriptions = "***No users are registered on this server.***" if not formatted_data else "\n".join(page_data)
-            embed = discord.Embed(
-                title=f'Notification List in __***{itn.guild.name}***__',
-                description=descriptions,
-                color=0x778899
-            )
-            n = Pagination.compute_total_pages(len(formatted_data), PSIZE)
-            embed.set_footer(text=f"Page {page} of {n}")
-            return embed, n
+            total_pages = Pagination.compute_total_pages(len(formatted_data), PSIZE)
+            title = f"Notification List in __***{itn.guild.name}***__{f'  Page [{page}/{total_pages}]' if PCPOS == 'title' else ''}"
+            descriptions = '***No users are registered on this server.***' if not formatted_data else "\n".join(page_data)
+            embed = discord.Embed(title=title, description=descriptions, color=0x778899)
+            if PCPOS == 'footer':
+                embed.set_footer(text=f"Page {page} of {total_pages}")
+            return embed, total_pages
 
         await Pagination(itn, get_page).navegate()
 
