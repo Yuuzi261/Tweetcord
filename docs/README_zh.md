@@ -6,7 +6,7 @@
 
 Discord的Twitter通知機器人
 
-[![](https://img.shields.io/badge/python-3.10+-blue?logo=python&logoColor=white)](https://www.python.org/downloads/)
+[![](https://img.shields.io/badge/python-3.11+-blue?logo=python&logoColor=white)](https://www.python.org/downloads/)
 [![](https://img.shields.io/github/v/release/Yuuzi261/Tweetcord?sort=semver)](https://github.com/Yuuzi261/Tweetcord/releases)
 [![](https://img.shields.io/github/release-date/Yuuzi261/Tweetcord)](https://github.com/Yuuzi261/Tweetcord/releases)
 
@@ -80,6 +80,20 @@ Tweetcord是一個Discord機器人，它使用[tweety-ns](https://github.com/mah
 - `{mention}` : 發送到discord時提及的身份組
 - `{url}` : 推文的連結
 
+以預設通知為例，如果將訊息自定義為以下格式（支援Discord的markdown格式）：
+
+```plaintext
+{mention}**{author}** just {action} here: 
+{url}
+```
+
+則會在推文發送時會以此格式發出通知（這裡舉一個實際例子）：
+
+```plaintext
+@Ping_SubTweet ﾅﾁｮﾈｺ just tweeted here: 
+https://twitter.com/nyachodayo/status/1869000108697960952
+```
+
 </details>
 
 ## 📥安裝
@@ -104,10 +118,13 @@ TWITTER_TOKEN=NameForYourTwitterToken:YourTwitterAccountAuthToken
 DATA_PATH=./data
 ```
 
+> [!NOTE]
+> 這裡的 `NameForYourTwitterToken` 是可以隨意定義的，僅用來作為輸入指令時指定帳戶用的代號，不一定要和Twitter帳號名稱一致。
+
 #### 範例
 ```env
 BOT_TOKEN=FAKE1234567890ABCDEFGHIJKLMNO.PQRSTUVWXYZ1234567890.ABCDEFGHIJKLMNOPQRSTUVWXYZ123456
-TWITTER_TOKEN=MyTwitterToken:12345abcde67890fghij12345klmnop67890qrstuv,MyTwitterToken2:abcdef123456ghijkl7890mnopqrst123456uvwx
+TWITTER_TOKEN=Account1:12345abcde67890fghij12345klmnop67890qrstuv,Account2:abcdef123456ghijkl7890mnopqrst123456uvwx
 DATA_PATH=./data
 ```
 
@@ -115,7 +132,7 @@ DATA_PATH=./data
 
 ### 2. 配置configs.yml文件
 
-建立`configs.yml`並將`configs.example.yml`的內容複製過去，並依照自己的喜好編輯它。
+建立 `configs.yml` 並將 `configs.example.yml` 的內容複製過去，並依照自己的喜好編輯它。
 
 > [!IMPORTANT]
 > 這裡的所有配置說明和最新版本同步，舊版用戶請參考舊版README。
@@ -127,12 +144,13 @@ DATA_PATH=./data
 | `prefix` | 機器人命令的前綴，只會對前綴指令生效。 | 無，但建議選擇簡單且易於識別的前綴，並避免使用空字串。 |
 | `activity_name` | 機器人顯示的活動名稱。 | 無。 |
 | `activity_type` | 機器人顯示的活動類型。 | 僅限 `playing`、`streaming`、`listening`、`watching` 和 `competing`。 |
+| `users_list_pagination_size` | `list users` 指令的分頁大小。 | 只接受整數，不宜使用過大或過小的值。 |
 
-自定義活動訊息為 `f-string` 格式，目前支援1種特別的變數可供使用，將在下面說明：
+自定義活動名稱為 `f-string` 格式，目前支援1種特別的變數可供使用，將在下面說明：
 
-- `{count}` : 目前被機器人追蹤的使用者數量
+- `{count}` : 目前被機器人追蹤的使用者數量，會即時更新
 
-#### 計時器
+#### 計時器 & 計數器
 
 | 參數 | 描述 | 單位 |
 |------|------|-----|
@@ -140,6 +158,7 @@ DATA_PATH=./data
 | `tweets_updater_retry_delay` | 當Tweets Updater遇到異常時的重試間隔。 | 分鐘 |
 | `tasks_monitor_check_period` | 檢查每個任務是否正常運行的間隔，如果某個任務停止了，嘗試重新啟動。 | 分鐘 |
 | `tasks_monitor_log_period` | 將當前運行中的任務列表輸出到執行日誌的間隔。 | 小時 |
+| `auth_max_attempts` | 登入Twitter帳號時的最大嘗試次數，失敗超過此次數將會強制停止機器人運行。 | 次 |
 
 #### 控制帳戶行為
 
@@ -208,7 +227,7 @@ python bot.py
 - dockerfile
 
 ```dockerfile
-FROM python:3.10.9
+FROM python:3.11.11
 WORKDIR /bot
 COPY requirements.txt /bot/
 RUN pip install -r requirements.txt
