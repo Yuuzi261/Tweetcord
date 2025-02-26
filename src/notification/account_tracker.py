@@ -93,7 +93,8 @@ class AccountTracker():
 
                                     url = re.sub('twitter', DOMAIN_NAME, tweet.url) if EMBED_TYPE == 'fx_twitter' else tweet.url
                                     
-                                    msg = re.sub(r":(\w+):", lambda match: replace_emoji(match, channel.guild), data['customized_msg']) if data['customized_msg'] and configs['emoji_auto_format'] else configs['default_message']
+                                    if not data['customized_msg']: msg = configs['default_message']
+                                    else: msg = re.sub(r":(\w+):", lambda match: replace_emoji(match, channel.guild), data['customized_msg']) if configs['emoji_auto_format'] else data['customized_msg']
                                     msg = msg.format(mention=mention, author=author, action=action, url=url)
 
                                     await channel.send(msg) if EMBED_TYPE == 'fx_twitter' else await channel.send(msg, file=discord.File('images/twitter.png', filename='twitter.png'), embeds=await gen_embed(tweet))
