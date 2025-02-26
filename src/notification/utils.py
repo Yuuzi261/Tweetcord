@@ -1,3 +1,6 @@
+import re
+import discord
+
 from tweety.types import Tweet
 
 
@@ -8,3 +11,9 @@ def is_match_type(tweet: Tweet, enable_type: str):
 
 def is_match_media_type(tweet: Tweet, media_type: str):
     return media_type == '11' or (media_type == '10' and len(tweet.media) == 0) or (media_type == '01' and len(tweet.media) > 0)
+
+
+def replace_emoji(match: re.Match, guild: discord.Guild):
+    emoji_name = match.group(1)
+    emoji = discord.utils.get(guild.emojis, name=emoji_name)
+    return str(emoji) if emoji else match.group(0)

@@ -31,3 +31,4 @@ embed:
 default_message: |
   {mention}**{author}** just {action} here: 
   {url}
+emoji_auto_format: true

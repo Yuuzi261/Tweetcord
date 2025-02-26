@@ -13,7 +13,7 @@ from configs.load_configs import configs
 from src.log import setup_logger
 from src.notification.display_tools import gen_embed, get_action
 from src.notification.get_tweets import get_tweets
-from src.notification.utils import is_match_media_type, is_match_type
+from src.notification.utils import is_match_media_type, is_match_type, replace_emoji
 from src.utils import get_accounts, get_lock
 from src.db_function.readonly_db import connect_readonly
 
@@ -92,8 +92,8 @@ class AccountTracker():
                                     author, action = tweet.author.name, get_action(tweet)
 
                                     url = re.sub('twitter', DOMAIN_NAME, tweet.url) if EMBED_TYPE == 'fx_twitter' else tweet.url
-
-                                    msg = data['customized_msg'] if data['customized_msg'] else configs['default_message']
+                                    
+                                    msg = re.sub(r":(\w+):", lambda match: replace_emoji(match, channel.guild), data['customized_msg']) if data['customized_msg'] and configs['emoji_auto_format'] else configs['default_message']
                                     msg = msg.format(mention=mention, author=author, action=action, url=url)
 
                                     await channel.send(msg) if EMBED_TYPE == 'fx_twitter' else await channel.send(msg, file=discord.File('images/twitter.png', filename='twitter.png'), embeds=await gen_embed(tweet))
