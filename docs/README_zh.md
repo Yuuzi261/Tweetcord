@@ -214,10 +214,15 @@ python bot.py
 🔧機器人權限設定（Permissions Integer）：`2147666944`
 
 ✔️ 讀取訊息（Read Messages/View Channels）
+
 ✔️ 發送訊息（Send Messages）
+
 ✔️ 嵌入連結（Embed Links）
+
 ✔️ 附加檔案（Attach Files）
+
 ✔️ 提及 @everyone、@here 和所有身分組（Mention Everyone）
+
 ✔️ 使用應用程式命令（Use Slash Commands）
 
 > [!NOTE]
@@ -226,7 +231,9 @@ python bot.py
 #### 特權意圖設定
 
 ❌ 成員狀態意圖 (Presence Intent)
+
 ❌ 伺服器成員意圖 (Server Members Intent)
+
 ✔️ 訊息內容意圖 (Message Content Intent)
 
 > [!NOTE]
