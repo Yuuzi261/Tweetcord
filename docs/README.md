@@ -213,16 +213,11 @@ python bot.py
 
 🔧Bot Permissions Setup (Permissions Integer): `2147666944`
 
-✔️ Read Messages/View Channels
-
-✔️ Send Messages
-
-✔️ Embed Links
-
-✔️ Attach Files
-
-✔️ Mention Everyone
-
+✔️ Read Messages/View Channels <br>
+✔️ Send Messages <br>
+✔️ Embed Links <br>
+✔️ Attach Files <br>
+✔️ Mention Everyone <br>
 ✔️ Use Slash Commands
 
 > [!NOTE]  
@@ -230,10 +225,8 @@ python bot.py
 
 #### Privileged Gateway Intents Setup
 
-❌ Presence Intent
-
-❌ Server Members Intent
-
+❌ Presence Intent <br>
+❌ Server Members Intent <br>
 ✔️ Message Content Intent
 
 > [!NOTE]
