@@ -201,6 +201,7 @@ DATA_PATH=./data
 | 參數 | 描述 |
 |------|------|
 | `default_message` | 全域設定預設的訊息格式，格式和自定義訊息相同，使用f-字串並支援4個特殊變數。相關細節請參考[指令](#指令)。 |
+| `emoji_auto_format` | 對於自定義訊息，是否自動轉換短格式的表情符號，若是啟用，則支援使用如 `:jerry:` 的格式來使用當前伺服器的表情符號而不需要輸入完整名稱 `<:jerry:720576643583836181>`。 | 
 
 ### 3. 運行機器人並邀請至你的伺服器
 
@@ -208,14 +209,25 @@ DATA_PATH=./data
 python bot.py
 ```
 
-🔧機器人權限設定 `2147666944`
+#### 權限設定
 
-- [x] 讀取訊息（Read Messages/View Channels）
-- [x] 發送訊息（Send Messages）
-- [x] 嵌入連結（Embed Links）
-- [x] 附加檔案（Attach Files）
-- [x] 提及 @everyone、@here 和所有身分組（Mention Everyone）
-- [x] 使用應用程式命令（Use Slash Commands）
+🔧機器人權限設定（Permissions Integer）：`2147666944`
+
+✔️ 讀取訊息（Read Messages/View Channels）
+✔️ 發送訊息（Send Messages）
+✔️ 嵌入連結（Embed Links）
+✔️ 附加檔案（Attach Files）
+✔️ 提及 @everyone、@here 和所有身分組（Mention Everyone）
+✔️ 使用應用程式命令（Use Slash Commands）
+
+> [!NOTE]
+> 請在 [Discord Developer Portal](https://discord.com/developers/applications) 生成帶有預設權限的邀請連結，而不是邀請機器人進伺服器後才手動調整權限。
+
+#### 特權意圖設定
+
+❌ 成員狀態意圖 (Presence Intent)
+❌ 伺服器成員意圖 (Server Members Intent)
+✔️ 訊息內容意圖 (Message Content Intent)
 
 > [!NOTE]
 > 如果想將機器人架到伺服器上，這裡推薦一個基本免費的服務：[fly.io](https://fly.io)。 _(更新：fly.io已停止向新用戶提供免費的方案)_

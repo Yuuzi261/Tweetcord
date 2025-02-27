@@ -201,6 +201,7 @@ Custom activity name is in `f-string` format, currently supporting 1 special var
 | Parameter | Description |
 |-----------|-------------|
 | `default_message` | Set default message format globally, the format is the same as the customized message, use f-string and support 4 special variables. For details, please refer to [Commands](#commands). |
+| `emoji_auto_format` | For custom messages, whether to automatically convert short-format emoji codes. If enabled, it allows using codes like `:jerry:` to insert current server's emojis without needing to enter the full name `<:jerry:720576643583836181>`. |
 
 ### 3. Run and invite the bot to your server
 
@@ -208,14 +209,25 @@ Custom activity name is in `f-string` format, currently supporting 1 special var
 python bot.py
 ```
 
-🔧Bot Permissions Setup `2147666944`
+#### Permissions Setup
 
-- [x] Read Messages/View Channels
-- [x] Send Messages
-- [x] Embed Links
-- [x] Attach Files
-- [x] Mention Everyone
-- [x] Use Slash Commands
+🔧Bot Permissions Setup (Permissions Integer): `2147666944`
+
+✔️ Read Messages/View Channels
+✔️ Send Messages
+✔️ Embed Links
+✔️ Attach Files
+✔️ Mention Everyone
+✔️ Use Slash Commands
+
+> [!NOTE]  
+> Please generate an invitation link with the default permissions on the [Discord Developer Portal](https://discord.com/developers/applications) rather than inviting the bot first and then manually adjusting its permissions.
+
+#### Privileged Gateway Intents Setup
+
+❌ Presence Intent
+❌ Server Members Intent
+✔️ Message Content Intent
 
 > [!NOTE]
 > If you want to host the bot on a server, here is a recommended service that is basically free: [fly.io](https://fly.io) _(update: fly.io has stopped offering free plans to new users)_
