@@ -186,7 +186,7 @@ Custom activity name is in `f-string` format, currently supporting 1 special var
 | Parameter | Description |
 |-----------|-------------|
 | `fx_image` | Whether to use FxTwitter's combined image when there are multiple images, friendly for iOS systems that cannot display multiple image embeddings. |
-| `video_link_button` | _coming soon_ |
+| `video_link_button` | If the media in the tweet is a video, then prompt with a link button. |
 | `footer_logo` | _coming soon_ |
 
 ##### fx_twitter:
@@ -194,7 +194,7 @@ Custom activity name is in `f-string` format, currently supporting 1 special var
 | Parameter | Description |
 |-----------|-------------|
 | `domain_name` | The domain name to be used when sending tweet links, can be `fxtwitter` or `fixupx`. |
-| `original_url_button` | _coming soon_ |
+| `original_url_button` | Add a link button at the bottom of the embed that directs to the original tweet. This can resolve the issue where clicking an FxTwitter URL does not open the app on certain devices. |
 
 #### Message
 

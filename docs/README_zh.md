@@ -186,7 +186,7 @@ DATA_PATH=./data
 | 參數 | 描述 |
 |------|------|
 | `fx_image` | 當有多張圖片時是否使用FxTwitter的組合圖片，對於無法顯示多張圖片嵌入的iOS系統友善。 |
-| `video_link_button` | _即將推出_ |
+| `video_link_button` | 如果推文中的多媒體為影片，則透過連結按鈕提示。 |
 | `footer_logo` | _即將推出_ |
 
 ##### fx_twitter:
@@ -194,7 +194,7 @@ DATA_PATH=./data
 | 參數 | 描述 |
 |------|------|
 | `domain_name` | 傳送推文連結時的域名，可以是 `fxtwitter` 或 `fixupx`。 |
-| `original_url_button` | _即將推出_ |
+| `original_url_button` | 在訊息最下方加入連結按鈕，導向原始推文連結，可以解決某些裝置點擊FxTwitter網址不會開啟APP的問題。 |
 
 #### 訊息
 
