@@ -26,7 +26,7 @@ embed:
     
   fx_twitter:
     domain_name: 'fxtwitter'
-    original_url_button: false
+    original_url_button: true
 
 default_message: |
   {mention}**{author}** just {action} here: 
