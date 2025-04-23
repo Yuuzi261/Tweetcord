@@ -38,7 +38,7 @@
 - General code optimizations and cleanup. 
 
 **🎉New Contributors:**
-- @Neppu-Nep made their first contribution in #31 
+- @Neppu-Nep made their first contribution in [#31](https://github.com/Yuuzi261/Tweetcord/pull/31)
 
 ## 0.4.1 (July 31, 2024)  
 **✨Features:**  
@@ -68,7 +68,7 @@
 - Corrected errors when the data directory exists but the database file is located elsewhere. 
 
 **🎉New Contributors:**
-- @me846 made their first contribution in #17 
+- @me846 made their first contribution in [#17](https://github.com/Yuuzi261/Tweetcord/pull/17) 
 
 ## 0.3.4 (October 23, 2023)  
 **✨Features:**  
