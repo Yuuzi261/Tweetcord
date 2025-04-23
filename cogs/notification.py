@@ -128,7 +128,7 @@ class Notification(Cog_Extension):
                             await db.commit()
                 except Exception as e:
                     log.error(f'an error occurred while adding notifier: {e}')
-                    await itn.followup.send(f"failed to add notifier, please try again later.")
+                    await itn.followup.send(f"failed to add notifier, please try again later.", ephemeral=True)
                     await db.rollback()
                     return
 
@@ -199,7 +199,7 @@ class Notification(Cog_Extension):
                         await itn.followup.send(f'can\'t find notifier {username} in {channel.mention}!', ephemeral=True)
                 except Exception as e:
                     log.error(f'an error occurred while removing notifier: {e}')
-                    await itn.followup.send(f"failed to remove notifier, please try again later.")
+                    await itn.followup.send(f"failed to remove notifier, please try again later.", ephemeral=True)
                     await db.rollback()
 
     @r_notifier.autocomplete('channel_id')
