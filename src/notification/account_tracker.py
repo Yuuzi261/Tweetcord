@@ -109,7 +109,12 @@ class AccountTracker():
                                     else: msg = re.sub(r":(\w+):", lambda match: replace_emoji(match, channel.guild), data['customized_msg']) if configs['emoji_auto_format'] else data['customized_msg']
                                     msg = msg.format(mention=mention, author=author, action=action, url=url)
 
-                                    await channel.send(msg, view=view) if EMBED_TYPE == 'fx_twitter' else await channel.send(msg, file=discord.File('images/twitter.png', filename='twitter.png'), embeds=await gen_embed(tweet), view=view)
+                                    if EMBED_TYPE == 'fx_twitter':
+                                        await channel.send(msg, view=view)
+                                    else:
+                                        footer = 'twitter.png' if configs['embed']['built_in']['legacy_logo'] else 'x.png'
+                                        file = discord.File(f'images/{footer}', filename='footer.png')
+                                        await channel.send(msg, file=file, embeds=await gen_embed(tweet), view=view)
 
                                 except Exception as e:
                                     if not isinstance(e, discord.errors.Forbidden):

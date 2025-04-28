@@ -13,7 +13,7 @@ async def gen_embed(tweet: Tweet) -> list[discord.Embed]:
     embed = discord.Embed(title=f'{author.name} {get_action(tweet, disable_quoted=True)} {get_tweet_type(tweet)}', description=tweet.text, url=tweet.url, color=0x1da0f2, timestamp=tweet.created_on)
     embed.set_author(name=f'{author.name} (@{author.username})', icon_url=author.profile_image_url_https, url=f'https://twitter.com/{author.username}')
     embed.set_thumbnail(url=re.sub(r'normal(?=\.jpg$)', '400x400', tweet.author.profile_image_url_https))
-    embed.set_footer(text='Twitter', icon_url='attachment://twitter.png')
+    embed.set_footer(text='Twitter' if configs['embed']['built_in']['legacy_logo'] else 'X', icon_url='attachment://footer.png')
     if len(tweet.media) == 1:
         embed.set_image(url=tweet.media[0].media_url_https)
         return [embed]
