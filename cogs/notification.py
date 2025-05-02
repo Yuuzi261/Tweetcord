@@ -19,7 +19,7 @@ log = setup_logger(__name__)
 lock = get_lock()
 
 class UnknownChannel:
-    def __init__(self, name: str, id: str):
+    def __init__(self, name: str, id: int):
         self.name = name
         self.id = id
         self.mention = f'<#{id}>'
@@ -159,7 +159,7 @@ class Notification(Cog_Extension):
         """
 
         channel = itn.guild.get_channel(int(channel_id))
-        if channel is None: channel = UnknownChannel('unknown', channel_id)
+        if channel is None: channel = UnknownChannel('unknown', int(channel_id))
         await itn.response.defer(ephemeral=True)
 
         async with aiosqlite.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
@@ -171,8 +171,8 @@ class Notification(Cog_Extension):
                 try:
                     await cursor.execute('SELECT id FROM channel WHERE server_id = ?', (str(itn.guild_id),))
                     rows = await cursor.fetchall()
-                    vaild_ids = [int(row['id']) for row in rows]
-                    if channel.id not in vaild_ids:
+                    vaild_ids = [row['id'] for row in rows]
+                    if str(channel.id) not in vaild_ids:
                         raise ValueError(f'can\'t find channel {channel.mention} in {str(itn.guild.name)}!')
                     
                     await cursor.execute('SELECT user_id FROM notification, user WHERE username = ? AND channel_id = ? AND user_id = id AND notification.enabled = 1', (username, str(channel.id)))
@@ -226,9 +226,9 @@ class Notification(Cog_Extension):
                 async for row in cursor:
                     channel = itn.guild.get_channel(int(row['id']))
                     if channel: result.append(channel)
-                    else: result.append(UnknownChannel('unknown', row['id']))
+                    else: result.append(UnknownChannel('unknown', int(row['id'])))
                 return [app_commands.Choice(name=f'#{channel.name}', value=str(channel.id)) if type(channel) == discord.TextChannel else 
-                        app_commands.Choice(name=f'#unknown ({channel.id})', value=channel.id)
+                        app_commands.Choice(name=f'#unknown ({channel.id})', value=str(channel.id))
                         for channel in result if input_channel.lower().replace("#", "") in channel.name.lower()]
 
     @r_notifier.autocomplete('username')
