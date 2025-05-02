@@ -18,6 +18,12 @@ from src.presence_updater import update_presence
 log = setup_logger(__name__)
 lock = get_lock()
 
+class UnknownChannel:
+    def __init__(self, name: str, id: str):
+        self.name = name
+        self.id = id
+        self.mention = f'<#{id}>'
+
 class Notification(Cog_Extension):
     def __init__(self, bot):
         super().__init__(bot)
@@ -153,6 +159,7 @@ class Notification(Cog_Extension):
         """
 
         channel = itn.guild.get_channel(int(channel_id))
+        if channel is None: channel = UnknownChannel('unknown', channel_id)
         await itn.response.defer(ephemeral=True)
 
         async with aiosqlite.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
@@ -162,6 +169,12 @@ class Notification(Cog_Extension):
             db.row_factory = aiosqlite.Row
             async with db.cursor() as cursor:
                 try:
+                    await cursor.execute('SELECT id FROM channel WHERE server_id = ?', (str(itn.guild_id),))
+                    rows = await cursor.fetchall()
+                    vaild_ids = [int(row['id']) for row in rows]
+                    if channel.id not in vaild_ids:
+                        raise ValueError(f'can\'t find channel {channel.mention} in {str(itn.guild.name)}!')
+                    
                     await cursor.execute('SELECT user_id FROM notification, user WHERE username = ? AND channel_id = ? AND user_id = id AND notification.enabled = 1', (username, str(channel.id)))
                     match_notifier = await cursor.fetchone()
                     if match_notifier is not None:
@@ -171,12 +184,12 @@ class Notification(Cog_Extension):
                             await itn.followup.send(f'successfully remove notifier of {username}!', ephemeral=True)
                             await cursor.execute('SELECT user_id FROM notification WHERE user_id = ? AND enabled = 1', (match_notifier['user_id'],))
 
-                            is_turn_off_task = (await cursor.fetchall()) is not None
-                            if is_turn_off_task:
+                            active_notifiers = await cursor.fetchall()
+                            if not active_notifiers:
                                 await cursor.execute('UPDATE user SET enabled = 0 WHERE id = ?', (match_notifier['user_id'],))
                             await db.commit()
                             
-                        if is_turn_off_task:
+                        if not active_notifiers:
                             await self.account_tracker.removeTask(username)
                             
                             if configs['auto_unfollow'] or configs['auto_turn_off_notification']:
@@ -203,13 +216,20 @@ class Notification(Cog_Extension):
                     await db.rollback()
 
     @r_notifier.autocomplete('channel_id')
-    async def get_channels(self, itn: discord.Interaction, input_channel: str) -> list[app_commands.Choice[str]]:
+    async def get_channels(self, itn: discord.Interaction, input_channel: str) -> list[app_commands.Choice[str]]:        
         async with connect_readonly(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
             db.row_factory = aiosqlite.Row
             async with db.cursor() as cursor:
+                # TODO: Channels that no longer have any notifiers should not be displayed
                 await cursor.execute('SELECT id FROM channel WHERE server_id = ?', (str(itn.guild_id),))
-                result = [itn.guild.get_channel(int(row['id'])) async for row in cursor]
-                return [app_commands.Choice(name=f'#{channel.name}', value=str(channel.id)) for channel in result if input_channel.lower().replace("#", "") in channel.name.lower()]
+                result = []
+                async for row in cursor:
+                    channel = itn.guild.get_channel(int(row['id']))
+                    if channel: result.append(channel)
+                    else: result.append(UnknownChannel('unknown', row['id']))
+                return [app_commands.Choice(name=f'#{channel.name}', value=str(channel.id)) if type(channel) == discord.TextChannel else 
+                        app_commands.Choice(name=f'#unknown ({channel.id})', value=channel.id)
+                        for channel in result if input_channel.lower().replace("#", "") in channel.name.lower()]
 
     @r_notifier.autocomplete('username')
     async def get_enabled_users(self, itn: discord.Interaction, username: str) -> list[app_commands.Choice[str]]:
