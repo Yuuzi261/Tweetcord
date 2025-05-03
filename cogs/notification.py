@@ -220,14 +220,24 @@ class Notification(Cog_Extension):
         async with connect_readonly(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
             db.row_factory = aiosqlite.Row
             async with db.cursor() as cursor:
-                # TODO: Channels that no longer have any notifiers should not be displayed
-                await cursor.execute('SELECT id FROM channel WHERE server_id = ?', (str(itn.guild_id),))
+                # Don't show channels that no longer have any notifiers
+                await cursor.execute('''
+                    SELECT c.id
+                    FROM channel AS c
+                    WHERE c.server_id = ?
+                    AND EXISTS (
+                        SELECT 1
+                        FROM notification AS n
+                        WHERE n.channel_id = c.id
+                        AND n.enabled = 1
+                    )
+                ''', (str(itn.guild_id),))
                 result = []
                 async for row in cursor:
                     channel = itn.guild.get_channel(int(row['id']))
                     if channel: result.append(channel)
                     else: result.append(UnknownChannel('unknown', int(row['id'])))
-                return [app_commands.Choice(name=f'#{channel.name}', value=str(channel.id)) if type(channel) == discord.TextChannel else 
+                return [app_commands.Choice(name=f'#{channel.name}', value=str(channel.id)) if isinstance(channel, discord.TextChannel) else 
                         app_commands.Choice(name=f'#unknown ({channel.id})', value=str(channel.id))
                         for channel in result if input_channel.lower().replace("#", "") in channel.name.lower()]
 
