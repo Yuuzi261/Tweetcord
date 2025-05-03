@@ -186,8 +186,8 @@ DATA_PATH=./data
 | 參數 | 描述 |
 |------|------|
 | `fx_image` | 當有多張圖片時是否使用FxTwitter的組合圖片，對於無法顯示多張圖片嵌入的iOS系統友善。 |
-| `video_link_button` | 如果推文中的多媒體為影片，則透過連結按鈕提示。 |
-| `footer_logo` | _即將推出_ |
+| `video_link_button` | 當多媒體為影片時，決定是否使用一個連結按鈕做為提示。 |
+| `legacy_logo` | 設為`true`的話會使用推特以前的藍鳥logo做為footer而不是新的X標誌。 |
 
 ##### fx_twitter:
 
@@ -213,21 +213,25 @@ python bot.py
 
 🔧機器人權限設定（Permissions Integer）：`2147666944`
 
-✔️ 讀取訊息（Read Messages/View Channels） <br>
-✔️ 發送訊息（Send Messages） <br>
-✔️ 嵌入連結（Embed Links） <br>
-✔️ 附加檔案（Attach Files） <br>
-✔️ 提及 @everyone、@here 和所有身分組（Mention Everyone） <br>
-✔️ 使用應用程式命令（Use Slash Commands）
+| 啟用 | 權限 |
+|--------|-------------|
+| ✔️ | 讀取訊息 (Read Messages/View Channels) |
+| ✔️ | 發送訊息 (Send Messages) |
+| ✔️ | 嵌入連結 (Embed Links) |
+| ✔️ | 附加檔案 (Attach Files) |
+| ✔️ | 提及 @everyone、@here 和所有身分組 (Mention Everyone) |
+| ✔️ | 使用應用程式命令 (Use Slash Commands) |
 
 > [!NOTE]
 > 請在 [Discord Developer Portal](https://discord.com/developers/applications) 生成帶有預設權限的邀請連結，而不是邀請機器人進伺服器後才手動調整權限。
 
 #### 特權意圖設定
 
-❌ 成員狀態意圖 (Presence Intent) <br>
-❌ 伺服器成員意圖 (Server Members Intent) <br>
-✔️ 訊息內容意圖 (Message Content Intent)
+| 啟用 | 意圖 |
+|--------|-------------|
+| ❌  | 成員狀態意圖 (Presence Intent) |
+| ❌ | 伺服器成員意圖 (Server Members Intent) |
+| ✔️ | 訊息內容意圖 (Message Content Intent) |
 
 > [!NOTE]
 > 如果想將機器人架到伺服器上，這裡推薦一個基本免費的服務：[fly.io](https://fly.io)。 _(更新：fly.io已停止向新用戶提供免費的方案)_

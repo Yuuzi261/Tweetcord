@@ -186,8 +186,8 @@ Custom activity name is in `f-string` format, currently supporting 1 special var
 | Parameter | Description |
 |-----------|-------------|
 | `fx_image` | Whether to use FxTwitter's combined image when there are multiple images, friendly for iOS systems that cannot display multiple image embeddings. |
-| `video_link_button` | If the media in the tweet is a video, then prompt with a link button. |
-| `footer_logo` | _coming soon_ |
+| `video_link_button` | Determine whether to use a link button as a prompt when the media is a video. |
+| `legacy_logo` | If set to `true`, the footer will use Twitter's legacy bluebird logo instead of the new X emblem. |
 
 ##### fx_twitter:
 
@@ -213,21 +213,25 @@ python bot.py
 
 🔧Bot Permissions Setup (Permissions Integer): `2147666944`
 
-✔️ Read Messages/View Channels <br>
-✔️ Send Messages <br>
-✔️ Embed Links <br>
-✔️ Attach Files <br>
-✔️ Mention Everyone <br>
-✔️ Use Slash Commands
+| Enable | Permissions |
+|--------|-------------|
+| ✔️ | Read Messages/View Channels |
+| ✔️ | Send Messages |
+| ✔️ | Embed Links |
+| ✔️ | Attach Files |
+| ✔️ | Mention Everyone |
+| ✔️ | Use Slash Commands |
 
 > [!NOTE]  
 > Please generate an invitation link with the default permissions on the [Discord Developer Portal](https://discord.com/developers/applications) rather than inviting the bot first and then manually adjusting its permissions.
 
 #### Privileged Gateway Intents Setup
 
-❌ Presence Intent <br>
-❌ Server Members Intent <br>
-✔️ Message Content Intent
+| Enable | Intents |
+|--------|-------------|
+| ❌  | Presence Intent |
+| ❌ | Server Members Intent |
+| ✔️ | Message Content Intent |
 
 > [!NOTE]
 > If you want to host the bot on a server, here is a recommended service that is basically free: [fly.io](https://fly.io) _(update: fly.io has stopped offering free plans to new users)_
