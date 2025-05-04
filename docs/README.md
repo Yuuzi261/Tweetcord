@@ -50,27 +50,32 @@ Tweetcord is a Discord bot that leverages the [tweety-ns module](https://github.
 | `media_type` | str | Whether to enable notifications that include media, or only enable notifications that include media |
 | `account_used` | str | The twitter client used by the bot to monitor the user's tweets |
 
-👉 `/remove notifier` `username` `channel`
+👉 `/remove notifier` `channel` `username`
 
 | Parameter | Type | Description |
 | --------- | ---- | ----------- |
+| `channel` | str | The channel id which set to delivers notifications |
 | `username` | str | The username of the twitter user you want to turn off notifications for |
-| `channel` | discord.TextChannel | The channel which set to delivers notifications |
 
-👉 `/list users`
+👉 `/list users` | `account` `channel`
 
 - List all twitter users whose notifications are enabled on the current server
+
+| Parameter | Type | Description |
+| --------- | ---- | ----------- |
+| `account` | str | The client name that you want to filter |
+| `channel` | str | The channel name that you want to filter |
 
 👉 `/sync`
 
 - Sync the notification of new Twitter account with database.  If you change the twitter account used by bot, please use this command
 
-👉 `/customize message` `username` `channel` | `default`
+👉 `/customize message` `channel` `username` | `default`
 
 | Parameter | Type | Description |
 | --------- | ---- | ----------- |
+| `channel` | str | The channel id which set to delivers notifications |
 | `username` | str | The username of the twitter user you want to set customized message |
-| `channel` | discord.TextChannel | The channel which set to delivers notifications |
 | `default` | bool | Whether to use default setting _(default is false)_ |
 
 Custom notification messages are in `f-string format`, currently supporting 4 special variables for use, which will be explained below.
