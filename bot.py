@@ -18,7 +18,8 @@ log = setup_logger(__name__)
 
 load_dotenv()
 
-bot = commands.Bot(command_prefix=configs['prefix'], intents=discord.Intents.all())
+intents = discord.Intents(guilds=True, messages=True, message_content=True, emojis=True)
+bot = commands.Bot(command_prefix=configs['prefix'], intents=intents)
 
 
 @bot.event

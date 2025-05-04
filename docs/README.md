@@ -50,27 +50,32 @@ Tweetcord is a Discord bot that leverages the [tweety-ns module](https://github.
 | `media_type` | str | Whether to enable notifications that include media, or only enable notifications that include media |
 | `account_used` | str | The twitter client used by the bot to monitor the user's tweets |
 
-👉 `/remove notifier` `username` `channel`
+👉 `/remove notifier` `channel` `username`
 
 | Parameter | Type | Description |
 | --------- | ---- | ----------- |
+| `channel` | str | The channel id which set to delivers notifications |
 | `username` | str | The username of the twitter user you want to turn off notifications for |
-| `channel` | discord.TextChannel | The channel which set to delivers notifications |
 
-👉 `/list users`
+👉 `/list users` | `account` `channel`
 
 - List all twitter users whose notifications are enabled on the current server
+
+| Parameter | Type | Description |
+| --------- | ---- | ----------- |
+| `account` | str | The client name that you want to filter |
+| `channel` | str | The channel name that you want to filter |
 
 👉 `/sync`
 
 - Sync the notification of new Twitter account with database.  If you change the twitter account used by bot, please use this command
 
-👉 `/customize message` `username` `channel` | `default`
+👉 `/customize message` `channel` `username` | `default`
 
 | Parameter | Type | Description |
 | --------- | ---- | ----------- |
+| `channel` | str | The channel id which set to delivers notifications |
 | `username` | str | The username of the twitter user you want to set customized message |
-| `channel` | discord.TextChannel | The channel which set to delivers notifications |
 | `default` | bool | Whether to use default setting _(default is false)_ |
 
 Custom notification messages are in `f-string format`, currently supporting 4 special variables for use, which will be explained below.
@@ -186,21 +191,22 @@ Custom activity name is in `f-string` format, currently supporting 1 special var
 | Parameter | Description |
 |-----------|-------------|
 | `fx_image` | Whether to use FxTwitter's combined image when there are multiple images, friendly for iOS systems that cannot display multiple image embeddings. |
-| `video_link_button` | _coming soon_ |
-| `footer_logo` | _coming soon_ |
+| `video_link_button` | Determine whether to use a link button as a prompt when the media is a video. |
+| `legacy_logo` | If set to `true`, the footer will use Twitter's legacy bluebird logo instead of the new X emblem. |
 
 ##### fx_twitter:
 
 | Parameter | Description |
 |-----------|-------------|
 | `domain_name` | The domain name to be used when sending tweet links, can be `fxtwitter` or `fixupx`. |
-| `original_url_button` | _coming soon_ |
+| `original_url_button` | Add a link button at the bottom of the embed that directs to the original tweet. This can resolve the issue where clicking an FxTwitter URL does not open the app on certain devices. |
 
 #### Message
 
 | Parameter | Description |
 |-----------|-------------|
 | `default_message` | Set default message format globally, the format is the same as the customized message, use f-string and support 4 special variables. For details, please refer to [Commands](#commands). |
+| `emoji_auto_format` | For custom messages, whether to automatically convert short-format emoji codes. If enabled, it allows using codes like `:jerry:` to insert current server's emojis without needing to enter the full name `<:jerry:720576643583836181>`. |
 
 ### 3. Run and invite the bot to your server
 
@@ -208,14 +214,29 @@ Custom activity name is in `f-string` format, currently supporting 1 special var
 python bot.py
 ```
 
-🔧Bot Permissions Setup `2147666944`
+#### Permissions Setup
 
-- [x] Read Messages/View Channels
-- [x] Send Messages
-- [x] Embed Links
-- [x] Attach Files
-- [x] Mention Everyone
-- [x] Use Slash Commands
+🔧Bot Permissions Setup (Permissions Integer): `2147666944`
+
+| Enable | Permissions |
+|--------|-------------|
+| ✔️ | Read Messages/View Channels |
+| ✔️ | Send Messages |
+| ✔️ | Embed Links |
+| ✔️ | Attach Files |
+| ✔️ | Mention Everyone |
+| ✔️ | Use Slash Commands |
+
+> [!NOTE]  
+> Please generate an invitation link with the default permissions on the [Discord Developer Portal](https://discord.com/developers/applications) rather than inviting the bot first and then manually adjusting its permissions.
+
+#### Privileged Gateway Intents Setup
+
+| Enable | Intents |
+|--------|-------------|
+| ❌  | Presence Intent |
+| ❌ | Server Members Intent |
+| ✔️ | Message Content Intent |
 
 > [!NOTE]
 > If you want to host the bot on a server, here is a recommended service that is basically free: [fly.io](https://fly.io) _(update: fly.io has stopped offering free plans to new users)_

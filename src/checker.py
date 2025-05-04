@@ -17,7 +17,7 @@ def check_configs(configs):
         ],
         'embed': {
             'type': [],
-            'built_in': ['fx_image', 'video_link_button', 'footer_logo'],
+            'built_in': ['fx_image', 'video_link_button', 'legacy_logo'],
             'fx_twitter': ['domain_name', 'original_url_button']
         }
     }

@@ -13,11 +13,11 @@ from configs.load_configs import configs
 from src.log import setup_logger
 from src.notification.display_tools import gen_embed, get_action
 from src.notification.get_tweets import get_tweets
-from src.notification.utils import is_match_media_type, is_match_type
+from src.notification.utils import is_match_media_type, is_match_type, replace_emoji
 from src.utils import get_accounts, get_lock
 from src.db_function.readonly_db import connect_readonly
 
-EMBED_TYPE = configs['embed']['type']
+EMBED_TYPE = configs['embed']['type'] if configs['embed']['type'] in ['built_in', 'fx_twitter'] else 'built_in'
 DOMAIN_NAME = configs['embed']['fx_twitter']['domain_name'] if configs['embed']['fx_twitter']['domain_name'] in ['fxtwitter', 'fixupx'] else 'fxtwitter'
 
 log = setup_logger(__name__)
@@ -82,6 +82,20 @@ class AccountTracker():
 
                     for tweet in lastest_tweets:
                         log.info(f'find a new tweet from {username}')
+                        url = re.sub('twitter', DOMAIN_NAME, tweet.url) if EMBED_TYPE == 'fx_twitter' else tweet.url
+                        
+                        view, create_view = None, False
+                        if bool(tweet.media) and tweet.media[0].type == 'video' and EMBED_TYPE == 'built_in' and configs['embed']['built_in']['video_link_button']:
+                            create_view = True
+                            button_label, button_url = 'View Video', tweet.media[0].expanded_url
+                        elif EMBED_TYPE == 'fx_twitter' and configs['embed']['fx_twitter']['original_url_button']:
+                            create_view = True
+                            button_label, button_url = 'View Original', tweet.url
+
+                        if create_view:
+                            view = discord.ui.View()
+                            view.add_item(discord.ui.Button(label=button_label, style=discord.ButtonStyle.link, url=button_url))
+                        
                         await cursor.execute('SELECT * FROM notification WHERE user_id = ? AND enabled = 1', (user['id'],))
                         notifications = await cursor.fetchall()
                         for data in notifications:
@@ -90,13 +104,17 @@ class AccountTracker():
                                 try:
                                     mention = f"{channel.guild.get_role(int(data['role_id'])).mention} " if data['role_id'] else ''
                                     author, action = tweet.author.name, get_action(tweet)
-
-                                    url = re.sub('twitter', DOMAIN_NAME, tweet.url) if EMBED_TYPE == 'fx_twitter' else tweet.url
-
-                                    msg = data['customized_msg'] if data['customized_msg'] else configs['default_message']
+                                    
+                                    if not data['customized_msg']: msg = configs['default_message']
+                                    else: msg = re.sub(r":(\w+):", lambda match: replace_emoji(match, channel.guild), data['customized_msg']) if configs['emoji_auto_format'] else data['customized_msg']
                                     msg = msg.format(mention=mention, author=author, action=action, url=url)
 
-                                    await channel.send(msg) if EMBED_TYPE == 'fx_twitter' else await channel.send(msg, file=discord.File('images/twitter.png', filename='twitter.png'), embeds=await gen_embed(tweet))
+                                    if EMBED_TYPE == 'fx_twitter':
+                                        await channel.send(msg, view=view)
+                                    else:
+                                        footer = 'twitter.png' if configs['embed']['built_in']['legacy_logo'] else 'x.png'
+                                        file = discord.File(f'images/{footer}', filename='footer.png')
+                                        await channel.send(msg, file=file, embeds=await gen_embed(tweet), view=view)
 
                                 except Exception as e:
                                     if not isinstance(e, discord.errors.Forbidden):

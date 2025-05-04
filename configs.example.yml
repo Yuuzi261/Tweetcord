@@ -22,12 +22,13 @@ embed:
   built_in:
     fx_image: true
     video_link_button: false
-    footer_logo: 'blue_bird'
+    legacy_logo: true
     
   fx_twitter:
     domain_name: 'fxtwitter'
-    original_url_button: false
+    original_url_button: true
 
 default_message: |
   {mention}**{author}** just {action} here: 
   {url}
+emoji_auto_format: true
