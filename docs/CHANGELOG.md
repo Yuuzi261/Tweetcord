@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.5.4 (May 4, 2025)
+**✨Features:**
+- Removed unnecessary Discord intents, resulting in a lighter startup and reduced system resource usage.
+- Supported short emoji format in custom messages.
+- Added a video link button for built-in embeds and an original URL button for FxTwitter.
+- Customize message command now also supports auto-completion.
+- Allowed free choice of a built-in embed footer, which can be the legacy bluebird logo or the new X logo.
+
+**🐛Fix:**
+- Fixed the incorrect task closure logic (High impact issue).
+- Resolved autocomplete failure for deleted channels.
+- Channels without any notifier will no longer be added to autocomplete.
+- Ensured error messages are ephemeral.
+
 ## 0.5.3 (December 19, 2024)  
 **✨Features:**  
 - Enhanced **list users** command with pagination switchable via buttons.   
