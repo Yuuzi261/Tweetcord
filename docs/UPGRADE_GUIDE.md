@@ -6,7 +6,7 @@
 <details>
    <summary><b>⬆️Click Here to Upgrade from 0.5.4 to 0.5.5</b></summary>
 
-Version 0.5.5 is a hotfix for version 0.5.4, mainly addressing issue #55.
+Version 0.5.5 is a hotfix for version 0.5.4, mainly addressing issue [#55](https://github.com/Yuuzi261/Tweetcord/issues/55).
 
 This update does not involve any changes to the database structure, so there is no need to use an upgrade script. Simply pull the updated code to complete the update.
 
@@ -106,7 +106,7 @@ Because the database structure has been updated, you must use the following code
 <details>
    <summary><b>⬆️0.5.4升級到0.5.5請點這裡</b></summary>
 
-0.5.5為0.5.4的修補版本，主要對 issue #55 進行了修正。
+0.5.5為0.5.4的修補版本，主要對 issue [#55](https://github.com/Yuuzi261/Tweetcord/issues/55) 進行了修正。
 
 本次更新不涉及資料庫結構更新，因此不用使用升級腳本來完成升級，請直接拉取程式碼即可完成更新。
 
