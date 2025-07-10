@@ -68,29 +68,35 @@ class Notification(Cog_Extension):
             db.row_factory = aiosqlite.Row
             async with db.cursor() as cursor:
                 try:
-                    await cursor.execute('SELECT * FROM user WHERE username = ?', (username,))
+                    app = Twitter(account_used)
+                    await app.connect()
+                    try:
+                        new_user = await app.get_user_info(username)
+                    except Exception:
+                        await itn.followup.send(f'user {username} not found', ephemeral=True)
+                        return
+
+                    await cursor.execute('SELECT * FROM user WHERE id = ?', (str(new_user.id),))
                     match_user = await cursor.fetchone()
 
                     server_id = str(channel.guild.id)
                     roleID = str(mention.id) if mention is not None else ''
                     if match_user is None or match_user['enabled'] == 0:
-                        app = Twitter(account_used)
-                        await app.connect()
-                        try:
-                            new_user = await app.get_user_info(username)
-                        except Exception:
-                            await itn.followup.send(f'user {username} not found', ephemeral=True)
-                            return
-                        
                         if match_user is None:
                             async with lock:
                                 await db.execute('BEGIN')
-                                await cursor.execute('INSERT INTO user (id, username, lastest_tweet, client_used) VALUES (?, ?, ?, ?)', (str(new_user.id), username, get_utcnow(), account_used))
+                                await cursor.execute('INSERT INTO user (id, username, lastest_tweet, client_used) VALUES (?, ?, ?, ?)', (str(new_user.id), new_user.username, get_utcnow(), account_used))
                                 await cursor.execute('INSERT OR IGNORE INTO channel VALUES (?, ?)', (str(channel.id), server_id))
                                 await cursor.execute('INSERT INTO notification (user_id, channel_id, role_id, enable_type, enable_media_type) VALUES (?, ?, ?, ?, ?)', (str(new_user.id), str(channel.id), roleID, enable_type, media_type))
                                 await db.commit()
                         else:
                             is_changed_client = False
+                            if match_user['username'] != new_user.username:
+                                async with lock:
+                                    await db.execute('BEGIN')
+                                    await cursor.execute('UPDATE user SET username = ? WHERE id = ?', (new_user.username, str(new_user.id)))
+                                    await db.commit()
+
                             if match_user['client_used'] != account_used:
                                 if configs['auto_change_client']:
                                     if configs['auto_unfollow'] or configs['auto_turn_off_notification']:
@@ -139,11 +145,11 @@ class Notification(Cog_Extension):
                     return
 
         if match_user is None or match_user['enabled'] == 0:
-            await self.account_tracker.addTask(username, account_used)
+            await self.account_tracker.addTask(new_user.username, account_used)
             await update_presence(self.bot)
-            await itn.followup.send(f'successfully add notifier of {username} under {account_used}!', ephemeral=True)
+            await itn.followup.send(f'successfully add notifier of {new_user.username} under {account_used}!', ephemeral=True)
         else:
-            await itn.followup.send(f'{username} already exists under {match_user["client_used"]}. Using the same account to deliver notifications', ephemeral=True)
+            await itn.followup.send(f'{match_user["username"]} already exists under {match_user["client_used"]}. Using the same account to deliver notifications', ephemeral=True)
 
     @remove_group.command(name='notifier')
     @app_commands.rename(channel_id='channel')
@@ -175,7 +181,7 @@ class Notification(Cog_Extension):
                     if str(channel.id) not in vaild_ids:
                         raise ValueError(f'can\'t find channel {channel.mention} in {str(itn.guild.name)}!')
                     
-                    await cursor.execute('SELECT user_id FROM notification, user WHERE username = ? AND channel_id = ? AND user_id = id AND notification.enabled = 1', (username, str(channel.id)))
+                    await cursor.execute('SELECT user_id FROM notification, user WHERE username = ? COLLATE NOCASE AND channel_id = ? AND user_id = id AND notification.enabled = 1', (username, str(channel.id)))
                     match_notifier = await cursor.fetchone()
                     if match_notifier is not None:
                         async with lock:
@@ -239,7 +245,7 @@ class Notification(Cog_Extension):
             db.row_factory = aiosqlite.Row
             async with db.cursor() as cursor:
 
-                await cursor.execute('SELECT user_id FROM notification, user WHERE username = ? AND channel_id = ? AND user_id = id AND notification.enabled = 1', (username, str(channel.id)))
+                await cursor.execute('SELECT user_id FROM notification, user WHERE username = ? COLLATE NOCASE AND channel_id = ? AND user_id = id AND notification.enabled = 1', (username, str(channel.id)))
                 match_notifier = await cursor.fetchone()
                 if match_notifier is not None:
                     if default:

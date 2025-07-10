@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.5 (July 11, 2025)
+**🐛Fix:**
+- Fixed issue [#55](https://github.com/Yuuzi261/Tweetcord/issues/55)(Failed to re-add users with different casing due to a `UNIQUE constraint failed` error after deletion).
+
 ## 0.5.4 (May 4, 2025)
 **✨Features:**
 - Removed unnecessary Discord intents, resulting in a lighter startup and reduced system resource usage.
