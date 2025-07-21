@@ -68,12 +68,10 @@ class AccountTracker():
                 sys.exit(1)
 
         # Initial user list for notification tasks
-        usernames_and_clients = {u: c for u, c in self.latest_tweet_timestamps.keys()}
-
-        for username, client_used in usernames_and_clients.items():
+        for (username, client_used), _ in self.latest_tweet_timestamps.items():
             self.bot.loop.create_task(self.notification(username, client_used)).set_name(username)
         
-        self.bot.loop.create_task(self.tasksMonitor(usernames_and_clients)).set_name('TasksMonitor')
+        self.bot.loop.create_task(self.tasksMonitor()).set_name('TasksMonitor')
 
     async def timestamp_updater(self):
         """Periodically reads all user timestamps from the DB into a shared dictionary."""
@@ -81,8 +79,10 @@ class AccountTracker():
             try:
                 async with connect_readonly(self.db_path) as db:
                     async with db.execute('SELECT username, client_used, lastest_tweet FROM user WHERE enabled = 1') as cursor:
+                        new_timestamps = {}
                         async for row in cursor:
-                            self.latest_tweet_timestamps[(row[0], row[1])] = row[2]
+                            new_timestamps[(row[0], row[1])] = row[2]
+                        self.latest_tweet_timestamps = new_timestamps
                 
                 if not self.timestamps_ready.is_set():
                     self.timestamps_ready.set()
@@ -111,19 +111,19 @@ class AccountTracker():
 
             last_tweet_at = self.latest_tweet_timestamps.get((username, client_used))
             if not last_tweet_at:
-                log.warning(f"No timestamp found for {username}, skipping notification check.")
-                continue
+                # This can happen if a user is removed right after the sleep.
+                log.warning(f"No timestamp for {username}, task will terminate.")
+                break
 
             lastest_tweets = await get_tweets(self.tweets[client_used], username, last_tweet_at)
             if not lastest_tweets:
                 continue
             
-            # Queue the database update instead of doing it directly
             newest_timestamp = lastest_tweets[-1].created_on
-            await self.db_write_queue.put((username, newest_timestamp))
-            
             # Update local cache immediately to prevent re-notification
             self.latest_tweet_timestamps[(username, client_used)] = str(newest_timestamp)
+            # Queue the database update
+            await self.db_write_queue.put((username, newest_timestamp))
 
             async with aiosqlite.connect(self.db_path) as db:
                 db.row_factory = aiosqlite.Row
@@ -183,55 +183,69 @@ class AccountTracker():
                 log.error(f"an unexpected error occurred, try again in {configs['tweets_updater_retry_delay']} minutes")
                 await asyncio.sleep(configs['tweets_updater_retry_delay'] * 60)
 
-    async def tasksMonitor(self, users_and_clients: dict[str, str]):
+    async def tasksMonitor(self):
+        """Dynamically monitors tasks based on the live timestamp cache."""
         while True:
-            taskSet = {task.get_name() for task in asyncio.all_tasks()}
-            users = {username for username, _ in users_and_clients.items()}
-            aliveTasks = taskSet & users
+            await asyncio.sleep(configs['tasks_monitor_check_period'] * 60)
 
-            if aliveTasks != users:
-                deadTasks = list(users - aliveTasks)
-                log.warning(f'dead tasks : {deadTasks}')
-                for deadTask in deadTasks:
-                    client_used = users_and_clients.get(deadTask)
-                    if client_used:
-                        self.bot.loop.create_task(self.notification(deadTask, client_used)).set_name(deadTask)
-                        log.info(f'restart {deadTask} successfully using {client_used}')
+            running_tasks = {task.get_name() for task in asyncio.all_tasks()}
+            users_in_cache = {username for username, _ in self.latest_tweet_timestamps.keys()}
+            
+            alive_tasks = running_tasks & users_in_cache
+
+            if alive_tasks != users_in_cache:
+                dead_tasks = list(users_in_cache - alive_tasks)
+                if dead_tasks:
+                    log.warning(f'dead tasks : {dead_tasks}')
+                    for dead_task_username in dead_tasks:
+                        # Find the corresponding client_used from the cache
+                        client_used = None
+                        for u, c in self.latest_tweet_timestamps.keys():
+                            if u == dead_task_username:
+                                client_used = c
+                                break
+                        
+                        if client_used:
+                            self.bot.loop.create_task(self.notification(dead_task_username, client_used)).set_name(dead_task_username)
+                            log.info(f'restart {dead_task_username} successfully using {client_used}')
 
             for client in self.accounts_data.keys():
-                if f'TweetsUpdater_{client}' not in taskSet:
+                if f'TweetsUpdater_{client}' not in running_tasks:
                     log.warning(f'tweets updater {client} : dead')
 
             if (datetime.now(timezone.utc) - self.tasksMonitorLogAt).total_seconds() / 3600 >= configs['tasks_monitor_log_period']:
-                log.info(f'alive tasks : {list(aliveTasks)}')
+                log.info(f'alive tasks : {list(alive_tasks)}')
                 for client in self.accounts_data.keys():
-                    if f'TweetsUpdater_{client}' in taskSet:
+                    if f'TweetsUpdater_{client}' in running_tasks:
                         log.info(f'tweets updater {client} : alive')
                 self.tasksMonitorLogAt = datetime.now(timezone.utc)
 
-            await asyncio.sleep(configs['tasks_monitor_check_period'] * 60)
 
     async def addTask(self, username: str, client_used: str):
-        # Update timestamp cache
+        """Adds a new user to the live cache and starts their notification task."""
+        # Add to live cache first
         self.latest_tweet_timestamps[(username, client_used)] = str(datetime.now(timezone.utc))
         
+        # Start the task
         self.bot.loop.create_task(self.notification(username, client_used)).set_name(username)
         log.info(f'new task {username} added successfully using {client_used}')
 
     async def removeTask(self, username: str):
-        # Find the full key in the timestamp cache
+        """Removes a user from the live cache and cancels their notification task."""
         key_to_remove = None
-        for u, c in self.latest_tweet_timestamps.keys():
+        # Create a copy of keys for safe iteration
+        for u, c in list(self.latest_tweet_timestamps.keys()):
             if u == username:
                 key_to_remove = (u, c)
                 break
         
-        if key_to_remove:
+        # Remove from cache so the monitor doesn't restart it
+        if key_to_remove and key_to_remove in self.latest_tweet_timestamps:
             del self.latest_tweet_timestamps[key_to_remove]
 
+        # Cancel the running task
         for task in asyncio.all_tasks():
             if task.get_name() == username:
-                try:
-                    log.info(f'existing task {username} has been closed') if task.cancel() else log.info(f'existing task {username} failed to close')
-                except Exception as e:
-                    log.warning(f'removeTask : {e}')
+                task.cancel()
+                log.info(f'task {username} has been cancelled')
+                break
