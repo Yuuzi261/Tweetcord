@@ -14,7 +14,7 @@ from src.log import setup_logger
 from src.notification.display_tools import gen_embed, get_action
 from src.notification.get_tweets import get_tweets
 from src.notification.utils import is_match_media_type, is_match_type, replace_emoji
-from src.utils import get_accounts, get_lock
+from src.utils import get_accounts, get_lock, get_utcnow
 from src.db_function.readonly_db import connect_readonly
 
 EMBED_TYPE = configs['embed']['type'] if configs['embed']['type'] in ['built_in', 'fx_twitter'] else 'built_in'
@@ -98,9 +98,10 @@ class AccountTracker():
         while True:
             try:
                 username, new_timestamp = await self.db_write_queue.get()
-                async with aiosqlite.connect(self.db_path) as db:
-                    await db.execute('UPDATE user SET lastest_tweet = ? WHERE username = ?', (str(new_timestamp), username))
-                    await db.commit()
+                async with lock:
+                    async with aiosqlite.connect(self.db_path, timeout=10) as db:
+                        await db.execute('UPDATE user SET lastest_tweet = ? WHERE username = ?', (str(new_timestamp), username))
+                        await db.commit()
                 self.db_write_queue.task_done()
             except Exception as e:
                 log.error(f"Error in db_writer: {e}")
@@ -125,52 +126,59 @@ class AccountTracker():
             # Queue the database update
             await self.db_write_queue.put((username, newest_timestamp))
 
-            async with aiosqlite.connect(self.db_path) as db:
-                db.row_factory = aiosqlite.Row
-                async with db.cursor() as cursor:
-                    await cursor.execute('SELECT * FROM user WHERE username = ?', (username,))
-                    user = await cursor.fetchone()
-                    if not user: continue
+            try:
+                async with connect_readonly(self.db_path) as db:
+                    db.row_factory = aiosqlite.Row
+                    async with db.cursor() as cursor:
+                        await cursor.execute('SELECT * FROM user WHERE username = ?', (username,))
+                        user = await cursor.fetchone()
+                        if not user: continue
 
-                    for tweet in lastest_tweets:
-                        log.info(f'find a new tweet from {username}')
-                        url = re.sub('twitter', DOMAIN_NAME, tweet.url) if EMBED_TYPE == 'fx_twitter' else tweet.url
-                        
-                        view, create_view = None, False
-                        if bool(tweet.media) and tweet.media[0].type == 'video' and EMBED_TYPE == 'built_in' and configs['embed']['built_in']['video_link_button']:
-                            create_view = True
-                            button_label, button_url = 'View Video', tweet.media[0].expanded_url
-                        elif EMBED_TYPE == 'fx_twitter' and configs['embed']['fx_twitter']['original_url_button']:
-                            create_view = True
-                            button_label, button_url = 'View Original', tweet.url
-
-                        if create_view:
-                            view = discord.ui.View()
-                            view.add_item(discord.ui.Button(label=button_label, style=discord.ButtonStyle.link, url=button_url))
-                        
                         await cursor.execute('SELECT * FROM notification WHERE user_id = ? AND enabled = 1', (user['id'],))
                         notifications = await cursor.fetchall()
-                        for data in notifications:
-                            channel = self.bot.get_channel(int(data['channel_id']))
-                            if channel is not None and is_match_type(tweet, data['enable_type']) and is_match_media_type(tweet, data['enable_media_type']):
-                                try:
-                                    mention = f"{channel.guild.get_role(int(data['role_id'])).mention} " if data['role_id'] else ''
-                                    author, action = tweet.author.name, get_action(tweet)
-                                    
-                                    if not data['customized_msg']: msg = configs['default_message']
-                                    else: msg = re.sub(r":(\w+):", lambda match: replace_emoji(match, channel.guild), data['customized_msg']) if configs['emoji_auto_format'] else data['customized_msg']
-                                    msg = msg.format(mention=mention, author=author, action=action, url=url)
 
-                                    if EMBED_TYPE == 'fx_twitter':
-                                        await channel.send(msg, view=view)
-                                    else:
-                                        footer = 'twitter.png' if configs['embed']['built_in']['legacy_logo'] else 'x.png'
-                                        file = discord.File(f'images/{footer}', filename='footer.png')
-                                        await channel.send(msg, file=file, embeds=await gen_embed(tweet), view=view)
+                        for tweet in lastest_tweets:
+                            log.info(f'find a new tweet from {username}')
+                            url = re.sub('twitter', DOMAIN_NAME, tweet.url) if EMBED_TYPE == 'fx_twitter' else tweet.url
+                            
+                            view, create_view = None, False
+                            if bool(tweet.media) and tweet.media[0].type == 'video' and EMBED_TYPE == 'built_in' and configs['embed']['built_in']['video_link_button']:
+                                create_view = True
+                                button_label, button_url = 'View Video', tweet.media[0].expanded_url
+                            elif EMBED_TYPE == 'fx_twitter' and configs['embed']['fx_twitter']['original_url_button']:
+                                create_view = True
+                                button_label, button_url = 'View Original', tweet.url
 
-                                except Exception as e:
-                                    if not isinstance(e, discord.errors.Forbidden):
-                                        log.error(f'an error occurred at {channel.mention} while sending notification: {e}')
+                            if create_view:
+                                view = discord.ui.View()
+                                view.add_item(discord.ui.Button(label=button_label, style=discord.ButtonStyle.link, url=button_url))
+                            
+                            for data in notifications:
+                                channel = self.bot.get_channel(int(data['channel_id']))
+                                if channel is not None and is_match_type(tweet, data['enable_type']) and is_match_media_type(tweet, data['enable_media_type']):
+                                    try:
+                                        mention = f"{channel.guild.get_role(int(data['role_id'])).mention} " if data['role_id'] else ''
+                                        author, action = tweet.author.name, get_action(tweet)
+                                        
+                                        if not data['customized_msg']: msg = configs['default_message']
+                                        else: msg = re.sub(r":(\w+):", lambda match: replace_emoji(match, channel.guild), data['customized_msg']) if configs['emoji_auto_format'] else data['customized_msg']
+                                        msg = msg.format(mention=mention, author=author, action=action, url=url)
+
+                                        if EMBED_TYPE == 'fx_twitter':
+                                            await channel.send(msg, view=view)
+                                        else:
+                                            footer = 'twitter.png' if configs['embed']['built_in']['legacy_logo'] else 'x.png'
+                                            file = discord.File(f'images/{footer}', filename='footer.png')
+                                            await channel.send(msg, file=file, embeds=await gen_embed(tweet), view=view)
+
+                                    except Exception as e:
+                                        if not isinstance(e, discord.errors.Forbidden):
+                                            log.error(f'an error occurred at {channel.mention} while sending notification: {e}')
+            except aiosqlite.OperationalError as e:
+                if "database is locked" in str(e):
+                    log.warning(f"Database locked while reading notification settings for {username}. This is unexpected but handled.")
+                else:
+                    raise
 
     async def tweetsUpdater(self, app: Twitter):
         updater_name = asyncio.current_task().get_name().split('_', 1)[1]
@@ -224,7 +232,7 @@ class AccountTracker():
     async def addTask(self, username: str, client_used: str):
         """Adds a new user to the live cache and starts their notification task."""
         # Add to live cache first
-        self.latest_tweet_timestamps[(username, client_used)] = str(datetime.now(timezone.utc))
+        self.latest_tweet_timestamps[(username, client_used)] = get_utcnow()
         
         # Start the task
         self.bot.loop.create_task(self.notification(username, client_used)).set_name(username)
