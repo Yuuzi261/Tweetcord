@@ -188,12 +188,18 @@ class AccountTracker():
         updater_name = asyncio.current_task().get_name().split('_', 1)[1]
         while True:
             try:
-                self.tweets[updater_name] = await app.get_tweet_notifications()
-                await asyncio.sleep(configs['tweets_check_period'])
+                # Run the potentially blocking library call in a separate thread
+                self.tweets[updater_name] = await asyncio.to_thread(app.get_tweet_notifications)
+            except KeyError as e:
+                # Handle the error thrown by `tweety-ns` mentioned in issue#59
+                log.warning(f"handled KeyError in {updater_name}: {e}. This is likely a temporary API response issue from Twitter. Skipping this check.")
             except Exception as e:
                 log.error(f'{e} (task : tweets updater {updater_name})')
                 log.error(f"an unexpected error occurred, try again in {configs['tweets_updater_retry_delay']} minutes")
                 await asyncio.sleep(configs['tweets_updater_retry_delay'] * 60)
+                continue
+            
+            await asyncio.sleep(configs['tweets_check_period'])
 
     async def tasksMonitor(self):
         """Dynamically monitors tasks based on the live timestamp cache."""
