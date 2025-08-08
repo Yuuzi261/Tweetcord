@@ -24,9 +24,13 @@ embed:
     video_link_button: false
     legacy_logo: true
     
-  fx_twitter:
+  proxy:
+    service: 'fx'
     domain_name: 'fxtwitter'
     original_url_button: true
+    auto_translation:
+      enabled: false
+      default_language: 'en'
 
 default_message: |
   {mention}**{author}** just {action} here: 

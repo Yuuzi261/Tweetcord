@@ -10,6 +10,7 @@ from discord.ext import commands
 from tweety import Twitter
 
 from configs.load_configs import configs
+from src.constants import VALID_PROXY_SERVICES
 from src.log import setup_logger
 from src.notification.display_tools import gen_embed, get_action
 from src.notification.get_tweets import get_tweets
@@ -17,8 +18,11 @@ from src.notification.utils import is_match_media_type, is_match_type, replace_e
 from src.utils import get_accounts, get_lock, get_utcnow
 from src.db_function.readonly_db import connect_readonly
 
-EMBED_TYPE = configs['embed']['type'] if configs['embed']['type'] in ['built_in', 'fx_twitter'] else 'built_in'
-DOMAIN_NAME = configs['embed']['fx_twitter']['domain_name'] if configs['embed']['fx_twitter']['domain_name'] in ['fxtwitter', 'fixupx'] else 'fxtwitter'
+EMBED_TYPE = configs['embed']['type'] if configs['embed']['type'] in ['built_in', 'proxy'] else 'built_in'
+SERVICE = configs['embed']['proxy']['service'] if configs['embed']['proxy']['service'] in VALID_PROXY_SERVICES else list(VALID_PROXY_SERVICES.keys())[0]
+user_domain = configs['embed']['proxy']['domain_name']
+allowed_domains = VALID_PROXY_SERVICES[SERVICE]
+DOMAIN_NAME = user_domain if user_domain in allowed_domains else allowed_domains[0]
 
 log = setup_logger(__name__)
 lock = get_lock()
@@ -149,13 +153,13 @@ class AccountTracker():
 
             for tweet in lastest_tweets:
                 log.info(f'find a new tweet from {username}')
-                url = re.sub('twitter', DOMAIN_NAME, tweet.url) if EMBED_TYPE == 'fx_twitter' else tweet.url
+                url = re.sub('twitter', DOMAIN_NAME, tweet.url) if EMBED_TYPE == 'proxy' else tweet.url
                 
                 view, create_view = None, False
                 if bool(tweet.media) and tweet.media[0].type == 'video' and EMBED_TYPE == 'built_in' and configs['embed']['built_in']['video_link_button']:
                     create_view = True
                     button_label, button_url = 'View Video', tweet.media[0].expanded_url
-                elif EMBED_TYPE == 'fx_twitter' and configs['embed']['fx_twitter']['original_url_button']:
+                elif EMBED_TYPE == 'proxy' and configs['embed']['proxy']['original_url_button']:
                     create_view = True
                     button_label, button_url = 'View Original', tweet.url
 
@@ -174,7 +178,7 @@ class AccountTracker():
                             else: msg = re.sub(r":(\w+):", lambda match: replace_emoji(match, channel.guild), data['customized_msg']) if configs['emoji_auto_format'] else data['customized_msg']
                             msg = msg.format(mention=mention, author=author, action=action, url=url)
 
-                            if EMBED_TYPE == 'fx_twitter':
+                            if EMBED_TYPE == 'proxy':
                                 await channel.send(msg, view=view)
                             else:
                                 footer = 'twitter.png' if configs['embed']['built_in']['legacy_logo'] else 'x.png'

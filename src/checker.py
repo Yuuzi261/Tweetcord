@@ -2,6 +2,7 @@ import os
 
 from src.db_function.readonly_db import connect_readonly
 from src.log import setup_logger
+from src.constants import VALID_PROXY_SERVICES
 
 log = setup_logger(__name__)
 
@@ -13,12 +14,12 @@ def check_configs(configs):
             'users_list_page_counter_position', 'tweets_check_period', 'tweets_updater_retry_delay',
             'tasks_monitor_check_period', 'tasks_monitor_log_period', 'auth_max_attempts',
             'auto_change_client', 'auto_turn_off_notification', 'auto_unfollow',
-            'auto_repair_mismatched_clients', 'embed', 'default_message'
+            'auto_repair_mismatched_clients', 'embed', 'default_message', 'emoji_auto_format'
         ],
         'embed': {
             'type': [],
             'built_in': ['fx_image', 'video_link_button', 'legacy_logo'],
-            'fx_twitter': ['domain_name', 'original_url_button']
+            'proxy': ['service', 'domain_name', 'original_url_button', 'auto_translation']
         }
     }
     
@@ -41,15 +42,28 @@ def check_configs(configs):
         if not check_missing_keys(keys, embed[section], f'{section} '):
             return False
         
+    if not check_missing_keys(['enabled', 'default_language'], embed['proxy']['auto_translation'], 'proxy.auto_translation '):
+        return False
+        
     pcpos = configs['users_list_page_counter_position']
-    if True not in [_ in pcpos for _ in ['title', 'footer']]:
+    if pcpos not in ['title', 'footer']:
         log.warning(f"invalid page counter position: {pcpos}, will be treated as 'title' and continue execution")
 
-    if True not in [_ in embed['type'] for _ in ['built_in', 'fx_twitter']]:
-        log.warning(f"invalid type: {embed['type']}, will be treated as 'built_in' and continue execution")
+    embed_type = embed['type']
+    if embed_type not in ['built_in', 'proxy']:
+        log.warning(f"invalid type: {embed_type}, will be treated as 'built_in' and continue execution")
         
-    if True not in [_ in embed['fx_twitter']['domain_name'] for _ in ['fxtwitter', 'fixupx']]:
-        log.warning(f"invalid domain name: {embed['fx_twitter']['domain_name']}, will be treated as 'fxtwitter' and continue execution")
+    if embed_type == 'proxy':
+        proxy_config = embed['proxy']
+        service = proxy_config['service']
+        domain_name = proxy_config['domain_name']
+
+        if service not in VALID_PROXY_SERVICES:
+            log.warning(f"invalid service: {service}. Allowed values: {list(VALID_PROXY_SERVICES.keys())}. Will be treated as '{list(VALID_PROXY_SERVICES.keys())[0]}' and continue execution")
+            service = list(VALID_PROXY_SERVICES.keys())[0]
+
+        if domain_name not in VALID_PROXY_SERVICES[service]:
+            log.warning(f"invalid domain name: {domain_name} for service: {service}. Allowed values: {VALID_PROXY_SERVICES[service]}. Will be treated as '{VALID_PROXY_SERVICES[service][0]}' and continue execution")
 
     log.info('configs check passed')
     return True
