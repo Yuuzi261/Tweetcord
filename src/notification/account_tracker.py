@@ -91,7 +91,8 @@ class AccountTracker():
             except Exception as e:
                 log.error(f"Error in timestamp_updater: {e}")
 
-            await asyncio.sleep(60) # Update every 60 seconds
+            # After careful consideration, it was decided to keep it hard-coded, as it makes little sense to allow users to customize this value.
+            await asyncio.sleep(60)
 
     async def db_writer(self):
         """Singleton task to handle all database write operations."""
