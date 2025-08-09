@@ -160,7 +160,7 @@ Custom activity name is in `f-string` format, currently supporting 1 special var
 
 | Parameter | Description | Unit |
 |-----------|-------------|------|
-| `tweets_check_period` | The check frequency for the posts, it is not recommended to set this value too low to avoid rate limiting. Default value: `10`, Safety value: `18` [(why is this value?)](https://github.com/mahrtayyab/tweety/wiki/FAQs#twitter-new-limits), not recommended below `10`. If the account controlled by Tweetocrd is the same as the account you usually use, please increase the value appropriately to avoid rate limiting. | seconds |
+| `tweets_check_period` | The check frequency for the posts, it is not recommended to set this value too low to avoid rate limiting. Safety value: `18` [(why is this value?)](https://github.com/mahrtayyab/tweety/wiki/FAQs#twitter-new-limits), tests have shown that setting it to `10` usually doesn't cause rate limiting, not recommended below `10`. If the account controlled by Tweetcord is the same as the account you usually use, please increase the value appropriately to avoid rate limiting. | seconds |
 | `tweets_updater_retry_delay` | Retry Interval when Tweets Updater encounters exceptions. | minutes |
 | `tasks_monitor_check_period` | Interval at which to check if each tasks is functioning properly, and if a task has stopped, attempt a restart. | minutes |
 | `tasks_monitor_log_period` | Interval at which to output the list of currently running tasks to the execution log. | hours |
@@ -184,7 +184,7 @@ Custom activity name is in `f-string` format, currently supporting 1 special var
 
 | Parameter | Description |
 |-----------|-------------|
-| `type` | Determine the type of embed, supported types: `built_in` / `fx_twitter`. |
+| `type` | Determine the type of embed, supported types: `built_in` / `proxy`. |
 
 ##### built_in:
 
@@ -194,12 +194,17 @@ Custom activity name is in `f-string` format, currently supporting 1 special var
 | `video_link_button` | Determine whether to use a link button as a prompt when the media is a video. |
 | `legacy_logo` | If set to `true`, the footer will use Twitter's legacy bluebird logo instead of the new X emblem. |
 
-##### fx_twitter:
+##### proxy:
 
 | Parameter | Description |
 |-----------|-------------|
-| `domain_name` | The domain name to be used when sending tweet links, can be `fxtwitter` or `fixupx`. |
-| `original_url_button` | Add a link button at the bottom of the embed that directs to the original tweet. This can resolve the issue where clicking an FxTwitter URL does not open the app on certain devices. |
+| `service` | The embedding proxy service to use when sending tweet links, can be [`fx`](https://github.com/FxEmbed/FxEmbed) or [`vx`](https://github.com/dylanpdx/BetterTwitFix). |
+| `domain_name` | The domain name to be used when sending tweet links. When using the `fx` service, options are `fxtwitter` or `fixupx`. When using the `vx` service, options are `vxtwitter` or `fixvx`. |
+| `original_url_button` | Add a link button at the bottom of the message that directs to the original tweet. This can resolve the issue where clicking a proxy service URL does not open the app on certain devices. |
+| `auto_translation` | Auto-translation settings when sending tweet links. This is only available when using the `fx` service (it will be automatically disabled for other proxy services). `enabled` indicates whether to enable auto-translation, and `default_language` specifies the default translation language. For details, please refer to [Translate Posts (X/Twitter)](https://github.com/FxEmbed/FxEmbed?tab=readme-ov-file#translate-posts-xtwitter). |
+
+> [!NOTE]
+> If you need support for more embedding proxy services, please let us know via an [Issue](https://github.com/Yuuzi261/Tweetcord/issues/new).
 
 #### Message
 
