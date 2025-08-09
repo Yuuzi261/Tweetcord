@@ -15,7 +15,7 @@ from src.discord_ui.pagination import Pagination
 CHECK = '\u2705'
 XMARK = '\u274C'
 PSIZE = configs['users_list_pagination_size']
-PCPOS = configs['users_list_page_counter_position'] if configs['users_list_page_counter_position'] in ['title', 'footer'] else 'title'
+PCPOS = configs['users_list_page_counter_position']
 
 
 def symbol(value: str) -> str:
