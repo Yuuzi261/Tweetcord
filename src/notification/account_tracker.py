@@ -17,10 +17,10 @@ from src.notification.utils import is_match_media_type, is_match_type, replace_e
 from src.utils import get_accounts, get_lock, get_utcnow
 from src.db_function.readonly_db import connect_readonly
 
-EMBED_TYPE = configs['embed']['type']
-SERVICE = configs['embed']['proxy']['service']
-DOMAIN_NAME = configs['embed']['proxy']['domain_name']
-AUTO_TRANSLATION = configs['embed']['proxy']['auto_translation']
+EMBED_TYPE: str = configs['embed']['type']
+SERVICE: str = configs['embed']['proxy']['service']
+DOMAIN_NAME: str = configs['embed']['proxy']['domain_name']
+AUTO_TRANSLATION: dict[bool, str] = configs['embed']['proxy']['auto_translation']
 
 log = setup_logger(__name__)
 lock = get_lock()
@@ -151,7 +151,11 @@ class AccountTracker():
 
             for tweet in lastest_tweets:
                 log.info(f'find a new tweet from {username}')
-                url = re.sub('twitter', DOMAIN_NAME, tweet.url) if EMBED_TYPE == 'proxy' else tweet.url
+                url = tweet.url
+                if EMBED_TYPE == 'proxy':
+                    url = url.replace('twitter', DOMAIN_NAME)
+                    if AUTO_TRANSLATION['enabled']:
+                        url += f"/{AUTO_TRANSLATION['default_language']}"
                 
                 view, create_view = None, False
                 if bool(tweet.media) and tweet.media[0].type == 'video' and EMBED_TYPE == 'built_in' and configs['embed']['built_in']['video_link_button']:
