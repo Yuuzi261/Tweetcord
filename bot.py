@@ -1,4 +1,3 @@
-import asyncio
 import os
 import sys
 
@@ -7,16 +6,27 @@ from discord import app_commands
 from discord.ext import commands
 from dotenv import load_dotenv
 
-from configs.load_configs import configs
-from src.checker import check_configs, check_env, check_db, check_upgrade
-from src.db_function.init_db import init_db
-from src.db_function.repair_db import auto_repair_mismatched_clients
-from src.presence_updater import update_presence
+from src.checker import build_and_validate_configs, check_env, check_db, check_upgrade
 from src.log import setup_logger
 
 log = setup_logger(__name__)
-
 load_dotenv()
+
+# --- Pre-boot Checks ---
+if not check_env():
+    log.critical('incomplete environment variables detected, please check your .env file. Exiting...')
+    sys.exit(1)
+
+if not build_and_validate_configs():
+    log.critical('failed to build application configuration, please check logs for details. Exiting...')
+    sys.exit(1)
+
+# --- Configs are now safe to load ---
+from configs.load_configs import configs
+from src.db_function.init_db import init_db
+from src.db_function.repair_db import auto_repair_mismatched_clients
+from src.presence_updater import update_presence
+
 
 intents = discord.Intents(guilds=True, messages=True, message_content=True, emojis=True)
 bot = commands.Bot(command_prefix=configs['prefix'], intents=intents)
@@ -28,16 +38,6 @@ async def on_ready():
         await init_db()
         
     check_upgrade()
-        
-    if not check_env():
-        log.warning('incomplete environment variables detected, will retry in 30 seconds')
-        await asyncio.sleep(30)
-        load_dotenv()
-        
-    if not check_configs(configs):
-        log.warning('incomplete configs file detected, will retry in 30 seconds')
-        await asyncio.sleep(30)
-        os.execv(sys.executable, ['python'] + sys.argv)
         
     invalid_clients = await check_db()
     if invalid_clients:

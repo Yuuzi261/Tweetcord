@@ -4,7 +4,7 @@ activity_type: 'watching'
 users_list_pagination_size: 8
 users_list_page_counter_position: 'title'
 
-tweets_check_period: 10
+tweets_check_period: 18
 tweets_updater_retry_delay: 5
 tasks_monitor_check_period: 1
 tasks_monitor_log_period: 4

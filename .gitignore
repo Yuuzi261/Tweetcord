@@ -164,6 +164,7 @@ cython_debug/
 
 # configs
 configs.yml
+configs/configs.generated.yml
 
 # data
 /data

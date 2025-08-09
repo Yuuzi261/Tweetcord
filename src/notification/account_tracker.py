@@ -10,7 +10,6 @@ from discord.ext import commands
 from tweety import Twitter
 
 from configs.load_configs import configs
-from src.constants import VALID_PROXY_SERVICES
 from src.log import setup_logger
 from src.notification.display_tools import gen_embed, get_action
 from src.notification.get_tweets import get_tweets
@@ -18,11 +17,10 @@ from src.notification.utils import is_match_media_type, is_match_type, replace_e
 from src.utils import get_accounts, get_lock, get_utcnow
 from src.db_function.readonly_db import connect_readonly
 
-EMBED_TYPE = configs['embed']['type'] if configs['embed']['type'] in ['built_in', 'proxy'] else 'built_in'
-SERVICE = configs['embed']['proxy']['service'] if configs['embed']['proxy']['service'] in VALID_PROXY_SERVICES else list(VALID_PROXY_SERVICES.keys())[0]
-user_domain = configs['embed']['proxy']['domain_name']
-allowed_domains = VALID_PROXY_SERVICES[SERVICE]
-DOMAIN_NAME = user_domain if user_domain in allowed_domains else allowed_domains[0]
+EMBED_TYPE = configs['embed']['type']
+SERVICE = configs['embed']['proxy']['service']
+DOMAIN_NAME = configs['embed']['proxy']['domain_name']
+AUTO_TRANSLATION = configs['embed']['proxy']['auto_translation']
 
 log = setup_logger(__name__)
 lock = get_lock()
@@ -57,11 +55,11 @@ class AccountTracker():
                     await app.load_auth_token(account_token)
                     return app
                 except Exception as e:
-                    log.error(f"Authentication failed for account: {account_name} [Attempt {attempt + 1}/{max_attempts}]")
+                    log.error(f"authentication failed for account: {account_name} [Attempt {attempt + 1}/{max_attempts}]")
                     if attempt < max_attempts - 1:
                         await asyncio.sleep(5)
                     else:
-                        log.error(f"Persistent authentication failure for account {account_name}")
+                        log.error(f"persistent authentication failure for account {account_name}")
                         raise
         
         for account_name, account_token in self.accounts_data.items():
@@ -90,10 +88,10 @@ class AccountTracker():
                 
                 if not self.timestamps_ready.is_set():
                     self.timestamps_ready.set()
-                    log.info("Initial tweet timestamps loaded.")
+                    log.info("initial tweet timestamps loaded")
 
             except Exception as e:
-                log.error(f"Error in timestamp_updater: {e}")
+                log.error(f"error in timestamp_updater: {e}")
 
             # After careful consideration, it was decided to keep it hard-coded, as it makes little sense to allow users to customize this value.
             await asyncio.sleep(60)
@@ -109,7 +107,7 @@ class AccountTracker():
                         await db.commit()
                 self.db_write_queue.task_done()
             except Exception as e:
-                log.error(f"Error in db_writer: {e}")
+                log.error(f"error in db_writer: {e}")
 
     async def notification(self, username: str, client_used: str):
         while True:
@@ -118,7 +116,7 @@ class AccountTracker():
             last_tweet_at = self.latest_tweet_timestamps.get((username, client_used))
             if not last_tweet_at:
                 # This can happen if a user is removed right after the sleep.
-                log.warning(f"No timestamp for {username}, task will terminate.")
+                log.warning(f"no timestamp for {username}, task will terminate.")
                 break
 
             lastest_tweets = await get_tweets(self.tweets[client_used], username, last_tweet_at)
@@ -144,7 +142,7 @@ class AccountTracker():
                             notifications = await cursor.fetchall()
             except aiosqlite.OperationalError as e:
                 if "database is locked" in str(e):
-                    log.warning(f"Database locked while reading notification settings for {username}. This is unexpected but handled.")
+                    log.warning(f"database locked while reading notification settings for {username}, this is unexpected but handled.")
                 else:
                     raise
             
