@@ -1,4 +1,4 @@
 import yaml
 
-with open('./configs.yml', 'r', encoding='utf8') as yfile:
-    configs = yaml.safe_load(yfile)
+with open('configs/configs.generated.yml', 'r', encoding='utf-8') as f:
+    configs = yaml.safe_load(f)

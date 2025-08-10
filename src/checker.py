@@ -1,59 +1,98 @@
 import os
+import yaml
+from copy import deepcopy
 
 from src.db_function.readonly_db import connect_readonly
 from src.log import setup_logger
 
 log = setup_logger(__name__)
 
+VALID_PROXY_SERVICES = {
+    'fx': ['fxtwitter', 'fixupx'],
+    'vx': ['vxtwitter', 'fixvx']
+}
 
-def check_configs(configs):
-    REQUIRED_KEYS = {
-        'root': [
-            'prefix', 'activity_name', 'activity_type', 'users_list_pagination_size',
-            'users_list_page_counter_position', 'tweets_check_period', 'tweets_updater_retry_delay',
-            'tasks_monitor_check_period', 'tasks_monitor_log_period', 'auth_max_attempts',
-            'auto_change_client', 'auto_turn_off_notification', 'auto_unfollow',
-            'auto_repair_mismatched_clients', 'embed', 'default_message'
-        ],
-        'embed': {
-            'type': [],
-            'built_in': ['fx_image', 'video_link_button', 'legacy_logo'],
-            'fx_twitter': ['domain_name', 'original_url_button']
-        }
-    }
-    
-    def check_missing_keys(required_keys, config_section, section_name=''):
-        missing_keys = [key for key in required_keys if key not in config_section]
-        if missing_keys:
-            log.error(f'missing required {section_name}config keys: {missing_keys}')
-            return False
-        return True
-    
-    if not check_missing_keys(REQUIRED_KEYS['root'], configs):
+
+def build_and_validate_configs():
+    try:
+        with open('configs.example.yml', 'r', encoding='utf-8') as f:
+            default_configs = yaml.safe_load(f)
+    except FileNotFoundError:
+        log.error("configs.example.yml not found! Cannot proceed.")
         return False
 
-    embed = configs['embed']
-    for section, keys in REQUIRED_KEYS['embed'].items():
-        if section not in embed:
-            log.error(f'missing required embed config keys: {section}')
-            return False
-        
-        if not check_missing_keys(keys, embed[section], f'{section} '):
-            return False
-        
-    pcpos = configs['users_list_page_counter_position']
-    if True not in [_ in pcpos for _ in ['title', 'footer']]:
-        log.warning(f"invalid page counter position: {pcpos}, will be treated as 'title' and continue execution")
+    use_defaults = False
+    try:
+        with open('configs.yml', 'r', encoding='utf-8') as f:
+            user_configs = yaml.safe_load(f)
+        if not isinstance(user_configs, dict):
+            # Handle empty or invalid YAML file
+            use_defaults = True
+            log.warning("configs.yml is empty or invalid. Using default values for all settings.")
+    except FileNotFoundError:
+        use_defaults = True
+        log.info("configs.yml not found. Using default values for all settings.")
 
-    if True not in [_ in embed['type'] for _ in ['built_in', 'fx_twitter']]:
-        log.warning(f"invalid type: {embed['type']}, will be treated as 'built_in' and continue execution")
+    final_configs = deepcopy(default_configs)
+
+    def merge_and_validate(default_section, user_section, final_section, path=''):
+        for key, default_value in default_section.items():
+            current_path = f"{path}.{key}" if path else key
+            user_value = user_section.get(key)
+
+            if isinstance(default_value, dict):
+                # Recurse into nested dictionaries
+                user_subsection = user_value if isinstance(user_value, dict) else {}
+                merge_and_validate(default_value, user_subsection, final_section[key], path=current_path)
+                continue
+
+            if user_value is None:
+                log.warning(f"'{current_path}' not found in configs.yml, using default value: '{default_value}'")
+                continue
+
+            # --- Start Validation ---
+            is_valid = True
+            if current_path == 'users_list_page_counter_position' and user_value not in ['title', 'footer']:
+                is_valid = False
+            elif current_path == 'embed.type' and user_value not in ['built_in', 'proxy']:
+                is_valid = False
+            elif current_path == 'embed.proxy.service':
+                if user_value not in VALID_PROXY_SERVICES:
+                    is_valid = False
+            # --- End Validation ---
+
+            if is_valid:
+                final_section[key] = user_value
+            else:
+                log.warning(f"invalid value for '{current_path}': '{user_value}'. Using default: '{default_value}'")
+
+    if not use_defaults:
+        merge_and_validate(default_configs, user_configs, final_configs)
+    
+    # Because these settings have dependencies, they are checked outside the recursion
+    proxy_service = final_configs['embed']['proxy']['service']
+    proxy_domain = final_configs['embed']['proxy']['domain_name']
+    valid_domains_for_service = VALID_PROXY_SERVICES.get(proxy_service, [])
+
+    if proxy_domain not in valid_domains_for_service:
+        new_domain = valid_domains_for_service[0]
+        log.warning(f"domain '{proxy_domain}' is invalid for service '{proxy_service}'. Falling back to a valid domain '{new_domain}'.")
+        final_configs['embed']['proxy']['domain_name'] = new_domain
         
-    if True not in [_ in embed['fx_twitter']['domain_name'] for _ in ['fxtwitter', 'fixupx']]:
-        log.warning(f"invalid domain name: {embed['fx_twitter']['domain_name']}, will be treated as 'fxtwitter' and continue execution")
+    if proxy_service != 'fx':
+        log.warning(f"service '{proxy_service}' is not support for auto translation, disabling auto translation")
+        final_configs['embed']['proxy']['auto_translation']['enabled'] = False
 
-    log.info('configs check passed')
-    return True
-
+    try:
+        os.makedirs('configs', exist_ok=True)
+        with open('configs/configs.generated.yml', 'w', encoding='utf-8') as f:
+            f.write("# This file is automatically generated. Do not edit manually.\n")
+            yaml.dump(final_configs, f, allow_unicode=True, sort_keys=False)
+        log.info("successfully generated 'configs/configs.generated.yml'")
+        return True
+    except Exception as e:
+        log.error(f"failed to write 'configs/configs.generated.yml': {e}")
+        return False
 
 def check_env():
     required_keys = [

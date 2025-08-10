@@ -160,7 +160,7 @@ DATA_PATH=./data
 
 | 參數 | 描述 | 單位 |
 |------|------|-----|
-| `tweets_check_period` | 檢查推文的頻率，不建議將此值設置得太低，以避免速率限制。預設值：`10`，安全值：`18`[（為什麼是這個數值？）](https://github.com/mahrtayyab/tweety/wiki/FAQs#twitter-new-limits)，不推薦低於 `10`。如果Tweetcord控制的帳號和你平常在使用的帳號相同，請適當提高這個數值以避免速率限制。 | 秒 |
+| `tweets_check_period` | 檢查推文的頻率，不建議將此值設置得太低，以避免速率限制。安全值：`18`[（為什麼是這個數值？）](https://github.com/mahrtayyab/tweety/wiki/FAQs#twitter-new-limits)，經過測試設置在 `10` 通常不會遇到速率限制，不推薦低於 `10`。如果Tweetcord控制的帳號和你平常在使用的帳號相同，請適當提高這個數值以避免速率限制。 | 秒 |
 | `tweets_updater_retry_delay` | 當Tweets Updater遇到異常時的重試間隔。 | 分鐘 |
 | `tasks_monitor_check_period` | 檢查每個任務是否正常運行的間隔，如果某個任務停止了，嘗試重新啟動。 | 分鐘 |
 | `tasks_monitor_log_period` | 將當前運行中的任務列表輸出到執行日誌的間隔。 | 小時 |
@@ -184,7 +184,7 @@ DATA_PATH=./data
 
 | 參數 | 描述 |
 |------|------|
-| `type` | 決定嵌入內容的類型，支援的類型有: `built_in` / `fx_twitter`。 |
+| `type` | 決定嵌入內容的類型，支援的類型有: `built_in` / `proxy`。 |
 
 ##### built_in:
 
@@ -194,12 +194,17 @@ DATA_PATH=./data
 | `video_link_button` | 當多媒體為影片時，決定是否使用一個連結按鈕做為提示。 |
 | `legacy_logo` | 設為`true`的話會使用推特以前的藍鳥logo做為footer而不是新的X標誌。 |
 
-##### fx_twitter:
+##### proxy:
 
 | 參數 | 描述 |
 |------|------|
-| `domain_name` | 傳送推文連結時的域名，可以是 `fxtwitter` 或 `fixupx`。 |
-| `original_url_button` | 在訊息最下方加入連結按鈕，導向原始推文連結，可以解決某些裝置點擊FxTwitter網址不會開啟APP的問題。 |
+| `service` | 傳送推文連結時的嵌入代理服務，可以是 [`fx`](https://github.com/FxEmbed/FxEmbed) 或 [`vx`](https://github.com/dylanpdx/BetterTwitFix)。 |
+| `domain_name` | 傳送推文連結時的域名，使用 `fx` 服務時可選 `fxtwitter` 或 `fixupx`，使用 `vx` 服務時可選 `vxtwitter` 或 `fixvx`。 |
+| `original_url_button` | 在訊息最下方加入連結按鈕，導向原始推文連結，可以解決某些裝置點擊嵌入服務代理網址不會開啟APP的問題。 |
+| `auto_translation` | 傳送推文連結時的自動翻譯設定，僅有使用 `fx` 時可以啟用（使用其他嵌入代理服務時會自動關閉），`enabled` 表示是否啟用自動翻譯，`default_language` 表示預設翻譯的語言，詳細請參考 [Translate Posts (X/Twitter)](https://github.com/FxEmbed/FxEmbed?tab=readme-ov-file#translate-posts-xtwitter)。 |
+
+> [!NOTE]
+> 如果需要支援更多嵌入代理服務，請透過 [Issue](https://github.com/Yuuzi261/Tweetcord/issues/new) 告訴我們。
 
 #### 訊息
 

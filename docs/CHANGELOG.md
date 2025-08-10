@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.6 (August 10, 2025)
+
+**✨Features:**
+- Renamed `fx_twitter` to `proxy` in the configuration and added support for multiple proxy services.
+- Added a global setting for translation language with FxTwitter (resolves issue [#57](https://github.com/Yuuzi261/Tweetcord/issues/57)).
+
+**♻️Refactor:** 
+- Conducted a major refactoring of the notification system (`AccountTracker`) to resolve critical performance bottlenecks under high load (issue [#59](https://github.com/Yuuzi261/Tweetcord/issues/59)). This includes centralizing database operations, using a producer-consumer pattern for database writes, and optimizing database connection handling.
+- Improved the task monitor to dynamically track tasks from a live cache, eliminating the need to restart the monitor when tasks are added or removed.
+- Improved and simplified the handling of configuration files.
+
+**🐛Fixes:**
+- Resolved a critical issue where calls to the `tweety-ns` library could perform synchronous, CPU-intensive operations, leading to `heartbeat blocked` errors. These calls are now safely isolated in a separate thread.
+- Added specific error handling for `KeyError` during tweet fetching, preventing task crashes due to temporary or unexpected API responses from Twitter.
+
 ## 0.5.5 (July 11, 2025)
 **🐛Fix:**
 - Fixed issue [#55](https://github.com/Yuuzi261/Tweetcord/issues/55)(Failed to re-add users with different casing due to a `UNIQUE constraint failed` error after deletion).
@@ -99,4 +114,4 @@
 
 ## 0.3.3 (October 7, 2023)  
 **♻️Refactor:**  
-- Migrated data storage from JSON files to an SQLite database for improved stability and performance. 
+- Migrated data storage from JSON files to an SQLite database for improved stability and performance.
