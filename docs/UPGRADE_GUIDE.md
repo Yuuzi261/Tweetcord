@@ -4,6 +4,15 @@
 > Cross-version updates are **NOT SUPPORTED**. For multi-version updates, please iterate through each version to update to the latest version. Before updating, please back up your data using the prefix command `download_data`.
 
 <details>
+   <summary><b>⬆️Click Here to Upgrade from 0.5.5 to 0.6</b></summary>
+
+This update does not involve any changes to the database structure, so there is no need to use an upgrade script. Simply pull the updated code to complete the update.
+
+Since the parameters in configs have been adjusted, please refer to `configs.example.yml` to update the configs accordingly.
+
+</details>
+
+<details>
    <summary><b>⬆️Click Here to Upgrade from 0.5.4 to 0.5.5</b></summary>
 
 Version 0.5.5 is a hotfix for version 0.5.4, mainly addressing issue [#55](https://github.com/Yuuzi261/Tweetcord/issues/55).
@@ -102,6 +111,15 @@ Because the database structure has been updated, you must use the following code
 
 > [!WARNING]
 > **不支援**跨版本更新，多版本更新請迭代更新至新版本。更新前請先透過前綴指令 `download_data` 進行資料備份。
+
+<details>
+   <summary><b>⬆️0.5.5升級到0.6請點這裡</b></summary>
+
+本次更新不涉及資料庫結構更新，因此不用使用升級腳本來完成升級，請直接拉取程式碼即可完成更新。
+
+因為configs的參數有進行調整，請參考`configs.example.yml`對configs進行更新。
+
+</details>
 
 <details>
    <summary><b>⬆️0.5.4升級到0.5.5請點這裡</b></summary>
