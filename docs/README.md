@@ -171,8 +171,8 @@ Custom activity name is in `f-string` format, currently supporting 1 special var
 | Parameter | Description |
 |-----------|-------------|
 | `auto_change_client` | If a new client is specified for an exisiting user, automatically use the new client to monitor the user. |
-| `auto_turn_off_notification` | If all notifications for a user are disabled, decide whether to unfollow the user. |
-| `auto_unfollow` | If all notifications for a user is disabled, decide whether to disable notification for the user (twitter side). |
+| `auto_turn_off_notification` | If all notifications for a user is disabled, decide whether to disable notification for the user (twitter side). |
+| `auto_unfollow` | If all notifications for a user are disabled, decide whether to unfollow the user. |
 
 #### Database
 

@@ -171,8 +171,8 @@ DATA_PATH=./data
 | 參數 | 描述 |
 |------|------|
 | `auto_change_client` | 如果為現有使用者指定新用戶端，則自動使用新用戶端對該使用者進行追蹤。 |
-| `auto_turn_off_notification` | 如果某個使用者的所有通知都已停用，決定是否取消追蹤該使用者。 |
-| `auto_unfollow` | 如果某個使用者的所有通知都已停用，決定是否停用該使用者的通知（Twitter端）。 |
+| `auto_turn_off_notification` | 如果某個使用者的所有通知都已停用，決定是否停用該使用者的通知（Twitter端）。 |
+| `auto_unfollow` | 如果某個使用者的所有通知都已停用，決定是否取消追蹤該使用者。 |
 
 #### 資料庫
 
