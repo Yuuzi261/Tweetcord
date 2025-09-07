@@ -1,5 +1,3 @@
-# https://docs.docker.com/build/ci/github-actions/manage-tags-labels/
-
 name: "Deploy docker image"
 
 on:
@@ -10,6 +8,13 @@ on:
       tag:
         description: 'Which tag to build'
         required: true
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: yuuzi261/tweetcord
+  IMAGE_DESCRIPTION: A Discord bot for Twitter notifications, using tweety-ns module.
+  LICENSES: MIT
+  PLATFORMS: linux/amd64,linux/arm64
 
 jobs:
   deploy:
@@ -25,39 +30,47 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Generate tag from release
-        id: meta_release
-        if: github.event_name == 'release'
+      - name: Extract Docker metadata
+        id: meta
         uses: docker/metadata-action@v5
         with:
-          images: |
-            ghcr.io/username/app
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=semver,pattern={{version}}
+            type=semver,pattern={{version}},enable=${{ github.event_name == 'release' }}
+            type=raw,value=${{ github.event.inputs.tag }},enable=${{ github.event_name == 'workflow_dispatch' }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.description=${{ env.IMAGE_DESCRIPTION }}
+            org.opencontainers.image.licenses=${{ env.LICENSES }}
+          annotations: |
+            org.opencontainers.image.description=${{ env.IMAGE_DESCRIPTION }}
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.licenses=${{ env.LICENSES }}
+        env:
+          DOCKER_METADATA_ANNOTATIONS_LEVELS: manifest,index
 
       - name: Login to GHCR
         uses: docker/login-action@v3
         with:
-          registry: ghcr.io
+          registry: ${{ env.REGISTRY }}
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
         with:
-          platforms: linux/amd64,linux/arm64
+          platforms: ${{ env.PLATFORMS }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
         with:
-          platforms: linux/amd64,linux/arm64
+          platforms: ${{ env.PLATFORMS }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v6.18.0
         with:
-          platforms: linux/amd64,linux/arm64
+          platforms: ${{ env.PLATFORMS }}
           push: true
-          tags: ${{ (github.event_name == 'release' && steps.meta_release.outputs.tags) || format('ghcr.io/yuuzi261/tweetcord:{0}', github.event.inputs.tag) }}
-          labels: ${{ steps.meta_release.outputs.labels }}
-          provenance: false
-          sbom: false
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          annotations: ${{ steps.meta.outputs.annotations }}
