@@ -53,10 +53,12 @@ jobs:
           platforms: linux/amd64,linux/arm64
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v6.18.0
         with:
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ (github.event_name == 'release' && steps.meta_release.outputs.tags) || format('ghcr.io/yuuzi261/tweetcord:{0}', github.event.inputs.tag) }}
           labels: ${{ steps.meta_release.outputs.labels }}
           provenance: false
           sbom: false
+          outputs: type=image,name=target
