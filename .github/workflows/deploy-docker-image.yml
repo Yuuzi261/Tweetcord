@@ -6,6 +6,11 @@ on:
   release:
     types: [published]
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Which tag to build'
+        required: false
+        default: 'main'
 
 jobs:
   deploy:
@@ -31,14 +36,6 @@ jobs:
           tags: |
             type=semver,pattern={{version}}
 
-      - name: Generate tag from latest git tag (manual trigger)
-        id: meta_manual
-        if: github.event_name == 'workflow_dispatch'
-        run: |
-          LATEST_TAG=$(git describe --tags --abbrev=0)
-          VERSION=${LATEST_TAG#v}
-          echo "tag=${VERSION}" >> $GITHUB_OUTPUT
-
       - name: Login to GHCR
         uses: docker/login-action@v3
         with:
@@ -56,5 +53,5 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: true
-          tags: ${{ (github.event_name == 'release' && steps.meta_release.outputs.tags) || format('ghcr.io/Yuuzi261/tweetcord:{0}', steps.meta_manual.outputs.tag) }}
+          tags: ${{ (github.event_name == 'release' && steps.meta_release.outputs.tags) || format('ghcr.io/yuuzi261/tweetcord:{0}', github.event.inputs.tag) }}
           labels: ${{ steps.meta_release.outputs.labels }}
