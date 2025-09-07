@@ -173,6 +173,4 @@ configs/configs.generated.yml
 *.tw_session
 
 # docker & fly.io
-Dockerfile
-.dockerignore
 fly.toml
