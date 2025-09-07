@@ -7,4 +7,3 @@ services:
     env_file: .env
     volumes:
       - ./data/:/bot/data
-      - ./config.yml:/bot/config.yml
