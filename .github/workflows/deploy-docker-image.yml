@@ -27,7 +27,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: |
-            ghcr.io/ghcr.io/${{ github.repository_owner }}/tweetcord
+            ghcr.io/ghcr.io/yuuzi261/tweetcord
           tags: |
             type=semver,pattern={{version}}
 
