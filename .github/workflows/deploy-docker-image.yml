@@ -21,18 +21,13 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Convert repository name to lowercase
-        id: repo_lowercase
-        run: |
-          echo "IMAGE_NAME_LC=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')" >> 
-
       - name: Generate tag from release
         id: meta_release
         if: github.event_name == 'release'
         uses: docker/metadata-action@v5
         with:
           images: |
-            ghcr.io/${{ steps.repo_lowercase.outputs.IMAGE_NAME_LC }}
+            ghcr.io/ghcr.io/${{ github.repository_owner }}/tweetcord
           tags: |
             type=semver,pattern={{version}}
 
