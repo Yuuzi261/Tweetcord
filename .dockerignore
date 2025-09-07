@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+*.pyo
+
+
+.git
+.github/
+
+
+/docs/
+/images/md/
+
+.dockerignore
+LICENSE
+.gitignore
