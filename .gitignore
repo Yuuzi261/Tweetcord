@@ -172,5 +172,5 @@ configs/configs.generated.yml
 # automatically generated files
 *.tw_session
 
-# docker & fly.io
+# fly.io
 fly.toml
