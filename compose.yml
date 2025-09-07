@@ -1,7 +1,7 @@
 services:
   Tweetcord:
     build: .
-    image: tweetcord:0.6
+    image: ghcr.io/yuuzi261/tweetcord:0.6
     container_name: tweetcord
     restart: unless-stopped
     env_file: .env
