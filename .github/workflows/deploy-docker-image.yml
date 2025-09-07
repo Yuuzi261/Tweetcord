@@ -27,7 +27,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        
+
       - name: Extract Docker metadata
         id: meta
         uses: docker/metadata-action@v5
@@ -71,4 +71,6 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          provenance: false
+          sbom: false  
           annotations: ${{ steps.meta.outputs.annotations }}
