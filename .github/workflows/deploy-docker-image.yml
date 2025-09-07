@@ -58,3 +58,5 @@ jobs:
           push: true
           tags: ${{ (github.event_name == 'release' && steps.meta_release.outputs.tags) || format('ghcr.io/yuuzi261/tweetcord:{0}', github.event.inputs.tag) }}
           labels: ${{ steps.meta_release.outputs.labels }}
+          provenance: false
+          sbom: false
