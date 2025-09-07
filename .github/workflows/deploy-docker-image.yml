@@ -27,7 +27,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: |
-            ghcr.io/ghcr.io/${{ github.repository_owner }}/tweetcord
+            ghcr.io/username/app
           tags: |
             type=semver,pattern={{version}}
 
@@ -56,5 +56,5 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: true
-          tags: ${{ (github.event_name == 'release' && steps.meta_release.outputs.tags) || format('ghcr.io/{0}/tweetcord:{1}', github.repository_owner, steps.meta_manual.outputs.tag) }}
+          tags: ${{ (github.event_name == 'release' && steps.meta_release.outputs.tags) || format('ghcr.io/Yuuzi261/tweetcord:{1}', steps.meta_manual.outputs.tag) }}
           labels: ${{ steps.meta_release.outputs.labels }}
