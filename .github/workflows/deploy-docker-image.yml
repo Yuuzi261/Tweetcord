@@ -61,4 +61,3 @@ jobs:
           labels: ${{ steps.meta_release.outputs.labels }}
           provenance: false
           sbom: false
-          outputs: type=image,name=target
