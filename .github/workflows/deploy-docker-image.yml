@@ -56,5 +56,5 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: true
-          tags: ${{ (github.event_name == 'release' && steps.meta_release.outputs.tags) || format('ghcr.io/Yuuzi261/tweetcord:{1}', steps.meta_manual.outputs.tag) }}
+          tags: ${{ (github.event_name == 'release' && steps.meta_release.outputs.tags) || format('ghcr.io/Yuuzi261/tweetcord:{0}', steps.meta_manual.outputs.tag) }}
           labels: ${{ steps.meta_release.outputs.labels }}
