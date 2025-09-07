@@ -1,0 +1,10 @@
+services:
+  Tweetcord:
+    build: .
+    image: tweetcord:0.6
+    container_name: tweetcord
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ./data/:/bot/data
+      - ./config.yml:/bot/config.yml
