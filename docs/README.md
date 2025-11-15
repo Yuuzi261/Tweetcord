@@ -137,7 +137,7 @@ You can retrieve your auth token from cookies, or you can explore other methods 
 
 ### 2. Configure the configs.yml file
 
-Create `configs.yml` and copy the contents of `configs.example.yml` into it, and edit it to your liking.
+Create `configs.yml` and copy the contents of `configs.example.yml` into it, and edit it to your liking. Please **DO NOT** delete or modify the contents of `configs.example.yml`. It serves as the default configuration and will be merged with your custom settings. If your custom configuration is incorrect or missing parameters, it will help revert to the default configuration and issue a warning.
 
 > [!IMPORTANT]
 > All configuration instructions here are synchronized with the latest version. For users of the old version, please refer to the old README.

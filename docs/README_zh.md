@@ -137,7 +137,7 @@ DATA_PATH=./data
 
 ### 2. 配置configs.yml文件
 
-建立 `configs.yml` 並將 `configs.example.yml` 的內容複製過去，並依照自己的喜好編輯它。
+建立 `configs.yml` 並將 `configs.example.yml` 的內容複製過去，並依照自己的喜好編輯它。請**不要**刪除或修改 `configs.example.yml` 的內容，它會作為預設的配置並和你設定配置合併，若你自定義的配置錯誤或缺少參數，它會協助回退到預設的配置並警告。
 
 > [!IMPORTANT]
 > 這裡的所有配置說明和最新版本同步，舊版用戶請參考舊版README。
