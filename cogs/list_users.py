@@ -10,6 +10,7 @@ from configs.load_configs import configs
 from src.permission import ADMINISTRATOR
 from src.utils import str_to_bool as stb
 from src.db_function.readonly_db import connect_readonly
+from src.discord_ui.fetch_tracked_channels import fetch_tracked_channels
 from src.discord_ui.pagination import Pagination
 
 CHECK = '\u2705'
@@ -82,12 +83,7 @@ class ListUsers(Cog_Extension):
 
     @list_users.autocomplete('channel')
     async def get_channel(self, itn: discord.Interaction, input_channel: str) -> list[app_commands.Choice[str]]:
-        async with connect_readonly(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
-            db.row_factory = aiosqlite.Row
-            async with db.cursor() as cursor:
-                await cursor.execute('SELECT id FROM channel WHERE server_id = ?', (str(itn.guild_id),))
-                channel_list = [itn.guild.get_channel(int(row['id'])) async for row in cursor]
-                return [app_commands.Choice(name=f'#{channel.name}', value=str(channel.id)) for channel in channel_list if input_channel.lower() in channel.name.lower()]
+        return await fetch_tracked_channels(itn, input_channel, include_unknown=True)
 
 
 async def setup(bot: commands.Bot):

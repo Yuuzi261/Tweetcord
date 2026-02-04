@@ -8,7 +8,7 @@ from src.utils import get_lock
 lock = get_lock()
 
 class CustomizeMsgModal(discord.ui.Modal, title='customize message'):
-    def __init__(self, user_id: str, username: str, channel: discord.TextChannel):
+    def __init__(self, user_id: str, username: str, channel: discord.TextChannel | discord.Thread):
         super().__init__(timeout=None)
         self.user_id = user_id
         self.channel = channel
