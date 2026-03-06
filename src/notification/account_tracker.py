@@ -155,7 +155,8 @@ class AccountTracker():
                 if EMBED_TYPE == 'proxy':
                     url = url.replace('twitter', DOMAIN_NAME)
                     if AUTO_TRANSLATION['enabled']:
-                        url += f"/{AUTO_TRANSLATION['default_language']}"
+                        lang = user['translate'] if user['translate'] is not None else AUTO_TRANSLATION['default_language']
+                        url += f"/{lang}"
                 
                 view, create_view = None, False
                 if bool(tweet.media) and tweet.media[0].type == 'video' and EMBED_TYPE == 'built_in' and configs['embed']['built_in']['video_link_button']:

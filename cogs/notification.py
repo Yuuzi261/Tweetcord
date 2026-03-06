@@ -255,6 +255,43 @@ class Notification(Cog_Extension):
                 else:
                     await itn.response.send_message(f'can\'t find notifier {username} in {channel.mention}!', ephemeral=True)
                     
+    @customize_group.command(name='translation')
+    async def customize_translation(self, itn: discord.Interaction, username: str, language: str = None):
+        """Set customized translation language for a tracked account.
+
+        Parameters
+        -----------
+        username: str
+            The username of the tracked account you want to set customized translation language.
+        language: str
+            The 2-letter ISO language code you want to translate to (e.g. en, ja). Leave it empty to use default.
+        """
+        if configs['embed']['type'] != 'proxy' or not configs['embed']['proxy']['auto_translation']['enabled']:
+            await itn.response.send_message('translation is not enabled in configs!', ephemeral=True)
+            return
+
+        await itn.response.defer(ephemeral=True)
+
+        async with aiosqlite.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
+            await db.execute('PRAGMA synchronous = OFF')
+            await db.execute('PRAGMA count_changes = OFF')
+
+            db.row_factory = aiosqlite.Row
+            async with db.cursor() as cursor:
+                await cursor.execute('SELECT id FROM user WHERE username = ? COLLATE NOCASE AND enabled = 1', (username,))
+                match_user = await cursor.fetchone()
+                if match_user is not None:
+                    async with lock:
+                        await cursor.execute('UPDATE user SET translate = ? WHERE id = ?', (language, match_user['id']))
+                        await db.commit()
+                    
+                    if language is None:
+                        await itn.followup.send(f'successfully restored {username}\'s translation setting to default ({configs["embed"]["proxy"]["auto_translation"]["default_language"]})', ephemeral=True)
+                    else:
+                        await itn.followup.send(f'successfully set {username}\'s translation language to {language}!', ephemeral=True)
+                else:
+                    await itn.followup.send(f'can\'t find twitter user {username}!', ephemeral=True)
+
     @r_notifier.autocomplete('channel_id')
     async def get_channels_for_r_notifier(self, itn: discord.Interaction, input_channel: str) -> list[app_commands.Choice[str]]:        
         return await fetch_tracked_channels(itn, input_channel, include_unknown=True)
@@ -274,6 +311,15 @@ class Notification(Cog_Extension):
             db.row_factory = aiosqlite.Row
             async with db.cursor() as cursor:
                 await cursor.execute('SELECT user.username FROM user JOIN notification ON user.id = notification.user_id WHERE notification.channel_id = ? AND notification.enabled = 1', (selected_channel_id,))
+                users = [row['username'] async for row in cursor]
+                return [app_commands.Choice(name=row, value=row) for row in users if username.lower() in row.lower()]
+
+    @customize_translation.autocomplete('username')
+    async def get_all_enabled_users(self, itn: discord.Interaction, username: str) -> list[app_commands.Choice[str]]:
+        async with connect_readonly(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
+            db.row_factory = aiosqlite.Row
+            async with db.cursor() as cursor:
+                await cursor.execute('SELECT username FROM user WHERE enabled = 1')
                 users = [row['username'] async for row in cursor]
                 return [app_commands.Choice(name=row, value=row) for row in users if username.lower() in row.lower()]
 
