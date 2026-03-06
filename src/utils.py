@@ -1,5 +1,6 @@
 import asyncio
 import os
+import re
 
 from datetime import datetime, timezone
 
@@ -34,3 +35,28 @@ def get_accounts():
 
 def get_utcnow():
     return datetime.now(timezone.utc).isoformat(timespec='seconds').replace('T', ' ')
+
+
+# Checking only the format may still allow passage through languages ​​that do not exist
+def validate_and_normalize_language(lang_code: str) -> str | None:
+    if not lang_code or not isinstance(lang_code, str):
+        return None
+
+    normalized = lang_code.strip().lower().replace('_', '-')
+
+    normalization_map = {
+        'zh': 'zh-cn',
+        'cn': 'zh-cn',
+        'tw': 'zh-tw',
+        'jp': 'ja',
+        'kr': 'ko',
+        'ua': 'uk'
+    }
+    normalized = normalization_map.get(normalized, normalized)
+
+    pattern = r"^[a-z]{2,3}(-[a-z0-9]{2,4})?$"
+    
+    if re.match(pattern, normalized):
+        return normalized
+
+    return None

@@ -13,7 +13,7 @@ from src.log import setup_logger
 from src.notification.account_tracker import AccountTracker
 from src.permission import ADMINISTRATOR
 from src.db_function.readonly_db import connect_readonly
-from src.utils import get_accounts, get_lock, get_utcnow
+from src.utils import get_accounts, get_lock, get_utcnow, validate_and_normalize_language
 from src.presence_updater import update_presence
 
 log = setup_logger(__name__)
@@ -264,10 +264,15 @@ class Notification(Cog_Extension):
         username: str
             The username of the tracked account you want to set customized translation language.
         language: str
-            The 2-letter ISO language code you want to translate to (e.g. en, ja). Leave it empty to use default.
+            The language code you want to translate to (e.g. en, ja). Leave it empty to use default.
         """
         if configs['embed']['type'] != 'proxy' or not configs['embed']['proxy']['auto_translation']['enabled']:
             await itn.response.send_message('translation is not enabled in configs!', ephemeral=True)
+            return
+        
+        lang_code = validate_and_normalize_language(language)
+        if language and lang_code is None:
+            await itn.response.send_message('invalid language code!', ephemeral=True)
             return
 
         await itn.response.defer(ephemeral=True)
@@ -282,13 +287,13 @@ class Notification(Cog_Extension):
                 match_user = await cursor.fetchone()
                 if match_user is not None:
                     async with lock:
-                        await cursor.execute('UPDATE user SET translate = ? WHERE id = ?', (language, match_user['id']))
+                        await cursor.execute('UPDATE user SET translate = ? WHERE id = ?', (lang_code, match_user['id']))
                         await db.commit()
                     
                     if language is None:
                         await itn.followup.send(f'successfully restored {username}\'s translation setting to default ({configs["embed"]["proxy"]["auto_translation"]["default_language"]})', ephemeral=True)
                     else:
-                        await itn.followup.send(f'successfully set {username}\'s translation language to {language}!', ephemeral=True)
+                        await itn.followup.send(f'successfully set {username}\'s translation language to {lang_code}!', ephemeral=True)
                 else:
                     await itn.followup.send(f'can\'t find twitter user {username} in this server!', ephemeral=True)
 
