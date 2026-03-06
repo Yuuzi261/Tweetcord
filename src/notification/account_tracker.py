@@ -16,6 +16,7 @@ from src.notification.get_tweets import get_tweets
 from src.notification.utils import is_match_media_type, is_match_type, replace_emoji
 from src.utils import get_accounts, get_lock, get_utcnow
 from src.db_function.readonly_db import connect_readonly
+from src.db_function.init_db import init_lastest_tweet_on_startup
 
 EMBED_TYPE: str = configs['embed']['type']
 SERVICE: str = configs['embed']['proxy']['service']
@@ -40,6 +41,9 @@ class AccountTracker():
         bot.loop.create_task(self.setup_tasks())
 
     async def setup_tasks(self):
+        if configs['init_lastest_tweet_on_startup']:
+            await init_lastest_tweet_on_startup(self.db_path)
+
         # Start the core database workers first
         self.bot.loop.create_task(self.timestamp_updater()).set_name('TimestampUpdater')
         self.bot.loop.create_task(self.db_writer()).set_name('DBWriter')

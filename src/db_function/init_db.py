@@ -3,6 +3,7 @@ import os
 import aiosqlite
 
 from src.log import setup_logger
+from src.utils import get_utcnow
 
 log = setup_logger(__name__)
 
@@ -20,3 +21,11 @@ async def init_db():
         await db.commit()
 
     log.info('database file not found, a blank database file has been created')
+
+
+async def init_lastest_tweet_on_startup(db_path: str):
+    async with aiosqlite.connect(db_path) as db:
+        await db.execute('UPDATE user SET lastest_tweet = ?', (get_utcnow(),))
+        await db.commit()
+
+    log.info('all lastest_tweet timestamps have been updated to current time')
