@@ -278,7 +278,7 @@ class Notification(Cog_Extension):
 
             db.row_factory = aiosqlite.Row
             async with db.cursor() as cursor:
-                await cursor.execute('SELECT id FROM user WHERE username = ? COLLATE NOCASE AND enabled = 1', (username,))
+                await cursor.execute('SELECT user.id FROM user JOIN notification ON user.id = notification.user_id JOIN channel ON notification.channel_id = channel.id WHERE username = ? COLLATE NOCASE AND channel.server_id = ? AND notification.enabled = 1', (username, str(itn.guild_id)))
                 match_user = await cursor.fetchone()
                 if match_user is not None:
                     async with lock:
@@ -290,7 +290,7 @@ class Notification(Cog_Extension):
                     else:
                         await itn.followup.send(f'successfully set {username}\'s translation language to {language}!', ephemeral=True)
                 else:
-                    await itn.followup.send(f'can\'t find twitter user {username}!', ephemeral=True)
+                    await itn.followup.send(f'can\'t find twitter user {username} in this server!', ephemeral=True)
 
     @r_notifier.autocomplete('channel_id')
     async def get_channels_for_r_notifier(self, itn: discord.Interaction, input_channel: str) -> list[app_commands.Choice[str]]:        
@@ -315,11 +315,11 @@ class Notification(Cog_Extension):
                 return [app_commands.Choice(name=row, value=row) for row in users if username.lower() in row.lower()]
 
     @customize_translation.autocomplete('username')
-    async def get_all_enabled_users(self, itn: discord.Interaction, username: str) -> list[app_commands.Choice[str]]:
+    async def get_guild_enabled_users(self, itn: discord.Interaction, username: str) -> list[app_commands.Choice[str]]:
         async with connect_readonly(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
             db.row_factory = aiosqlite.Row
             async with db.cursor() as cursor:
-                await cursor.execute('SELECT username FROM user WHERE enabled = 1')
+                await cursor.execute('SELECT user.username FROM user JOIN notification ON user.id = notification.user_id JOIN channel ON notification.channel_id = channel.id WHERE channel.server_id = ? AND notification.enabled = 1', (str(itn.guild_id),))
                 users = [row['username'] async for row in cursor]
                 return [app_commands.Choice(name=row, value=row) for row in users if username.lower() in row.lower()]
 
