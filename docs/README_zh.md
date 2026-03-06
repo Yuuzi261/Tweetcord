@@ -44,7 +44,7 @@ Tweetcord是一個Discord機器人，它使用[tweety-ns](https://github.com/mah
 | 參數 | 類型 | 描述 |
 |------|------|-----|
 | `username` | str | 你想要開啟通知的Twitter用戶的用戶名 |
-| `channel` | discord.TextChannel | 機器人發送通知的頻道 |
+| `channel` | discord.TextChannel \| discord.Thread | 機器人發送通知的頻道 |
 | `mention` | discord.Role | 通知時提及的身分組 |
 | `type` | str | 設定是否啟用轉推和引用的通知 |
 | `media_type` | str | 設定是否啟用包含多媒體的通知，或僅啟用包含多媒體的通知 |
