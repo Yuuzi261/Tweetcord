@@ -4,6 +4,23 @@
 > Cross-version updates are **NOT SUPPORTED**. For multi-version updates, please iterate through each version to update to the latest version. Before updating, please back up your data using the prefix command `download_data`.
 
 <details>
+   <summary><b>⬆️Click Here to Upgrade from 0.6 to 0.6.1</b></summary>
+
+This update involves upgrading the versions of dependency packages, please make sure to update:
+
+```bash
+pip install --upgrade -r requirements.txt
+```
+
+Since the parameters in configs have been adjusted, please refer to `configs.example.yml` to update the configs (added `init_lastest_tweet_on_startup` setting).
+
+Since this update involves a database update, please create a Python file named `upgrade.py` in the project's root directory, paste the following code, and run the script: `python upgrade.py`, or simply start the bot, which will check for the update script and automatically update. Please remove this script after the upgrade is complete to avoid repeated updates.
+
+[![Gist Card](https://github-readme-stats-yuuzi261s-projects.vercel.app/api/gist?id=28a0ff2839df9dd07fbe486680177664)](https://gist.github.com/Yuuzi261/28a0ff2839df9dd07fbe486680177664)
+
+</details>
+
+<details>
    <summary><b>⬆️Click Here to Upgrade from 0.5.5 to 0.6</b></summary>
 
 This update does not involve any changes to the database structure, so there is no need to use an upgrade script. Simply pull the updated code to complete the update.
@@ -111,6 +128,23 @@ Because the database structure has been updated, you must use the following code
 
 > [!WARNING]
 > **不支援**跨版本更新，多版本更新請迭代更新至新版本。更新前請先透過前綴指令 `download_data` 進行資料備份。
+
+<details>
+   <summary><b>⬆️0.6升級到0.6.1請點這裡</b></summary>
+
+本次更新對依賴套件的版本進行了升級，請務必進行更新：
+
+```bash
+pip install --upgrade -r requirements.txt
+```
+
+因為configs的參數有進行調整，請參考 `configs.example.yml` 對configs進行更新（新增 `init_lastest_tweet_on_startup` 設定）。
+
+因本次更新涉及資料庫更新，請在專案根目錄創建一個python檔案並命名為 `upgrade.py`，貼上下面的程式碼並執行該腳本：`python upgrade.py`，或是直接啟動機器人，會檢查是否存在更新腳本並自動更新。升級結束後請移除這個腳本避免重複更新。
+
+[![Gist Card](https://github-readme-stats-yuuzi261s-projects.vercel.app/api/gist?id=28a0ff2839df9dd07fbe486680177664)](https://gist.github.com/Yuuzi261/28a0ff2839df9dd07fbe486680177664)
+
+</details>
 
 <details>
    <summary><b>⬆️0.5.5升級到0.6請點這裡</b></summary>
