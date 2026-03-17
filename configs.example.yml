@@ -15,7 +15,7 @@ auto_turn_off_notification: true
 auto_unfollow: true
 
 auto_repair_mismatched_clients: false
-init_lastest_tweet_on_startup: false
+init_latest_tweet_on_startup: false
 
 embed:
   type: 'built_in'

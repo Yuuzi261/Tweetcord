@@ -16,7 +16,7 @@ from src.notification.get_tweets import get_tweets
 from src.notification.utils import is_match_media_type, is_match_type, replace_emoji
 from src.utils import get_accounts, get_lock, get_utcnow
 from src.db_function.readonly_db import connect_readonly
-from src.db_function.init_db import init_lastest_tweet_on_startup
+from src.db_function.init_db import init_latest_tweet_on_startup
 
 EMBED_TYPE: str = configs['embed']['type']
 SERVICE: str = configs['embed']['proxy']['service']
@@ -41,8 +41,8 @@ class AccountTracker():
         bot.loop.create_task(self.setup_tasks())
 
     async def setup_tasks(self):
-        if configs['init_lastest_tweet_on_startup']:
-            await init_lastest_tweet_on_startup(self.db_path)
+        if configs['init_latest_tweet_on_startup']:
+            await init_latest_tweet_on_startup(self.db_path)
 
         # Start the core database workers first
         self.bot.loop.create_task(self.timestamp_updater()).set_name('TimestampUpdater')
@@ -84,7 +84,7 @@ class AccountTracker():
         while True:
             try:
                 async with connect_readonly(self.db_path) as db:
-                    async with db.execute('SELECT username, client_used, lastest_tweet FROM user WHERE enabled = 1') as cursor:
+                    async with db.execute('SELECT username, client_used, latest_tweet FROM user WHERE enabled = 1') as cursor:
                         new_timestamps = {}
                         async for row in cursor:
                             new_timestamps[(row[0], row[1])] = row[2]
@@ -107,7 +107,7 @@ class AccountTracker():
                 username, new_timestamp = await self.db_write_queue.get()
                 async with lock:
                     async with aiosqlite.connect(self.db_path, timeout=10) as db:
-                        await db.execute('UPDATE user SET lastest_tweet = ? WHERE username = ?', (str(new_timestamp), username))
+                        await db.execute('UPDATE user SET latest_tweet = ? WHERE username = ?', (str(new_timestamp), username))
                         await db.commit()
                 self.db_write_queue.task_done()
             except Exception as e:
@@ -123,11 +123,11 @@ class AccountTracker():
                 log.warning(f"no timestamp for {username}, task will terminate.")
                 break
 
-            lastest_tweets = await get_tweets(self.tweets[client_used], username, last_tweet_at)
-            if not lastest_tweets:
+            latest_tweets = await get_tweets(self.tweets[client_used], username, last_tweet_at)
+            if not latest_tweets:
                 continue
             
-            newest_timestamp = lastest_tweets[-1].created_on
+            newest_timestamp = latest_tweets[-1].created_on
             # Update local cache immediately to prevent re-notification
             self.latest_tweet_timestamps[(username, client_used)] = str(newest_timestamp)
             # Queue the database update
@@ -159,7 +159,7 @@ class AccountTracker():
             if not user:
                 continue
 
-            for tweet in lastest_tweets:
+            for tweet in latest_tweets:
                 log.info(f'find a new tweet from {username}')
                 
                 view, create_view = None, False
