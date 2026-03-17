@@ -142,9 +142,9 @@ class Notification(Cog_Extension):
         if match_user is None or match_user['enabled'] == 0:
             await self.account_tracker.addTask(new_user.username, account_used)
             await update_presence(self.bot)
-            await itn.followup.send(f'successfully add notifier of {new_user.username} under {account_used}!', ephemeral=True)
+            await itn.followup.send(f'successfully added notifier for new user {new_user.username} to {account_used}!', ephemeral=True)
         else:
-            await itn.followup.send(f'{match_user["username"]} already exists under {match_user["client_used"]}. Using the same account to deliver notifications', ephemeral=True)
+            await itn.followup.send(f'successfully added/updated notifier for {match_user["username"]} (via {match_user["client_used"]})', ephemeral=True)
 
     @remove_group.command(name='notifier')
     @app_commands.rename(channel_id='channel')
