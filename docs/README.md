@@ -179,6 +179,7 @@ Custom activity name is in `f-string` format, currently supporting 1 special var
 | Parameter | Description |
 |-----------|-------------|
 | `auto_repair_mismatched_clients` | Whether the system should automatically use the first client defined in the current environment variables to replace invalid `client_used` values in the database when they are not defined in the environment variables. |
+| `init_lastest_tweet_on_startup` | At startup, set every user’s last tweet time to the current time. Enabling this option prevents the bot from sending notifications that were missed while it was offline (avoiding a flood of messages when it comes back online). |
 
 #### Embed Style
 
