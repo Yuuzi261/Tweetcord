@@ -99,6 +99,15 @@ The notification will be sent in this format when a tweet is posted (here is a r
 https://twitter.com/nyachodayo/status/1869000108697960952
 ```
 
+👉 `/customize translation` `username` | `language`
+
+| Parameter | Type | Description |
+| --------- | ---- | ----------- |
+| `username` | str | The username of the tracked account you want to set customized translation language |
+| `language` | str | The language code you want to translate to (e.g. en, ja), leave it empty to use default. |
+
+Note: You need to set `type` to `proxy` in the `embed` settings and set `enabled` to `true` for `auto_translation` to use this (currently only the `fx` embedding proxy service supports this setting).
+
 </details>
 
 ## 📥Installation

@@ -75,7 +75,7 @@ Tweetcord是一個Discord機器人，它使用[tweety-ns](https://github.com/mah
 | 參數 | 類型 | 描述 |
 |------|------|-----|
 | `channel` | str | 機器人發送通知的頻道 |
-| `username` | str | 你想要設定自定義通知訊息的Twitter用戶的用戶名 |
+| `username` | str | 欲設定自定義通知訊息的Twitter用戶的用戶名 |
 | `default` | bool | 是否要還原至預設的設定 _(預設是false)_ |
 
 自定義通知訊息為 `f-string` 格式，目前支援4種特別的變數可供使用，將在下面說明：
@@ -98,6 +98,15 @@ Tweetcord是一個Discord機器人，它使用[tweety-ns](https://github.com/mah
 @Ping_SubTweet ﾅﾁｮﾈｺ just tweeted here: 
 https://twitter.com/nyachodayo/status/1869000108697960952
 ```
+
+👉 `/customize translation` `username` | `language`
+
+| 參數 | 類型 | 描述 |
+|------|------|-----|
+| `username` | str | 欲設定自定義翻譯語言的Twitter用戶的用戶名 |
+| `language` | str | 欲翻譯成的語言代碼（例如 en、ja），留空則使用預設值 |
+
+【注意】：你需要在 `embed` 設定中將 `type` 設定為 `proxy`，並將 `auto_translation` 的 `enabled` 設為 `true` 才能使用（目前只有 `fx` 這個嵌入代理服務可以支持這個設定）。
 
 </details>
 
@@ -201,7 +210,7 @@ DATA_PATH=./data
 |------|------|
 | `service` | 傳送推文連結時的嵌入代理服務，可以是 [`fx`](https://github.com/FxEmbed/FxEmbed) 或 [`vx`](https://github.com/dylanpdx/BetterTwitFix)。 |
 | `domain_name` | 傳送推文連結時的域名，使用 `fx` 服務時可選 `fxtwitter` 或 `fixupx`，使用 `vx` 服務時可選 `vxtwitter` 或 `fixvx`。 |
-| `original_url_button` | 在訊息最下方加入連結按鈕，導向原始推文連結，可以解決某些裝置點擊嵌入服務代理網址不會開啟APP的問題。 |
+| `original_url_button` | 在訊息最下方加入連結按鈕，導向原始推文連結，可以解決某些裝置點擊嵌入代理服務網址不會開啟APP的問題。 |
 | `auto_translation` | 傳送推文連結時的自動翻譯設定，僅有使用 `fx` 時可以啟用（使用其他嵌入代理服務時會自動關閉），`enabled` 表示是否啟用自動翻譯，`default_language` 表示預設翻譯的語言，詳細請參考 [Translate Posts (X/Twitter)](https://github.com/FxEmbed/FxEmbed?tab=readme-ov-file#translate-posts-xtwitter)。 |
 
 > [!NOTE]
