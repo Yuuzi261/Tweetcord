@@ -139,10 +139,16 @@ class AccountTracker():
                 async with connect_readonly(self.db_path) as db:
                     db.row_factory = aiosqlite.Row
                     async with db.cursor() as cursor:
-                        await cursor.execute('SELECT * FROM user WHERE username = ?', (username,))
+                        await cursor.execute('SELECT id FROM user WHERE username = ?', (username,))
                         user = await cursor.fetchone()
                         if user:
-                            await cursor.execute('SELECT * FROM notification WHERE user_id = ? AND enabled = 1', (user['id'],))
+                            await cursor.execute('''
+                                SELECT n.*, suc.translate AS server_translate
+                                FROM notification n
+                                JOIN channel c ON n.channel_id = c.id
+                                LEFT JOIN server_user_config suc ON c.server_id = suc.server_id AND n.user_id = suc.user_id
+                                WHERE n.user_id = ? AND n.enabled = 1
+                            ''', (user['id'],))
                             notifications = await cursor.fetchall()
             except aiosqlite.OperationalError as e:
                 if "database is locked" in str(e):
@@ -155,12 +161,6 @@ class AccountTracker():
 
             for tweet in lastest_tweets:
                 log.info(f'find a new tweet from {username}')
-                url = tweet.url
-                if EMBED_TYPE == 'proxy':
-                    url = url.replace('twitter', DOMAIN_NAME)
-                    if AUTO_TRANSLATION['enabled']:
-                        lang = user['translate'] if user['translate'] is not None else AUTO_TRANSLATION['default_language']
-                        url += f"/{lang}"
                 
                 view, create_view = None, False
                 if bool(tweet.media) and tweet.media[0].type == 'video' and EMBED_TYPE == 'built_in' and configs['embed']['built_in']['video_link_button']:
@@ -178,6 +178,13 @@ class AccountTracker():
                     channel = self.bot.get_channel(int(data['channel_id']))
                     if channel is not None and is_match_type(tweet, data['enable_type']) and is_match_media_type(tweet, data['enable_media_type']):
                         try:
+                            url = tweet.url
+                            if EMBED_TYPE == 'proxy':
+                                url = url.replace('twitter', DOMAIN_NAME)
+                                if AUTO_TRANSLATION['enabled']:
+                                    lang = data['server_translate'] if data['server_translate'] is not None else AUTO_TRANSLATION['default_language']
+                                    url += f"/{lang}"
+
                             mention = f"{channel.guild.get_role(int(data['role_id'])).mention} " if data['role_id'] else ''
                             author, action = tweet.author.name, get_action(tweet)
                             

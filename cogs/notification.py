@@ -287,7 +287,7 @@ class Notification(Cog_Extension):
                 match_user = await cursor.fetchone()
                 if match_user is not None:
                     async with lock:
-                        await cursor.execute('UPDATE user SET translate = ? WHERE id = ?', (lang_code, match_user['id']))
+                        await cursor.execute('INSERT OR REPLACE INTO server_user_config (server_id, user_id, translate) VALUES (?, ?, ?)', (str(itn.guild_id), match_user['id'], lang_code))
                         await db.commit()
                     
                     if language is None:
