@@ -99,6 +99,15 @@ The notification will be sent in this format when a tweet is posted (here is a r
 https://twitter.com/nyachodayo/status/1869000108697960952
 ```
 
+👉 `/customize translation` `username` | `language`
+
+| Parameter | Type | Description |
+| --------- | ---- | ----------- |
+| `username` | str | The username of the tracked account you want to set customized translation language |
+| `language` | str | The language code you want to translate to (e.g. en, ja), leave it empty to use default. |
+
+Note: You need to set `type` to `proxy` in the `embed` settings and set `enabled` to `true` for `auto_translation` to use this (currently only the `fx` embedding proxy service supports this setting).
+
 </details>
 
 ## 📥Installation
@@ -179,6 +188,7 @@ Custom activity name is in `f-string` format, currently supporting 1 special var
 | Parameter | Description |
 |-----------|-------------|
 | `auto_repair_mismatched_clients` | Whether the system should automatically use the first client defined in the current environment variables to replace invalid `client_used` values in the database when they are not defined in the environment variables. |
+| `init_latest_tweet_on_startup` | At startup, set every user’s last tweet time to the current time. Enabling this option prevents the bot from sending notifications that were missed while it was offline (avoiding a flood of messages when it comes back online). |
 
 #### Embed Style
 

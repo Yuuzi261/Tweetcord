@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.6.1 (March 18, 2026)
+
+**✨Features:**
+- Support setting threads as channels for bot notifications.
+- Added support for per-user translation language settings.
+- Added `init_latest_tweet_on_startup` config to prevent notification spamming after downtime. If `true`, it sets all users' last post time to the current time on startup.
+
+**♻️Refactor:** 
+- Fixed typo in `lastest_tweet` (now `latest_tweet`).
+
+**🎉New Contributors:**
+- @Kestrer made their first contribution in [#73](https://github.com/Yuuzi261/Tweetcord/pull/73)
+
 ## 0.6 (August 10, 2025)
 
 **✨Features:**

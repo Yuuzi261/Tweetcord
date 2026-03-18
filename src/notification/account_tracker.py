@@ -16,6 +16,7 @@ from src.notification.get_tweets import get_tweets
 from src.notification.utils import is_match_media_type, is_match_type, replace_emoji
 from src.utils import get_accounts, get_lock, get_utcnow
 from src.db_function.readonly_db import connect_readonly
+from src.db_function.init_db import init_latest_tweet_on_startup
 
 EMBED_TYPE: str = configs['embed']['type']
 SERVICE: str = configs['embed']['proxy']['service']
@@ -40,6 +41,9 @@ class AccountTracker():
         bot.loop.create_task(self.setup_tasks())
 
     async def setup_tasks(self):
+        if configs['init_latest_tweet_on_startup']:
+            await init_latest_tweet_on_startup(self.db_path)
+
         # Start the core database workers first
         self.bot.loop.create_task(self.timestamp_updater()).set_name('TimestampUpdater')
         self.bot.loop.create_task(self.db_writer()).set_name('DBWriter')
@@ -80,7 +84,7 @@ class AccountTracker():
         while True:
             try:
                 async with connect_readonly(self.db_path) as db:
-                    async with db.execute('SELECT username, client_used, lastest_tweet FROM user WHERE enabled = 1') as cursor:
+                    async with db.execute('SELECT username, client_used, latest_tweet FROM user WHERE enabled = 1') as cursor:
                         new_timestamps = {}
                         async for row in cursor:
                             new_timestamps[(row[0], row[1])] = row[2]
@@ -103,7 +107,7 @@ class AccountTracker():
                 username, new_timestamp = await self.db_write_queue.get()
                 async with lock:
                     async with aiosqlite.connect(self.db_path, timeout=10) as db:
-                        await db.execute('UPDATE user SET lastest_tweet = ? WHERE username = ?', (str(new_timestamp), username))
+                        await db.execute('UPDATE user SET latest_tweet = ? WHERE username = ?', (str(new_timestamp), username))
                         await db.commit()
                 self.db_write_queue.task_done()
             except Exception as e:
@@ -119,11 +123,11 @@ class AccountTracker():
                 log.warning(f"no timestamp for {username}, task will terminate.")
                 break
 
-            lastest_tweets = await get_tweets(self.tweets[client_used], username, last_tweet_at)
-            if not lastest_tweets:
+            latest_tweets = await get_tweets(self.tweets[client_used], username, last_tweet_at)
+            if not latest_tweets:
                 continue
             
-            newest_timestamp = lastest_tweets[-1].created_on
+            newest_timestamp = latest_tweets[-1].created_on
             # Update local cache immediately to prevent re-notification
             self.latest_tweet_timestamps[(username, client_used)] = str(newest_timestamp)
             # Queue the database update
@@ -135,10 +139,19 @@ class AccountTracker():
                 async with connect_readonly(self.db_path) as db:
                     db.row_factory = aiosqlite.Row
                     async with db.cursor() as cursor:
-                        await cursor.execute('SELECT * FROM user WHERE username = ?', (username,))
+                        await cursor.execute('SELECT id FROM user WHERE username = ?', (username,))
                         user = await cursor.fetchone()
                         if user:
-                            await cursor.execute('SELECT * FROM notification WHERE user_id = ? AND enabled = 1', (user['id'],))
+                            if EMBED_TYPE == 'proxy' and AUTO_TRANSLATION['enabled']:
+                                await cursor.execute('''
+                                    SELECT n.*, suc.translate AS server_translate
+                                    FROM notification n
+                                    JOIN channel c ON n.channel_id = c.id
+                                    LEFT JOIN server_user_config suc ON c.server_id = suc.server_id AND n.user_id = suc.user_id
+                                    WHERE n.user_id = ? AND n.enabled = 1
+                                ''', (user['id'],))
+                            else:
+                                await cursor.execute('SELECT * FROM notification WHERE user_id = ? AND enabled = 1', (user['id'],))
                             notifications = await cursor.fetchall()
             except aiosqlite.OperationalError as e:
                 if "database is locked" in str(e):
@@ -149,13 +162,8 @@ class AccountTracker():
             if not user:
                 continue
 
-            for tweet in lastest_tweets:
+            for tweet in latest_tweets:
                 log.info(f'find a new tweet from {username}')
-                url = tweet.url
-                if EMBED_TYPE == 'proxy':
-                    url = url.replace('twitter', DOMAIN_NAME)
-                    if AUTO_TRANSLATION['enabled']:
-                        url += f"/{AUTO_TRANSLATION['default_language']}"
                 
                 view, create_view = None, False
                 if bool(tweet.media) and tweet.media[0].type == 'video' and EMBED_TYPE == 'built_in' and configs['embed']['built_in']['video_link_button']:
@@ -173,6 +181,13 @@ class AccountTracker():
                     channel = self.bot.get_channel(int(data['channel_id']))
                     if channel is not None and is_match_type(tweet, data['enable_type']) and is_match_media_type(tweet, data['enable_media_type']):
                         try:
+                            url = tweet.url
+                            if EMBED_TYPE == 'proxy':
+                                url = url.replace('twitter', DOMAIN_NAME)
+                                if AUTO_TRANSLATION['enabled']:
+                                    lang = data['server_translate'] if data['server_translate'] is not None else AUTO_TRANSLATION['default_language']
+                                    url += f"/{lang}"
+
                             mention = f"{channel.guild.get_role(int(data['role_id'])).mention} " if data['role_id'] else ''
                             author, action = tweet.author.name, get_action(tweet)
                             
