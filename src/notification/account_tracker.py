@@ -142,13 +142,16 @@ class AccountTracker():
                         await cursor.execute('SELECT id FROM user WHERE username = ?', (username,))
                         user = await cursor.fetchone()
                         if user:
-                            await cursor.execute('''
-                                SELECT n.*, suc.translate AS server_translate
-                                FROM notification n
-                                JOIN channel c ON n.channel_id = c.id
-                                LEFT JOIN server_user_config suc ON c.server_id = suc.server_id AND n.user_id = suc.user_id
-                                WHERE n.user_id = ? AND n.enabled = 1
-                            ''', (user['id'],))
+                            if EMBED_TYPE == 'proxy' and AUTO_TRANSLATION['enabled']:
+                                await cursor.execute('''
+                                    SELECT n.*, suc.translate AS server_translate
+                                    FROM notification n
+                                    JOIN channel c ON n.channel_id = c.id
+                                    LEFT JOIN server_user_config suc ON c.server_id = suc.server_id AND n.user_id = suc.user_id
+                                    WHERE n.user_id = ? AND n.enabled = 1
+                                ''', (user['id'],))
+                            else:
+                                await cursor.execute('SELECT * FROM notification WHERE user_id = ? AND enabled = 1', (user['id'],))
                             notifications = await cursor.fetchall()
             except aiosqlite.OperationalError as e:
                 if "database is locked" in str(e):
