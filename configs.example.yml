@@ -1,3 +1,4 @@
+locale: 'en'
 prefix: '.'
 activity_name: '{count} accounts'
 activity_type: 'watching'

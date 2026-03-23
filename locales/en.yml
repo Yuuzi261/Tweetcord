@@ -1,0 +1,55 @@
+notification:
+  add:
+    user_not_found: 'user {username} not found'
+    client_conflict: 'user {username} already exists under {account_used}. No changes due to `auto_change_client` setting'
+    failed: 'failed to add notifier, please try again later.'
+    success_new: 'successfully added notifier for new user {username} to {account_used}!'
+    success_update: 'successfully added/updated notifier for {username} (via {client_used})'
+  remove:
+    success: 'successfully remove notifier of {username}!'
+    not_found: "can't find notifier {username} in <#{channel_id}>!"
+    channel_not_found: "can't find channel <#{channel_id}> in {guild_name}!"
+    failed: 'failed to remove notifier, please try again later.'
+  customize:
+    message:
+      channel_not_found: "can't find channel {channel_id}!"
+      notifier_not_found: "can't find notifier {username} in {channel_mention}!"
+      success_default: 'successfully restored to default settings'
+    translation:
+      not_enabled: 'translation is not enabled in configs!'
+      invalid_lang: 'invalid language code!'
+      success_default: "successfully restored {username}'s translation setting to default ({default_lang})"
+      success_set: "successfully set {username}'s translation language to {lang_code}!"
+      user_not_found: "can't find twitter user {username} in this server!"
+
+sync:
+  background: 'synchronizing in the background'
+
+list:
+  title: 'Notification List in __***{guild_name}***__{page_counter}'
+  title_page_counter: '  Page [{page}/{total}]'
+  no_users: '***No users are registered on this server.***'
+  footer: 'Page {page} of {total}'
+
+modal:
+  customize_message:
+    title: 'customize message'
+    label_full: 'customizing message for @{username} in #{channel_name}'
+    label_short: 'customizing message for @{username}'
+    label_fallback: 'customizing message'
+    placeholder: 'enter customized message'
+    success: 'setting successful'
+
+display:
+  action:
+    tweeted: 'tweeted'
+    retweeted: 'retweeted'
+    quoted: 'quoted'
+  tweet_type:
+    photos: '{count} photos'
+    media: 'a {media_type}'
+    status: 'a status'
+  media_type_map:
+    photo: 'photo'
+    video: 'video'
+    gif: 'gif'

@@ -3,21 +3,22 @@ import os
 import aiosqlite
 import discord
 
+from src.i18n import t
 from src.utils import get_lock
 
 lock = get_lock()
 
-class CustomizeMsgModal(discord.ui.Modal, title='customize message'):
+class CustomizeMsgModal(discord.ui.Modal):
     def __init__(self, user_id: str, username: str, channel: discord.TextChannel | discord.Thread):
-        super().__init__(timeout=None)
+        super().__init__(title=t('modal.customize_message.title'), timeout=None)
         self.user_id = user_id
         self.channel = channel
-        label = f'customizing message for @{username} in #{channel.name}'
+        label = t('modal.customize_message.label_full', username=username, channel_name=channel.name)
         if len(label) > 45:
-            label = f'customizing message for @{username}'
+            label = t('modal.customize_message.label_short', username=username)
         if len(label) > 45:
-            label = 'customizing message'
-        self.customized_msg = discord.ui.TextInput(label=label, placeholder='enter customized message', max_length=200, style=discord.TextStyle.long, required=True)
+            label = t('modal.customize_message.label_fallback')
+        self.customized_msg = discord.ui.TextInput(label=label, placeholder=t('modal.customize_message.placeholder'), max_length=200, style=discord.TextStyle.long, required=True)
         self.add_item(self.customized_msg)
 
     async def on_submit(self, itn: discord.Interaction):
@@ -29,4 +30,4 @@ class CustomizeMsgModal(discord.ui.Modal, title='customize message'):
                 await db.execute('UPDATE notification SET customized_msg = ? WHERE user_id = ? AND channel_id = ?', (self.customized_msg.value, self.user_id, str(self.channel.id)))
                 await db.commit()
 
-        await itn.followup.send('setting successful', ephemeral=True)
+        await itn.followup.send(t('modal.customize_message.success'), ephemeral=True)

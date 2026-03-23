@@ -6,6 +6,7 @@ from discord import app_commands
 from discord.ext import commands
 
 from core.classes import Cog_Extension
+from src.i18n import t
 from src.log import setup_logger
 from src.sync_db.sync_db import sync_db
 from src.db_function.readonly_db import connect_readonly
@@ -29,7 +30,7 @@ class Sync(Cog_Extension):
 
         self.bot.loop.create_task(sync_db(follow_list))
 
-        await itn.followup.send('synchronizing in the background', ephemeral=True)
+        await itn.followup.send(t('sync.background'), ephemeral=True)
 
 
 async def setup(bot: commands.Bot):

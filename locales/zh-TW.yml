@@ -1,0 +1,55 @@
+notification:
+  add:
+    user_not_found: '找不到使用者 {username}'
+    client_conflict: '使用者 {username} 已存在於 {account_used} 下，由於 `auto_change_client` 設定，未進行任何變更'
+    failed: '新增通知失敗，請稍後再試。'
+    success_new: '成功為新使用者 {username} 新增通知至 {account_used}！'
+    success_update: '成功新增／更新 {username} 的通知（使用 {client_used}）'
+  remove:
+    success: '成功移除 {username} 的通知！'
+    not_found: '在 <#{channel_id}> 中找不到 {username} 的通知！'
+    channel_not_found: '在 {guild_name} 中找不到頻道 <#{channel_id}>！'
+    failed: '移除通知失敗，請稍後再試。'
+  customize:
+    message:
+      channel_not_found: '找不到頻道 {channel_id}！'
+      notifier_not_found: '在 {channel_mention} 中找不到 {username} 的通知！'
+      success_default: '已成功還原為預設設定'
+    translation:
+      not_enabled: '設定檔中未啟用翻譯功能！'
+      invalid_lang: '無效的語言代碼！'
+      success_default: '已成功將 {username} 的翻譯設定還原為預設（{default_lang}）'
+      success_set: '已成功將 {username} 的翻譯語言設定為 {lang_code}！'
+      user_not_found: '在此伺服器中找不到 Twitter 使用者 {username}！'
+
+sync:
+  background: '正在背景執行同步'
+
+list:
+  title: '__***{guild_name}***__ 的通知清單{page_counter}'
+  title_page_counter: '　第 {page}/{total} 頁'
+  no_users: '***此伺服器尚未註冊任何使用者。***'
+  footer: '第 {page} 頁，共 {total} 頁'
+
+modal:
+  customize_message:
+    title: '自訂訊息'
+    label_full: '為 @{username} 在 #{channel_name} 中自訂訊息'
+    label_short: '為 @{username} 自訂訊息'
+    label_fallback: '自訂訊息'
+    placeholder: '請輸入自訂訊息'
+    success: '設定成功'
+
+display:
+  action:
+    tweeted: '發推了'
+    retweeted: '轉推了'
+    quoted: '引用了'
+  tweet_type:
+    photos: '{count} 張圖片'
+    media: '一則{media_type}'
+    status: '一則推文'
+  media_type_map:
+    photo: '照片'
+    video: '影片'
+    gif: 'GIF'
