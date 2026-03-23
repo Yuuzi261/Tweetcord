@@ -30,6 +30,11 @@ list:
   title_page_counter: '  Page [{page}/{total}]'
   no_users: '***No users are registered on this server.***'
   footer: 'Page {page} of {total}'
+  label_retweet: 'retweet'
+  label_quote: 'quote'
+  label_text: 'text'
+  label_media: 'media'
+  label_using: 'using'
 
 modal:
   customize_message:

@@ -30,6 +30,11 @@ list:
   title_page_counter: '　第 {page}/{total} 頁'
   no_users: '***此伺服器尚未註冊任何使用者。***'
   footer: '第 {page} 頁，共 {total} 頁'
+  label_retweet: '轉推'
+  label_quote: '引用'
+  label_text: '文字'
+  label_media: '媒體'
+  label_using: '使用'
 
 modal:
   customize_message:
