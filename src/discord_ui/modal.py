@@ -9,16 +9,31 @@ from src.utils import get_lock
 lock = get_lock()
 
 class CustomizeSettingsModal(ui.Modal, title='customize settings'):
-    def __init__(self, user_id: str, username: str, channel: discord.TextChannel | discord.Thread, enable_type: str, media_type: str, customized_msg: str = None):
+    def __init__(self, user_id: str, username: str, channel: discord.TextChannel | discord.Thread, enable_type: str, media_type: str, role_id: str = None, customized_msg: str = None):
         super().__init__(timeout=None)
         self.user_id = user_id
         self.username = username
         self.channel = channel
         self.title = f'Editing @{username} in #{channel.name}'
-        if len(self.title) > 30:
+        if len(self.title) > 25:
             self.title = f'@{username} in #{channel.name}'
-        if len(self.title) > 30:
+        if len(self.title) > 25:
             self.title = f'@{username}'
+
+        # Role Select (Mention) - RoleSelect
+        default_roles = []
+        if role_id:
+            default_roles.append(discord.SelectDefaultValue(id=int(role_id), type=discord.SelectDefaultValueType.role))
+
+        self.role_select = ui.RoleSelect(
+            placeholder='Select a role to mention (leave empty to clear).',
+            min_values=0,
+            max_values=1,
+            default_values=default_roles,
+            required=False
+        )
+        self.role_label = ui.Label(text='Mention setting:', component=self.role_select)
+        self.add_item(self.role_label)
 
         # Enable Type (Retweet, Quote) - CheckboxGroup
         self.enable_type_checkbox = ui.CheckboxGroup(
@@ -67,10 +82,13 @@ class CustomizeSettingsModal(ui.Modal, title='customize settings'):
         new_media_type = self.media_type_radio.value
         customized_msg = self.customized_msg.value if self.customized_msg.value else None
 
+        selected_role = self.role_select.values[0] if self.role_select.values else None
+        role_id = str(selected_role.id) if selected_role else ''
+
         async with aiosqlite.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
             db.row_factory = aiosqlite.Row
             async with lock:
-                await db.execute('UPDATE notification SET enable_type = ?, enable_media_type = ?, customized_msg = ? WHERE user_id = ? AND channel_id = ?', (new_enable_type, new_media_type, customized_msg, self.user_id, str(self.channel.id)))
+                await db.execute('UPDATE notification SET enable_type = ?, enable_media_type = ?, customized_msg = ?, role_id = ? WHERE user_id = ? AND channel_id = ?', (new_enable_type, new_media_type, customized_msg, role_id, self.user_id, str(self.channel.id)))
                 await db.commit()
 
         await itn.followup.send('setting successful', ephemeral=True)

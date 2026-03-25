@@ -234,10 +234,10 @@ class Notification(Cog_Extension):
         async with connect_readonly(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
             db.row_factory = aiosqlite.Row
             async with db.cursor() as cursor:
-                await cursor.execute('SELECT user_id, enable_type, enable_media_type, customized_msg FROM notification JOIN user ON user.id = notification.user_id WHERE username = ? COLLATE NOCASE AND channel_id = ? AND notification.enabled = 1', (username, str(channel.id)))
+                await cursor.execute('SELECT user_id, role_id, enable_type, enable_media_type, customized_msg FROM notification JOIN user ON user.id = notification.user_id WHERE username = ? COLLATE NOCASE AND channel_id = ? AND notification.enabled = 1', (username, str(channel.id)))
                 match_notifier = await cursor.fetchone()
                 if match_notifier is not None:
-                    modal = CustomizeSettingsModal(match_notifier['user_id'], username, channel, match_notifier['enable_type'], match_notifier['enable_media_type'], match_notifier['customized_msg'])
+                    modal = CustomizeSettingsModal(match_notifier['user_id'], username, channel, match_notifier['enable_type'], match_notifier['enable_media_type'], match_notifier['role_id'], match_notifier['customized_msg'])
                     await itn.response.send_modal(modal)
                 else:
                     await itn.response.send_message(f'can\'t find notifier {username} in {channel.mention}!', ephemeral=True)
