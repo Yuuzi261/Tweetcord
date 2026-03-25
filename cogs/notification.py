@@ -8,7 +8,7 @@ from tweety import Twitter
 from configs.load_configs import configs
 from core.classes import Cog_Extension
 from src.discord_ui.fetch_tracked_channels import fetch_tracked_channels
-from src.discord_ui.modal import CustomizeMsgModal
+from src.discord_ui.modal import CustomizeSettingsModal
 from src.log import setup_logger
 from src.notification.account_tracker import AccountTracker
 from src.permission import ADMINISTRATOR
@@ -214,47 +214,34 @@ class Notification(Cog_Extension):
                     await itn.followup.send(f"failed to remove notifier, please try again later.", ephemeral=True)
                     await db.rollback()
 
-    @customize_group.command(name='message')
+    @customize_group.command(name='settings')
     @app_commands.rename(channel_id='channel')
-    async def customize_message(self, itn: discord.Interaction, channel_id: str, username: str, default: bool = False):
-        """Set customized messages for notification.
+    async def customize_settings(self, itn: discord.Interaction, channel_id: str, username: str):
+        """Set customized settings for notification (enable/disable retweets, quotes, media & customized message).
 
         Parameters
         -----------
         channel_id: discord.TextChannel | discord.Thread
             The channel id which set to delivers notifications.
         username: str
-            The username of the twitter user you want to set customized message.
-        default: bool
-            Whether to use default setting.
+            The username of the twitter user you want to set customized settings.
         """
         channel = itn.guild.get_channel_or_thread(int(channel_id))
         if channel is None:
             await itn.response.send_message(f'can\'t find channel {channel_id}!', ephemeral=True)
             return
-        
-        async with aiosqlite.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
-            await db.execute('PRAGMA synchronous = OFF')
-            await db.execute('PRAGMA count_changes = OFF')
 
+        async with connect_readonly(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
             db.row_factory = aiosqlite.Row
             async with db.cursor() as cursor:
-
-                await cursor.execute('SELECT user_id FROM notification, user WHERE username = ? COLLATE NOCASE AND channel_id = ? AND user_id = id AND notification.enabled = 1', (username, str(channel.id)))
+                await cursor.execute('SELECT user_id, enable_type, enable_media_type, customized_msg FROM notification JOIN user ON user.id = notification.user_id WHERE username = ? COLLATE NOCASE AND channel_id = ? AND notification.enabled = 1', (username, str(channel.id)))
                 match_notifier = await cursor.fetchone()
                 if match_notifier is not None:
-                    if default:
-                        await itn.response.defer(ephemeral=True)
-                        async with lock:
-                            await cursor.execute('UPDATE notification SET customized_msg = ? WHERE user_id = ? AND channel_id = ?', (None, match_notifier['user_id'], str(channel.id)))
-                            await db.commit()
-                        await itn.followup.send('successfully restored to default settings', ephemeral=True)
-                    else:
-                        modal = CustomizeMsgModal(match_notifier['user_id'], username, channel)
-                        await itn.response.send_modal(modal)
+                    modal = CustomizeSettingsModal(match_notifier['user_id'], username, channel, match_notifier['enable_type'], match_notifier['enable_media_type'], match_notifier['customized_msg'])
+                    await itn.response.send_modal(modal)
                 else:
                     await itn.response.send_message(f'can\'t find notifier {username} in {channel.mention}!', ephemeral=True)
-                    
+
     @customize_group.command(name='translation')
     async def customize_translation(self, itn: discord.Interaction, username: str, language: str = None):
         """Set customized translation language for a tracked account.
@@ -301,12 +288,12 @@ class Notification(Cog_Extension):
     async def get_channels_for_r_notifier(self, itn: discord.Interaction, input_channel: str) -> list[app_commands.Choice[str]]:        
         return await fetch_tracked_channels(itn, input_channel, include_unknown=True)
 
-    @customize_message.autocomplete('channel_id')
+    @customize_settings.autocomplete('channel_id')
     async def get_channels_for_customize_message(self, itn: discord.Interaction, input_channel: str) -> list[app_commands.Choice[str]]:
         return await fetch_tracked_channels(itn, input_channel, include_unknown=False)
 
     @r_notifier.autocomplete('username')
-    @customize_message.autocomplete('username')
+    @customize_settings.autocomplete('username')
     async def get_enabled_users(self, itn: discord.Interaction, username: str) -> list[app_commands.Choice[str]]:
         selected_channel_id = itn.data['options'][0]['options'][0]['value']
         if selected_channel_id is None:
