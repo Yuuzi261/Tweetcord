@@ -70,13 +70,14 @@ Tweetcord是一個Discord機器人，它使用[tweety-ns](https://github.com/mah
 
 - 將新Twitter帳戶的通知與資料庫同步。如果你更改了bot使用的Twitter帳戶，請使用此指令
 
-👉 `/customize message` `channel` `username` | `default`
+👉 `/customize settings` `channel` `username`
 
 | 參數 | 類型 | 描述 |
 |------|------|-----|
 | `channel` | str | 機器人發送通知的頻道 |
-| `username` | str | 欲設定自定義通知訊息的Twitter用戶的用戶名 |
-| `default` | bool | 是否要還原至預設的設定 _(預設是false)_ |
+| `username` | str | 欲自定義設定的Twitter用戶的用戶名 |
+
+送出指令後將會出現設定面板，目前支持修改 `mention`、`type`、`media_type` 以及自訂義通知訊息，`account_used` 仍僅能使用 `/add notifier` 指令進行修改。
 
 自定義通知訊息為 `f-string` 格式，目前支援4種特別的變數可供使用，將在下面說明：
 
@@ -120,7 +121,7 @@ pip install -r requirements.txt
 
 ## ⚡使用
 
-**📢本教學適用於0.5或更高版本，舊版設定請參考各個歷史版本的README。**
+**📢本教學適用於0.6或更高版本，舊版設定請參考各個歷史版本的README。**
 
 ### [⬆️查看歷史版本升級指南](./UPGRADE_GUIDE.md)
 

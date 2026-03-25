@@ -70,13 +70,14 @@ Tweetcord is a Discord bot that leverages the [tweety-ns module](https://github.
 
 - Sync the notification of new Twitter account with database.  If you change the twitter account used by bot, please use this command
 
-👉 `/customize message` `channel` `username` | `default`
+👉 `/customize settings` `channel` `username`
 
 | Parameter | Type | Description |
 | --------- | ---- | ----------- |
 | `channel` | str | The channel id which set to delivers notifications |
-| `username` | str | The username of the twitter user you want to set customized message |
-| `default` | bool | Whether to use default setting _(default is false)_ |
+| `username` | str | The username of the twitter user you want to set customized settings |
+
+After sending the command, a settings panel will appear. Currently, you can modify `mention`, `type`, `media_type`, and custom notification messages. Note that `account_used` can still only be modified using the `/add notifier` command.
 
 Custom notification messages are in `f-string format`, currently supporting 4 special variables for use, which will be explained below.
 
@@ -120,7 +121,7 @@ pip install -r requirements.txt
 
 ## ⚡Usage
 
-**📢This tutorial applies to version 0.5 or higher. For settings of older versions, please refer to the README files of the respective historical versions.**
+**📢This tutorial applies to version 0.6 or higher. For settings of older versions, please refer to the README files of the respective historical versions.**
 
 ### [⬆️View Version Upgrade Guides](./UPGRADE_GUIDE.md)
 
