@@ -328,6 +328,9 @@ class Notification(Cog_Extension):
                 users = [row['username'] async for row in cursor]
                 return [app_commands.Choice(name=row, value=row) for row in users if username.lower() in row.lower()]
 
+    async def cog_unload(self):
+        await self.account_tracker.close()
+
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Notification(bot))

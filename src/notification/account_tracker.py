@@ -2,6 +2,7 @@ import asyncio
 import os
 import sys
 import re
+import aiohttp
 from datetime import datetime, timezone, timedelta
 
 import aiosqlite
@@ -32,6 +33,7 @@ class AccountTracker():
         self.accounts_data = get_accounts()
         self.db_path = os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')
         self.tweets = {account_name: [] for account_name in self.accounts_data.keys()}
+        self.session = None
         # Responsible for processing queries and writing timestamps
         self.db_write_queue = asyncio.Queue()
         self.latest_tweet_timestamps = {}
@@ -41,6 +43,7 @@ class AccountTracker():
         bot.loop.create_task(self.setup_tasks())
 
     async def setup_tasks(self):
+        self.session = aiohttp.ClientSession()
         if configs['init_latest_tweet_on_startup']:
             await init_latest_tweet_on_startup(self.db_path)
 
@@ -165,6 +168,9 @@ class AccountTracker():
             for tweet in latest_tweets:
                 log.info(f'find a new tweet from {username}')
                 
+                if EMBED_TYPE == 'built_in':
+                    embeds = await gen_embed(tweet, self.session)
+                    
                 view, create_view = None, False
                 if bool(tweet.media) and tweet.media[0].type == 'video' and EMBED_TYPE == 'built_in' and configs['embed']['built_in']['video_link_button']:
                     create_view = True
@@ -174,7 +180,7 @@ class AccountTracker():
                     button_label, button_url = 'View Original', tweet.url
 
                 if create_view:
-                    view = discord.ui.View()
+                    view = discord.ui.View(timeout=5)
                     view.add_item(discord.ui.Button(label=button_label, style=discord.ButtonStyle.link, url=button_url))
                 
                 for data in notifications:
@@ -200,7 +206,7 @@ class AccountTracker():
                             else:
                                 footer = 'twitter.png' if configs['embed']['built_in']['legacy_logo'] else 'x.png'
                                 file = discord.File(f'images/{footer}', filename='footer.png')
-                                await channel.send(msg, file=file, embeds=await gen_embed(tweet), view=view)
+                                await channel.send(msg, file=file, embeds=embeds, view=view)
 
                         except Exception as e:
                             if not isinstance(e, discord.errors.Forbidden):
@@ -289,3 +295,9 @@ class AccountTracker():
                 task.cancel()
                 log.info(f'task {username} has been cancelled')
                 break
+
+    async def close(self):
+        """Closes the persistent session."""
+        if self.session:
+            await self.session.close()
+            log.info("account tracker session closed")
