@@ -19,14 +19,19 @@ async def gen_embed(tweet: Tweet, session: aiohttp.ClientSession = None) -> list
         return [embed]
     elif len(tweet.media) > 1:
         if configs['embed']['built_in']['fx_image']:
-            if session:
-                async with session.get(re.sub(r'twitter', r'fxtwitter', tweet.url)) as response:
+            target_url = re.sub(r'twitter', r'fxtwitter', tweet.url)
+
+            async def get_fx_image(s: aiohttp.ClientSession):
+                async with s.get(target_url) as response:
                     raw = await response.text()
+                return BeautifulSoup(raw, 'html.parser').find('meta', property='og:image')['content']
+
+            if session:
+                fximage_url = await get_fx_image(session)
             else:
                 async with aiohttp.ClientSession() as session_internal:
-                    async with session_internal.get(re.sub(r'twitter', r'fxtwitter', tweet.url)) as response:
-                        raw = await response.text()
-            fximage_url = BeautifulSoup(raw, 'html.parser').find('meta', property='og:image')['content']
+                    fximage_url = await get_fx_image(session_internal)
+
             embed.set_image(url=fximage_url)
             return [embed]
         else:
