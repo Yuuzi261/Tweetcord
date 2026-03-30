@@ -25,17 +25,25 @@ class Notification(Cog_Extension):
         super().__init__(bot)
         self.account_tracker = AccountTracker(bot)
 
-    add_group = app_commands.Group(name='add', description='Add something', default_permissions=ADMINISTRATOR)
-    remove_group = app_commands.Group(name='remove', description='Remove something', default_permissions=ADMINISTRATOR)
-    customize_group = app_commands.Group(name='customize', description='Customize something', default_permissions=ADMINISTRATOR)
+    add_group = app_commands.Group(name='add', description=t('commands.add.description'), default_permissions=ADMINISTRATOR)
+    remove_group = app_commands.Group(name='remove', description=t('commands.remove.description'), default_permissions=ADMINISTRATOR)
+    customize_group = app_commands.Group(name='customize', description=t('commands.customize.description'), default_permissions=ADMINISTRATOR)
 
-    @add_group.command(name='notifier')
+    @add_group.command(name='notifier', description=t('commands.add.notifier.description'))
     @app_commands.choices(
-        enable_type=[app_commands.Choice(name='All (default)', value='11'), app_commands.Choice(name='Tweet & Retweet Only', value='10'), app_commands.Choice(name='Tweet & Quote Only', value='01'), app_commands.Choice(name='Tweet Only', value='00')],
-        media_type=[app_commands.Choice(name='All (default)', value='11'), app_commands.Choice(name='No Media', value='10'), app_commands.Choice(name='Media Only', value='01')],
+        enable_type=[app_commands.Choice(name=t('commands.add.notifier.choices.enable_type.all_default'), value='11'), app_commands.Choice(name=t('commands.add.notifier.choices.enable_type.retweet_only'), value='10'), app_commands.Choice(name=t('commands.add.notifier.choices.enable_type.quote_only'), value='01'), app_commands.Choice(name=t('commands.add.notifier.choices.enable_type.tweet_only'), value='00')],
+        media_type=[app_commands.Choice(name=t('commands.add.notifier.choices.media_type.all_default'), value='11'), app_commands.Choice(name=t('commands.add.notifier.choices.media_type.no_media'), value='10'), app_commands.Choice(name=t('commands.add.notifier.choices.media_type.media_only'), value='01')],
         account_used=[app_commands.Choice(name=account_name, value=account_name) for account_name, _ in get_accounts().items()]
     )
     @app_commands.rename(enable_type='type')
+    @app_commands.describe(
+        username=t('commands.add.notifier.params.username'),
+        channel=t('commands.add.notifier.params.channel'),
+        mention=t('commands.add.notifier.params.mention'),
+        enable_type=t('commands.add.notifier.params.type'),
+        media_type=t('commands.add.notifier.params.media_type'),
+        account_used=t('commands.add.notifier.params.account_used'),
+    )
     async def notifier(self, itn: discord.Interaction, username: str, channel: discord.TextChannel | discord.Thread, mention: discord.Role = None, enable_type: str = '11', media_type: str = '11', account_used: str = list(get_accounts().keys())[0]):
         """Add a twitter user to specific channel on your server.
 
@@ -147,8 +155,12 @@ class Notification(Cog_Extension):
         else:
             await itn.followup.send(t('notification.add.success_update', username=match_user['username'], client_used=match_user['client_used']), ephemeral=True)
 
-    @remove_group.command(name='notifier')
+    @remove_group.command(name='notifier', description=t('commands.remove.notifier.description'))
     @app_commands.rename(channel_id='channel')
+    @app_commands.describe(
+        channel_id=t('commands.remove.notifier.params.channel'),
+        username=t('commands.remove.notifier.params.username'),
+    )
     async def r_notifier(self, itn: discord.Interaction, channel_id: str, username: str):
         """Remove a notifier on your server.
 
@@ -216,8 +228,13 @@ class Notification(Cog_Extension):
                     await itn.followup.send(t('notification.remove.failed'), ephemeral=True)
                     await db.rollback()
 
-    @customize_group.command(name='message')
+    @customize_group.command(name='message', description=t('commands.customize.message.description'))
     @app_commands.rename(channel_id='channel')
+    @app_commands.describe(
+        channel_id=t('commands.customize.message.params.channel'),
+        username=t('commands.customize.message.params.username'),
+        default=t('commands.customize.message.params.default'),
+    )
     async def customize_message(self, itn: discord.Interaction, channel_id: str, username: str, default: bool = False):
         """Set customized messages for notification.
 
@@ -257,7 +274,11 @@ class Notification(Cog_Extension):
                 else:
                     await itn.response.send_message(t('notification.customize.message.notifier_not_found', username=username, channel_mention=channel.mention), ephemeral=True)
                     
-    @customize_group.command(name='translation')
+    @customize_group.command(name='translation', description=t('commands.customize.translation.description'))
+    @app_commands.describe(
+        username=t('commands.customize.translation.params.username'),
+        language=t('commands.customize.translation.params.language'),
+    )
     async def customize_translation(self, itn: discord.Interaction, username: str, language: str = None):
         """Set customized translation language for a tracked account.
 

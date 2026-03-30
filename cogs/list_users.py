@@ -26,9 +26,13 @@ def symbol(value: str) -> str:
 
 class ListUsers(Cog_Extension):
 
-    list_group = app_commands.Group(name='list', description='List something', default_permissions=ADMINISTRATOR)
+    list_group = app_commands.Group(name='list', description=t('commands.list.description'), default_permissions=ADMINISTRATOR)
 
-    @list_group.command(name='users')
+    @list_group.command(name='users', description=t('commands.list.users.description'))
+    @app_commands.describe(
+        account=t('commands.list.users.params.account'),
+        channel=t('commands.list.users.params.channel'),
+    )
     async def list_users(self, itn: discord.Interaction, account: str = '', channel: str = '') -> None:
         """Lists all exists notifier on your server.
 

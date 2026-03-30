@@ -58,3 +58,55 @@ display:
     photo: 'photo'
     video: 'video'
     gif: 'gif'
+
+commands:
+  add:
+    description: 'Add something'
+    notifier:
+      description: 'Add a twitter user to specific channel on your server.'
+      params:
+        username: 'The username of the twitter user you want to turn on notifications for.'
+        channel: 'The channel to which the bot delivers notifications.'
+        mention: 'The role to mention when notifying.'
+        type: 'Whether to enable notifications for retweets & quotes.'
+        media_type: 'Whether to enable notifications for All Tweets, Tweets with Media, or Tweets without Media Only.'
+        account_used: 'The account used to deliver notifications.'
+      choices:
+        enable_type:
+          all_default: 'All (default)'
+          retweet_only: 'Tweet & Retweet Only'
+          quote_only: 'Tweet & Quote Only'
+          tweet_only: 'Tweet Only'
+        media_type:
+          all_default: 'All (default)'
+          no_media: 'No Media'
+          media_only: 'Media Only'
+  remove:
+    description: 'Remove something'
+    notifier:
+      description: 'Remove a notifier on your server.'
+      params:
+        channel: 'The channel id which is set to delivers notifications.'
+        username: 'The username of the twitter user you want to turn off notifications for.'
+  customize:
+    description: 'Customize something'
+    message:
+      description: 'Set customized messages for notification.'
+      params:
+        channel: 'The channel id which set to delivers notifications.'
+        username: 'The username of the twitter user you want to set customized message.'
+        default: 'Whether to use default setting.'
+    translation:
+      description: 'Set customized translation language for a tracked account.'
+      params:
+        username: 'The username of the tracked account you want to set customized translation language.'
+        language: 'The language code you want to translate to (e.g. en, ja). Leave it empty to use default.'
+  list:
+    description: 'List something'
+    users:
+      description: 'Lists all exists notifier on your server.'
+      params:
+        account: 'The client name that you want to filter.'
+        channel: 'The channel name that you want to filter.'
+  sync:
+    description: 'To sync the notification of new Twitter account with database, use this command.'
