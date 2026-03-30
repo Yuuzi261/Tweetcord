@@ -11,8 +11,15 @@ _translations: dict[str, Any] = {}
 
 
 def _load_yaml(path: str) -> dict:
-    with open(path, 'r', encoding='utf-8') as f:
-        return yaml.safe_load(f) or {}
+    try:
+        with open(path, 'r', encoding='utf-8') as f:
+            return yaml.safe_load(f) or {}
+    except FileNotFoundError:
+        log.error(f"i18n: locale file not found: {path}")
+        return {}
+    except yaml.YAMLError as e:
+        log.error(f"i18n: YAML parse error in {path}: {e}")
+        return {}
 
 
 def _deep_merge(base: dict, override: dict) -> dict:
@@ -37,7 +44,7 @@ def init_i18n(lang: str = 'en') -> None:
             lang_data = _load_yaml(lang_path)
             _translations = _deep_merge(_translations, lang_data)
         else:
-            log.warning(f"i18n: locale file '{lang}.yml' not found, falling back to 'en'")
+            log.info(f"i18n: locale file '{lang}.yml' not found, falling back to 'en'")
 
 
 def t(key: str, **kwargs) -> str:
@@ -47,10 +54,10 @@ def t(key: str, **kwargs) -> str:
         if isinstance(node, dict) and part in node:
             node = node[part]
         else:
-            log.warning(f"i18n: missing translation key '{key}'")
+            log.error(f"i18n: missing translation key '{key}'")
             return key
     if not isinstance(node, str):
-        log.warning(f"i18n: key '{key}' does not resolve to a string")
+        log.error(f"i18n: key '{key}' does not resolve to a string")
         return key
     if kwargs:
         try:

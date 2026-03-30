@@ -2,10 +2,51 @@
 import sys
 sys.path.insert(0, '.')
 
+import yaml
+
 from src.i18n import init_i18n, t
+
+
+def _collect_keys(data: dict, prefix: str = '') -> set:
+    keys = set()
+    for k, v in data.items():
+        full_key = f'{prefix}.{k}' if prefix else k
+        if isinstance(v, dict):
+            keys |= _collect_keys(v, full_key)
+        else:
+            keys.add(full_key)
+    return keys
+
+
+def check_locale_parity():
+    with open('locales/en.yml', 'r', encoding='utf-8') as f:
+        en = yaml.safe_load(f) or {}
+    with open('locales/zh-TW.yml', 'r', encoding='utf-8') as f:
+        zh = yaml.safe_load(f) or {}
+
+    en_keys = _collect_keys(en)
+    zh_keys = _collect_keys(zh)
+
+    missing_in_zh = en_keys - zh_keys
+    missing_in_en = zh_keys - en_keys
+
+    if missing_in_zh:
+        print(f'[FAIL] Keys in en.yml but missing in zh-TW.yml:')
+        for k in sorted(missing_in_zh):
+            print(f'  - {k}')
+    if missing_in_en:
+        print(f'[FAIL] Keys in zh-TW.yml but missing in en.yml:')
+        for k in sorted(missing_in_en):
+            print(f'  - {k}')
+    if not missing_in_zh and not missing_in_en:
+        print('[OK] en.yml and zh-TW.yml have identical keys')
 
 def section(title):
     print(f'\n=== {title} ===')
+
+# --- Locale parity ---
+section('Locale key parity check')
+check_locale_parity()
 
 # --- English ---
 section('English (en)')

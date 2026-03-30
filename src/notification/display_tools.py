@@ -49,6 +49,7 @@ def get_tweet_type(tweet: Tweet) -> str:
     elif len(media) == 1:
         map_key = f'display.media_type_map.{media[0].type}'
         translated = t(map_key)
+        # t() returns the key itself when the key is missing; use raw type name as fallback
         media_type = media[0].type if translated == map_key else translated
         return t('display.tweet_type.media', media_type=media_type)
     else:
