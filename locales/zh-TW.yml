@@ -1,0 +1,115 @@
+notification:
+  add:
+    user_not_found: '找不到使用者 {username}'
+    client_conflict: '使用者 {username} 已存在於 {account_used} 下，由於 `auto_change_client` 設定，未進行任何變更'
+    failed: '新增通知失敗，請稍後再試。'
+    success_new: '成功為新使用者 {username} 新增通知至 {account_used}！'
+    success_update: '成功新增／更新 {username} 的通知（使用 {client_used}）'
+  remove:
+    success: '成功移除 {username} 的通知！'
+    not_found: '在 <#{channel_id}> 中找不到 {username} 的通知！'
+    channel_not_found: '在 {guild_name} 中找不到頻道 <#{channel_id}>！'
+    failed: '移除通知失敗，請稍後再試。'
+  customize:
+    message:
+      channel_not_found: '找不到頻道 {channel_id}！'
+      notifier_not_found: '在 {channel_mention} 中找不到 {username} 的通知！'
+      success_default: '已成功還原為預設設定'
+    translation:
+      not_enabled: '設定檔中未啟用翻譯功能！'
+      invalid_lang: '無效的語言代碼！'
+      success_default: '已成功將 {username} 的翻譯設定還原為預設（{default_lang}）'
+      success_set: '已成功將 {username} 的翻譯語言設定為 {lang_code}！'
+      user_not_found: '在此伺服器中找不到 Twitter 使用者 {username}！'
+
+sync:
+  background: '正在背景執行同步'
+
+list:
+  title: '__***{guild_name}***__ 的通知清單{page_counter}'
+  title_page_counter: '　第 [{page}/{total}] 頁'
+  no_users: '***此伺服器尚未註冊任何使用者。***'
+  footer: '第 {page} 頁，共 {total} 頁'
+  label_retweet: '轉推'
+  label_quote: '引用'
+  label_text: '文字'
+  label_media: '媒體'
+  label_using: '使用'
+
+modal:
+  customize_message:
+    title: '自訂訊息'
+    label_full: '為 @{username} 在 #{channel_name} 中自訂訊息'
+    label_short: '為 @{username} 自訂訊息'
+    label_fallback: '自訂訊息'
+    placeholder: '請輸入自訂訊息'
+    success: '設定成功'
+
+display:
+  action:
+    tweeted: '發推了'
+    retweeted: '轉推了'
+    quoted: '引用了'
+  tweet_type:
+    photos: '{count} 張圖片'
+    media: '一則{media_type}'
+    status: '一則推文'
+  media_type_map:
+    photo: '照片'
+    video: '影片'
+    gif: 'GIF'
+  button:
+    view_video: '查看影片'
+    view_original: '查看原始網站'
+
+commands:
+  add:
+    description: '新增項目'
+    notifier:
+      description: '新增 Twitter 使用者通知到伺服器的特定頻道。'
+      params:
+        username: '你想要開啟通知的Twitter用戶的用戶名'
+        channel: '機器人發送通知的頻道'
+        mention: '通知時提及的身分組'
+        type: '設定是否啟用轉推和引用的通知'
+        media_type: '設定是否啟用包含多媒體的通知，或僅啟用包含多媒體的通知'
+        account_used: '用來追蹤用戶推文的Twitter客戶端'
+      choices:
+        enable_type:
+          all_default: '全部（預設）'
+          retweet_only: '僅推文與轉推'
+          quote_only: '僅推文與引用'
+          tweet_only: '僅推文'
+        media_type:
+          all_default: '全部（預設）'
+          no_media: '無媒體'
+          media_only: '僅含媒體'
+  remove:
+    description: '移除項目'
+    notifier:
+      description: '移除伺服器中的通知。'
+      params:
+        channel: '設置為發送通知的頻道'
+        username: '你想要關閉通知的Twitter用戶的用戶名'
+  customize:
+    description: '自訂項目'
+    message:
+      description: '設定通知的自訂訊息。'
+      params:
+        channel: '機器人發送通知的頻道'
+        username: '欲設定自定義通知訊息的Twitter用戶的用戶名'
+        default: '是否要還原至預設的設定'
+    translation:
+      description: '為追蹤帳號設定自訂翻譯語言。'
+      params:
+        username: '欲設定自定義翻譯語言的Twitter用戶的用戶名'
+        language: '欲翻譯成的語言代碼（例如 en、ja），留空則使用預設值'
+  list:
+    description: '列出項目'
+    users:
+      description: '列出伺服器中所有的通知。'
+      params:
+        account: '你想要篩選的客戶端名稱（用來追蹤的帳號）'
+        channel: '你想要篩選的頻道名稱'
+  sync:
+    description: '將新Twitter帳戶的通知與資料庫同步。如果你更改了bot使用的Twitter帳戶，請使用此指令'

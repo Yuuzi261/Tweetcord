@@ -7,6 +7,7 @@ from discord.ext import commands
 
 from core.classes import Cog_Extension
 from configs.load_configs import configs
+from src.i18n import t
 from src.permission import ADMINISTRATOR
 from src.utils import str_to_bool as stb
 from src.db_function.readonly_db import connect_readonly
@@ -25,9 +26,13 @@ def symbol(value: str) -> str:
 
 class ListUsers(Cog_Extension):
 
-    list_group = app_commands.Group(name='list', description='List something', default_permissions=ADMINISTRATOR)
+    list_group = app_commands.Group(name='list', description=t('commands.list.description'), default_permissions=ADMINISTRATOR)
 
-    @list_group.command(name='users')
+    @list_group.command(name='users', description=t('commands.list.users.description'))
+    @app_commands.describe(
+        account=t('commands.list.users.params.account'),
+        channel=t('commands.list.users.params.channel'),
+    )
     async def list_users(self, itn: discord.Interaction, account: str = '', channel: str = '') -> None:
         """Lists all exists notifier on your server.
 
@@ -55,7 +60,7 @@ class ListUsers(Cog_Extension):
                 user_channel_role_data = await cursor.fetchall()
 
         formatted_data = [
-            f"{i + 1}. ```{username}``` <#{channel_id}>{f' <@&{role_id}>' if role_id else ''} {symbol(enable_type[0])}retweet {symbol(enable_type[1])}quote {symbol(enable_media_type[0])}text {symbol(enable_media_type[1])}media, using {client_used}"
+            f"{i + 1}. ```{username}``` <#{channel_id}>{f' <@&{role_id}>' if role_id else ''} {symbol(enable_type[0])}{t('list.label_retweet')} {symbol(enable_type[1])}{t('list.label_quote')} {symbol(enable_media_type[0])}{t('list.label_text')} {symbol(enable_media_type[1])}{t('list.label_media')}, {t('list.label_using')} {client_used}"
             for i, (username, channel_id, role_id, enable_type, enable_media_type, client_used) in enumerate(user_channel_role_data)
         ]
 
@@ -63,11 +68,12 @@ class ListUsers(Cog_Extension):
             offset = (page - 1) * PSIZE
             page_data = formatted_data[offset:offset + PSIZE]
             total_pages = Pagination.compute_total_pages(len(formatted_data), PSIZE)
-            title = f"Notification List in __***{itn.guild.name}***__{f'  Page [{page}/{total_pages}]' if PCPOS == 'title' else ''}"
-            descriptions = '***No users are registered on this server.***' if not formatted_data else "\n".join(page_data)
+            page_counter = t('list.title_page_counter', page=page, total=total_pages) if PCPOS == 'title' else ''
+            title = t('list.title', guild_name=itn.guild.name, page_counter=page_counter)
+            descriptions = t('list.no_users') if not formatted_data else "\n".join(page_data)
             embed = discord.Embed(title=title, description=descriptions, color=0x778899)
             if PCPOS == 'footer':
-                embed.set_footer(text=f"Page {page} of {total_pages}")
+                embed.set_footer(text=t('list.footer', page=page, total=total_pages))
             return embed, total_pages
 
         await Pagination(itn, get_page).navegate()

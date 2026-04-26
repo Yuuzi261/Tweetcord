@@ -7,6 +7,7 @@ from tweety import Twitter
 
 from configs.load_configs import configs
 from core.classes import Cog_Extension
+from src.i18n import t
 from src.discord_ui.fetch_tracked_channels import fetch_tracked_channels
 from src.discord_ui.modal import CustomizeMsgModal
 from src.log import setup_logger
@@ -24,17 +25,25 @@ class Notification(Cog_Extension):
         super().__init__(bot)
         self.account_tracker = AccountTracker(bot)
 
-    add_group = app_commands.Group(name='add', description='Add something', default_permissions=ADMINISTRATOR)
-    remove_group = app_commands.Group(name='remove', description='Remove something', default_permissions=ADMINISTRATOR)
-    customize_group = app_commands.Group(name='customize', description='Customize something', default_permissions=ADMINISTRATOR)
+    add_group = app_commands.Group(name='add', description=t('commands.add.description'), default_permissions=ADMINISTRATOR)
+    remove_group = app_commands.Group(name='remove', description=t('commands.remove.description'), default_permissions=ADMINISTRATOR)
+    customize_group = app_commands.Group(name='customize', description=t('commands.customize.description'), default_permissions=ADMINISTRATOR)
 
-    @add_group.command(name='notifier')
+    @add_group.command(name='notifier', description=t('commands.add.notifier.description'))
     @app_commands.choices(
-        enable_type=[app_commands.Choice(name='All (default)', value='11'), app_commands.Choice(name='Tweet & Retweet Only', value='10'), app_commands.Choice(name='Tweet & Quote Only', value='01'), app_commands.Choice(name='Tweet Only', value='00')],
-        media_type=[app_commands.Choice(name='All (default)', value='11'), app_commands.Choice(name='No Media', value='10'), app_commands.Choice(name='Media Only', value='01')],
+        enable_type=[app_commands.Choice(name=t('commands.add.notifier.choices.enable_type.all_default'), value='11'), app_commands.Choice(name=t('commands.add.notifier.choices.enable_type.retweet_only'), value='10'), app_commands.Choice(name=t('commands.add.notifier.choices.enable_type.quote_only'), value='01'), app_commands.Choice(name=t('commands.add.notifier.choices.enable_type.tweet_only'), value='00')],
+        media_type=[app_commands.Choice(name=t('commands.add.notifier.choices.media_type.all_default'), value='11'), app_commands.Choice(name=t('commands.add.notifier.choices.media_type.no_media'), value='10'), app_commands.Choice(name=t('commands.add.notifier.choices.media_type.media_only'), value='01')],
         account_used=[app_commands.Choice(name=account_name, value=account_name) for account_name, _ in get_accounts().items()]
     )
     @app_commands.rename(enable_type='type')
+    @app_commands.describe(
+        username=t('commands.add.notifier.params.username'),
+        channel=t('commands.add.notifier.params.channel'),
+        mention=t('commands.add.notifier.params.mention'),
+        enable_type=t('commands.add.notifier.params.type'),
+        media_type=t('commands.add.notifier.params.media_type'),
+        account_used=t('commands.add.notifier.params.account_used'),
+    )
     async def notifier(self, itn: discord.Interaction, username: str, channel: discord.TextChannel | discord.Thread, mention: discord.Role = None, enable_type: str = '11', media_type: str = '11', account_used: str = list(get_accounts().keys())[0]):
         """Add a twitter user to specific channel on your server.
 
@@ -68,7 +77,7 @@ class Notification(Cog_Extension):
                     try:
                         new_user = await app.get_user_info(username)
                     except Exception:
-                        await itn.followup.send(f'user {username} not found', ephemeral=True)
+                        await itn.followup.send(t('notification.add.user_not_found', username=username), ephemeral=True)
                         return
 
                     await cursor.execute('SELECT * FROM user WHERE id = ?', (str(new_user.id),))
@@ -109,7 +118,7 @@ class Notification(Cog_Extension):
 
                                     is_changed_client = True
                                 else:
-                                    await itn.followup.send(f'user {username} already exists under {account_used}. No changes due to `auto_change_client` setting', ephemeral=True)
+                                    await itn.followup.send(t('notification.add.client_conflict', username=username, account_used=account_used), ephemeral=True)
                                     return
                             async with lock:
                                 await db.execute('BEGIN')
@@ -135,19 +144,23 @@ class Notification(Cog_Extension):
                             await db.commit()
                 except Exception as e:
                     log.error(f'an error occurred while adding notifier: {e}')
-                    await itn.followup.send(f"failed to add notifier, please try again later.", ephemeral=True)
+                    await itn.followup.send(t('notification.add.failed'), ephemeral=True)
                     await db.rollback()
                     return
 
         if match_user is None or match_user['enabled'] == 0:
             await self.account_tracker.addTask(new_user.username, account_used)
             await update_presence(self.bot)
-            await itn.followup.send(f'successfully added notifier for new user {new_user.username} to {account_used}!', ephemeral=True)
+            await itn.followup.send(t('notification.add.success_new', username=new_user.username, account_used=account_used), ephemeral=True)
         else:
-            await itn.followup.send(f'successfully added/updated notifier for {match_user["username"]} (via {match_user["client_used"]})', ephemeral=True)
+            await itn.followup.send(t('notification.add.success_update', username=match_user['username'], client_used=match_user['client_used']), ephemeral=True)
 
-    @remove_group.command(name='notifier')
+    @remove_group.command(name='notifier', description=t('commands.remove.notifier.description'))
     @app_commands.rename(channel_id='channel')
+    @app_commands.describe(
+        channel_id=t('commands.remove.notifier.params.channel'),
+        username=t('commands.remove.notifier.params.username'),
+    )
     async def r_notifier(self, itn: discord.Interaction, channel_id: str, username: str):
         """Remove a notifier on your server.
 
@@ -167,12 +180,13 @@ class Notification(Cog_Extension):
             
             db.row_factory = aiosqlite.Row
             async with db.cursor() as cursor:
+                await cursor.execute('SELECT id FROM channel WHERE server_id = ?', (str(itn.guild_id),))
+                rows = await cursor.fetchall()
+                vaild_ids = [row['id'] for row in rows]
+                if channel_id not in vaild_ids:
+                    await itn.followup.send(t('notification.remove.channel_not_found', channel_id=channel_id, guild_name=str(itn.guild.name)), ephemeral=True)
+                    return
                 try:
-                    await cursor.execute('SELECT id FROM channel WHERE server_id = ?', (str(itn.guild_id),))
-                    rows = await cursor.fetchall()
-                    vaild_ids = [row['id'] for row in rows]
-                    if channel_id not in vaild_ids:
-                        raise ValueError(f'can\'t find channel <#{channel_id}> in {str(itn.guild.name)}!')
                     
                     await cursor.execute('SELECT user_id FROM notification, user WHERE username = ? COLLATE NOCASE AND channel_id = ? AND user_id = id AND notification.enabled = 1', (username, channel_id))
                     match_notifier = await cursor.fetchone()
@@ -180,7 +194,7 @@ class Notification(Cog_Extension):
                         async with lock:
                             await db.execute('BEGIN')
                             await cursor.execute('UPDATE notification SET enabled = 0 WHERE user_id = ? AND channel_id = ?', (match_notifier['user_id'], channel_id))
-                            await itn.followup.send(f'successfully remove notifier of {username}!', ephemeral=True)
+                            await itn.followup.send(t('notification.remove.success', username=username), ephemeral=True)
                             await cursor.execute('SELECT user_id FROM notification WHERE user_id = ? AND enabled = 1', (match_notifier['user_id'],))
 
                             active_notifiers = await cursor.fetchall()
@@ -208,14 +222,19 @@ class Notification(Cog_Extension):
                                     
                             await update_presence(self.bot)
                     else:
-                        await itn.followup.send(f'can\'t find notifier {username} in <#{channel_id}>!', ephemeral=True)
+                        await itn.followup.send(t('notification.remove.not_found', username=username, channel_id=channel_id), ephemeral=True)
                 except Exception as e:
                     log.error(f'an error occurred while removing notifier: {e}')
-                    await itn.followup.send(f"failed to remove notifier, please try again later.", ephemeral=True)
+                    await itn.followup.send(t('notification.remove.failed'), ephemeral=True)
                     await db.rollback()
 
-    @customize_group.command(name='message')
+    @customize_group.command(name='message', description=t('commands.customize.message.description'))
     @app_commands.rename(channel_id='channel')
+    @app_commands.describe(
+        channel_id=t('commands.customize.message.params.channel'),
+        username=t('commands.customize.message.params.username'),
+        default=t('commands.customize.message.params.default'),
+    )
     async def customize_message(self, itn: discord.Interaction, channel_id: str, username: str, default: bool = False):
         """Set customized messages for notification.
 
@@ -230,7 +249,7 @@ class Notification(Cog_Extension):
         """
         channel = itn.guild.get_channel_or_thread(int(channel_id))
         if channel is None:
-            await itn.response.send_message(f'can\'t find channel {channel_id}!', ephemeral=True)
+            await itn.response.send_message(t('notification.customize.message.channel_not_found', channel_id=channel_id), ephemeral=True)
             return
         
         async with aiosqlite.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
@@ -248,14 +267,18 @@ class Notification(Cog_Extension):
                         async with lock:
                             await cursor.execute('UPDATE notification SET customized_msg = ? WHERE user_id = ? AND channel_id = ?', (None, match_notifier['user_id'], str(channel.id)))
                             await db.commit()
-                        await itn.followup.send('successfully restored to default settings', ephemeral=True)
+                        await itn.followup.send(t('notification.customize.message.success_default'), ephemeral=True)
                     else:
                         modal = CustomizeMsgModal(match_notifier['user_id'], username, channel)
                         await itn.response.send_modal(modal)
                 else:
-                    await itn.response.send_message(f'can\'t find notifier {username} in {channel.mention}!', ephemeral=True)
+                    await itn.response.send_message(t('notification.customize.message.notifier_not_found', username=username, channel_mention=channel.mention), ephemeral=True)
                     
-    @customize_group.command(name='translation')
+    @customize_group.command(name='translation', description=t('commands.customize.translation.description'))
+    @app_commands.describe(
+        username=t('commands.customize.translation.params.username'),
+        language=t('commands.customize.translation.params.language'),
+    )
     async def customize_translation(self, itn: discord.Interaction, username: str, language: str = None):
         """Set customized translation language for a tracked account.
 
@@ -267,12 +290,12 @@ class Notification(Cog_Extension):
             The language code you want to translate to (e.g. en, ja). Leave it empty to use default.
         """
         if configs['embed']['type'] != 'proxy' or not configs['embed']['proxy']['auto_translation']['enabled']:
-            await itn.response.send_message('translation is not enabled in configs!', ephemeral=True)
+            await itn.response.send_message(t('notification.customize.translation.not_enabled'), ephemeral=True)
             return
-        
+
         lang_code = validate_and_normalize_language(language)
         if language and lang_code is None:
-            await itn.response.send_message('invalid language code!', ephemeral=True)
+            await itn.response.send_message(t('notification.customize.translation.invalid_lang'), ephemeral=True)
             return
 
         await itn.response.defer(ephemeral=True)
@@ -291,11 +314,11 @@ class Notification(Cog_Extension):
                         await db.commit()
                     
                     if language is None:
-                        await itn.followup.send(f'successfully restored {username}\'s translation setting to default ({configs["embed"]["proxy"]["auto_translation"]["default_language"]})', ephemeral=True)
+                        await itn.followup.send(t('notification.customize.translation.success_default', username=username, default_lang=configs['embed']['proxy']['auto_translation']['default_language']), ephemeral=True)
                     else:
-                        await itn.followup.send(f'successfully set {username}\'s translation language to {lang_code}!', ephemeral=True)
+                        await itn.followup.send(t('notification.customize.translation.success_set', username=username, lang_code=lang_code), ephemeral=True)
                 else:
-                    await itn.followup.send(f'can\'t find twitter user {username} in this server!', ephemeral=True)
+                    await itn.followup.send(t('notification.customize.translation.user_not_found', username=username), ephemeral=True)
 
     @r_notifier.autocomplete('channel_id')
     async def get_channels_for_r_notifier(self, itn: discord.Interaction, input_channel: str) -> list[app_commands.Choice[str]]:        
