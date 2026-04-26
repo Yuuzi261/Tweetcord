@@ -58,6 +58,9 @@ display:
     photo: 'photo'
     video: 'video'
     gif: 'gif'
+  button:
+    view_video: 'View Video'
+    view_original: 'View Original'
 
 commands:
   add:

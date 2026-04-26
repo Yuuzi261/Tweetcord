@@ -27,7 +27,7 @@ sync:
 
 list:
   title: '__***{guild_name}***__ 的通知清單{page_counter}'
-  title_page_counter: '　第 {page}/{total} 頁'
+  title_page_counter: '　第 [{page}/{total}] 頁'
   no_users: '***此伺服器尚未註冊任何使用者。***'
   footer: '第 {page} 頁，共 {total} 頁'
   label_retweet: '轉推'
@@ -58,6 +58,9 @@ display:
     photo: '照片'
     video: '影片'
     gif: 'GIF'
+  button:
+    view_video: '查看影片'
+    view_original: '查看原始網站'
 
 commands:
   add:
