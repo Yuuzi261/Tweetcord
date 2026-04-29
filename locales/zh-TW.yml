@@ -59,12 +59,12 @@ modal:
 
 display:
   action:
-    tweeted: '發推了'
+    tweeted: '推了'
     retweeted: '轉推了'
     quoted: '引用了'
   tweet_type:
     photos: '{count} 張圖片'
-    media: '一則{media_type}'
+    media: '一個{media_type}'
     status: '一則推文'
   media_type_map:
     photo: '照片'
