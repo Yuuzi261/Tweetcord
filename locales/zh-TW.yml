@@ -94,11 +94,10 @@ commands:
   customize:
     description: '自訂項目'
     settings:
-      description: '自訂通知設定 (開啟/關閉轉推、引用、媒體及自訂訊息)。'
+      description: '自訂通知設定 (包含轉推、引用、媒體與訊息)。'
       params:
         channel: '機器人發送通知的頻道'
         username: '欲設定自定義通知訊息的Twitter用戶的用戶名'
-        default: '是否要還原至預設的設定'
     translation:
       description: '為追蹤帳號設定自訂翻譯語言。'
       params:

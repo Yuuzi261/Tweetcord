@@ -94,11 +94,10 @@ commands:
   customize:
     description: 'Customize something'
     settings:
-      description: 'Set customized settings for notification (enable/disable retweets, quotes, media & customized message).'
+      description: 'Set customized notification settings (retweets, quotes, media, and messages).'
       params:
         channel: 'The channel id which set to delivers notifications.'
         username: 'The username of the twitter user you want to set customized message.'
-        default: 'Whether to use default setting.'
     translation:
       description: 'Set customized translation language for a tracked account.'
       params:

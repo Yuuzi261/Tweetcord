@@ -233,10 +233,9 @@ class Notification(Cog_Extension):
     @app_commands.describe(
         channel_id=t('commands.customize.settings.params.channel'),
         username=t('commands.customize.settings.params.username'),
-        default=t('commands.customize.settings.params.default'),
     )
     async def customize_settings(self, itn: discord.Interaction, channel_id: str, username: str):
-        """Set customized settings for notification (enable/disable retweets, quotes, media & customized message).
+        """Set customized notification settings (retweets, quotes, media, and messages).
 
         Parameters
         -----------
