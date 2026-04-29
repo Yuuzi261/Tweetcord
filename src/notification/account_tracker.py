@@ -11,6 +11,7 @@ from discord.ext import commands
 from tweety import Twitter
 
 from configs.load_configs import configs
+from src.i18n import t
 from src.log import setup_logger
 from src.notification.display_tools import gen_embed, get_action
 from src.notification.get_tweets import get_tweets
@@ -174,10 +175,10 @@ class AccountTracker():
                 view, create_view = None, False
                 if bool(tweet.media) and tweet.media[0].type == 'video' and EMBED_TYPE == 'built_in' and configs['embed']['built_in']['video_link_button']:
                     create_view = True
-                    button_label, button_url = 'View Video', tweet.media[0].expanded_url
+                    button_label, button_url = t('display.button.view_video'), tweet.media[0].expanded_url
                 elif EMBED_TYPE == 'proxy' and configs['embed']['proxy']['original_url_button']:
                     create_view = True
-                    button_label, button_url = 'View Original', tweet.url
+                    button_label, button_url = t('display.button.view_original'), tweet.url
 
                 if create_view:
                     view = discord.ui.View(timeout=5)

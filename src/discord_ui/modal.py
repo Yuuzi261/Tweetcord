@@ -4,21 +4,22 @@ import aiosqlite
 import discord
 from discord import ui
 
+from src.i18n import t
 from src.utils import get_lock
 
 lock = get_lock()
 
 class CustomizeSettingsModal(ui.Modal, title='customize settings'):
     def __init__(self, user_id: str, username: str, channel: discord.TextChannel | discord.Thread, enable_type: str, media_type: str, role_id: str = None, customized_msg: str = None):
-        super().__init__(timeout=None)
+        super().__init__(title=t('modal.customize_settings.title'), timeout=None)
         self.user_id = user_id
         self.username = username
         self.channel = channel
-        self.title = f'Editing @{username} in #{channel.name}'
+        self.title = t('modal.customize_settings.label_full', username=username, channel_name=channel.name)
         if len(self.title) > 25:
-            self.title = f'@{username} in #{channel.name}'
+            self.title = t('modal.customize_settings.label_short', username=username, channel_name=channel.name)
         if len(self.title) > 25:
-            self.title = f'@{username}'
+            self.title = t('modal.customize_settings.label_fallback', username=username)
 
         # Role Select (Mention) - RoleSelect
         default_roles = []
@@ -61,7 +62,7 @@ class CustomizeSettingsModal(ui.Modal, title='customize settings'):
         
         # Customized Message - TextInput
         self.customized_msg = ui.TextInput(
-            placeholder='Leave it empty to use default.',
+            placeholder=t('modal.customize_settings.placeholder'),
             default=customized_msg,
             max_length=200,
             style=discord.TextStyle.long,
@@ -91,4 +92,4 @@ class CustomizeSettingsModal(ui.Modal, title='customize settings'):
                 await db.execute('UPDATE notification SET enable_type = ?, enable_media_type = ?, customized_msg = ?, role_id = ? WHERE user_id = ? AND channel_id = ?', (new_enable_type, new_media_type, customized_msg, role_id, self.user_id, str(self.channel.id)))
                 await db.commit()
 
-        await itn.followup.send('setting successful', ephemeral=True)
+        await itn.followup.send(t('modal.customize_settings.success'), ephemeral=True)

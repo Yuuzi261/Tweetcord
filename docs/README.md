@@ -81,7 +81,7 @@ After sending the command, a settings panel will appear. Currently, you can modi
 
 Custom notification messages are in `f-string format`, currently supporting 4 special variables for use, which will be explained below.
 
-- `{action}` : poster's action, include `tweeted`, `retweeted` and `quoted`
+- `{action}` : poster's action (e.g. `tweeted`, `retweeted`, `quoted`). The displayed text depends on the `locale` setting in `configs.yml`
 - `{author}` : poster's display name
 - `{mention}` : the role to mention when sending to discord
 - `{url}` : the link of the tweet
@@ -156,6 +156,7 @@ Create `configs.yml` and copy the contents of `configs.example.yml` into it, and
 
 | Parameter | Description | Restriction |
 |-----------|-------------|-------------|
+| `locale` | The language used for bot messages and command descriptions. | Currently supports `en` and `zh-TW`. |
 | `prefix` | The prefix for bot commands, only effective for prefix commands. | None, but recommended to choose a simple and easily identifiable prefix and avoid using empty strings. |
 | `activity_name` | The activity name displayed by the bot. | None. |
 | `activity_type` | The activity type displayed by the bot. | `playing`, `streaming`, `listening`, `watching` and `competing` only. |
