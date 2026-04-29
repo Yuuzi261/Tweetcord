@@ -37,11 +37,24 @@ list:
 
 modal:
   customize_settings:
-    title: '自訂通知設定'
     label_full: '對在 #{channel_name} 的 @{username} 編輯中'
     label_short: '在 #{channel_name} 的 @{username}'
     label_fallback: '@{username}'
-    placeholder: '留空則使用預設值。'
+    role_select:
+      label: '提及身份組：'
+      placeholder: '選擇要提及的身份組（留空則不提及身份組）。'
+    enable_type:
+      label: '啟用以下通知類型：'
+      retweet: '轉推'
+      quote: '引用'
+    media_type:
+      label: '媒體類型：'
+      all: '全部'
+      no_media: '無媒體'
+      media_only: '僅含媒體'
+    customized_message:
+      label: '自定義訊息：'
+      placeholder: '留空則使用預設值。'
     success: '設定成功'
 
 display:

@@ -37,11 +37,24 @@ list:
 
 modal:
   customize_settings:
-    title: 'customize settings'
     label_full: 'Editing @{username} in #{channel_name}'
     label_short: '@{username} in #{channel_name}'
     label_fallback: '@{username}'
-    placeholder: 'Leave it empty to use default.'
+    role_select:
+      label: 'Mention role:'
+      placeholder: 'Select a role to mention (leave empty to clear).'
+    enable_type:
+      label: 'Enable notifications for:'
+      retweet: 'Retweet'
+      quote: 'Quote'
+    media_type:
+      label: 'Media type:'
+      all: 'All'
+      no_media: 'No Media'
+      media_only: 'Media Only'
+    customized_message:
+      label: 'Customizing message:'
+      placeholder: 'Leave it empty to use default.'
     success: 'setting successful'
 
 display:
