@@ -11,10 +11,9 @@ notification:
     channel_not_found: "can't find channel <#{channel_id}> in {guild_name}!"
     failed: 'failed to remove notifier, please try again later.'
   customize:
-    message:
+    settings:
       channel_not_found: "can't find channel {channel_id}!"
       notifier_not_found: "can't find notifier {username} in {channel_mention}!"
-      success_default: 'successfully restored to default settings'
     translation:
       not_enabled: 'translation is not enabled in configs!'
       invalid_lang: 'invalid language code!'

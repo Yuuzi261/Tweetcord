@@ -246,7 +246,7 @@ class Notification(Cog_Extension):
         """
         channel = itn.guild.get_channel_or_thread(int(channel_id))
         if channel is None:
-            await itn.response.send_message(t('notification.customize.message.channel_not_found', channel_id=channel_id), ephemeral=True)
+            await itn.response.send_message(t('notification.customize.settings.channel_not_found', channel_id=channel_id), ephemeral=True)
             return
 
         async with connect_readonly(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
@@ -258,7 +258,7 @@ class Notification(Cog_Extension):
                     modal = CustomizeSettingsModal(match_notifier['user_id'], username, channel, match_notifier['enable_type'], match_notifier['enable_media_type'], match_notifier['role_id'], match_notifier['customized_msg'])
                     await itn.response.send_modal(modal)
                 else:
-                    await itn.response.send_message(t('notification.customize.message.notifier_not_found', username=username, channel_mention=channel.mention), ephemeral=True)
+                    await itn.response.send_message(t('notification.customize.settings.notifier_not_found', username=username, channel_mention=channel.mention), ephemeral=True)
 
     @customize_group.command(name='translation', description=t('commands.customize.translation.description'))
     @app_commands.describe(
