@@ -65,6 +65,7 @@ display:
   tweet_type:
     photos: '{count} photos'
     media: 'a {media_type}'
+    multi_media: '{count} media'
     status: 'a status'
   media_type_map:
     photo: 'photo'

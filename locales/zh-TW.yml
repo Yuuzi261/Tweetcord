@@ -65,6 +65,7 @@ display:
   tweet_type:
     photos: '{count} 張圖片'
     media: '一個{media_type}'
+    multi_media: '{count} 個媒體'
     status: '一則推文'
   media_type_map:
     photo: '照片'

@@ -7,10 +7,14 @@ from tweety.types import Tweet
 
 from configs.load_configs import configs
 from src.i18n import t
+from src.log import setup_logger
+
+log = setup_logger(__name__)
 
 
 class Media():
-    def __init__(self, source: Tweet | BeautifulSoup):
+    def __init__(self, source: Tweet | BeautifulSoup | dict):
+        self.is_mixed = False
         if isinstance(source, Tweet):
             if hasattr(source, 'media') and len(source.media) > 0:
                 self.type = source.media[0].type
@@ -19,6 +23,29 @@ class Media():
             else:
                 self.type, self.urls, self.length = None, [], 0
             self.mosaic_url = None
+
+        elif isinstance(source, dict):
+            tweet_data = source.get('tweet', {})
+            media_data = tweet_data.get('media', {})
+            all_media = media_data.get('all', [])
+
+            if not all_media:
+                self.type, self.urls, self.length, self.mosaic_url = None, [], 0, None
+                return
+
+            self.length = len(all_media)
+            # Use original URL for photos, thumbnail for videos/gifs
+            self.urls = [m.get('url') if m.get('type') == 'photo' else m.get('thumbnail_url', m.get('url')) for m in all_media]
+
+            type_map = {'photo': 'photo', 'video': 'video', 'gif': 'animated_gif'}
+            self.type = type_map.get(all_media[0].get('type'), 'photo')
+            
+            media_types = {m.get('type') for m in all_media}
+            self.is_mixed = len(media_types) > 1
+            
+            self.mosaic_url = media_data.get('mosaic', {}).get('type') == 'mosaic_photo' and media_data.get('mosaic', {}).get('formats', {}).get('jpeg')
+            if not self.mosaic_url and self.length > 0:
+                 self.mosaic_url = self.urls[0]
 
         elif isinstance(source, BeautifulSoup):
             meta_image = source.find('meta', property='og:image')
@@ -52,19 +79,25 @@ class Media():
             self.length = len(self.urls)
 
         else:
-            raise TypeError('source must be a Tweet or a BeautifulSoup')
-        
+            raise TypeError('source must be a Tweet, BeautifulSoup, or dict')
+
 
 async def gen_embed(tweet: Tweet, session: aiohttp.ClientSession = None) -> list[discord.Embed]:
     async def get_fx_images(s: aiohttp.ClientSession):
-        async with s.get(target_url) as response:
+        api_url = re.sub(r'(?:twitter|x)\.com', r'api.fxtwitter.com', tweet.url)
+        async with s.get(api_url) as response:
+            if response.status == 200:
+                data = await response.json()
+                return Media(data)
+            else:
+                log.warning(f'failed to get media data from {api_url}, fallback to HTML scraping')
+        
+        html_url = re.sub(r'(?:twitter|x)\.com', r'fxtwitter.com', tweet.url)
+        async with s.get(html_url) as response:
             raw = await response.text()
-            
-        soup = BeautifulSoup(raw, 'html.parser')
-        return Media(soup)
-    
-    target_url = re.sub(r'twitter', r'fxtwitter', tweet.url)
-    
+            soup = BeautifulSoup(raw, 'html.parser')
+            return Media(soup)
+
     if any(configs['embed']['built_in']['fx_image'].values()):
         if session:
             media = await get_fx_images(session)
@@ -105,6 +138,8 @@ def get_action(tweet: Tweet, disable_quoted: bool = False) -> str:
 
 def get_tweet_type(media: Media) -> str:
     if media.length > 1:
+        if getattr(media, 'is_mixed', False):
+            return t('display.tweet_type.multi_media', count=media.length)
         return t('display.tweet_type.photos', count=media.length)
     elif media.length == 1:
         map_key = f'display.media_type_map.{media.type}'
