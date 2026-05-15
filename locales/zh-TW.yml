@@ -69,7 +69,7 @@ display:
   media_type_map:
     photo: '照片'
     video: '影片'
-    gif: 'GIF'
+    animated_gif: 'GIF'
   button:
     view_video: '查看影片'
     view_original: '查看原始網站'
