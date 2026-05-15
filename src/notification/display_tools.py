@@ -27,6 +27,10 @@ class Media():
         elif isinstance(source, dict):
             tweet_data = source.get('tweet', {})
             media_data = tweet_data.get('media', {})
+
+            if not media_data.get('all') and 'quote' in tweet_data:
+                media_data = tweet_data['quote'].get('media', {})
+
             all_media = media_data.get('all', [])
 
             if not all_media:
@@ -85,13 +89,16 @@ class Media():
 async def gen_embed(tweet: Tweet, session: aiohttp.ClientSession = None) -> list[discord.Embed]:
     async def get_fx_images(s: aiohttp.ClientSession):
         api_url = re.sub(r'(?:twitter|x)\.com', r'api.fxtwitter.com', tweet.url)
-        async with s.get(api_url) as response:
-            if response.status == 200:
-                data = await response.json()
-                return Media(data)
-            else:
-                log.warning(f'failed to get media data from {api_url}, fallback to HTML scraping')
-        
+        try:
+            async with s.get(api_url) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    return Media(data)
+                else:
+                    log.warning(f'failed to get media data from {api_url} (status: {response.status}), fallback to HTML scraping')
+        except Exception as e:
+            log.error(f'error fetching from {api_url}: {e}, fallback to HTML scraping')
+
         html_url = re.sub(r'(?:twitter|x)\.com', r'fxtwitter.com', tweet.url)
         async with s.get(html_url) as response:
             raw = await response.text()
