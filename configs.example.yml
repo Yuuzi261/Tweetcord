@@ -22,7 +22,9 @@ embed:
   type: 'built_in'
 
   built_in:
-    fx_image: true
+    fx_image:
+      enhancement: true
+      mosaic: true
     video_link_button: false
     legacy_logo: true
     
