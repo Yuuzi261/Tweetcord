@@ -13,9 +13,9 @@ from tweety import Twitter
 from configs.load_configs import configs
 from src.i18n import t
 from src.log import setup_logger
-from src.notification.display_tools import gen_embed, get_action, get_media
+from src.notification.display_tools import gen_embed, get_action
 from src.notification.get_tweets import get_tweets
-from src.notification.utils import is_match_media_type, is_match_type, replace_emoji
+from src.notification.utils import is_match_media_type, is_match_type, replace_emoji, get_media
 from src.utils import get_accounts, get_lock, get_utcnow
 from src.db_function.readonly_db import connect_readonly
 from src.db_function.init_db import init_latest_tweet_on_startup
