@@ -24,6 +24,9 @@ notification:
 sync:
   background: 'synchronizing in the background'
 
+class:
+  parsed_tweet: '[Quoting]({url}) {name} ([{screen_name}](profile_link))'
+
 list:
   title: 'Notification List in __***{guild_name}***__{page_counter}'
   title_page_counter: '  Page [{page}/{total}]'

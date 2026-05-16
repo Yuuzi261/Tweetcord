@@ -4,6 +4,8 @@ from discord.ext import commands
 from bs4 import BeautifulSoup
 from tweety.types import Tweet
 
+from src.i18n import t
+
 
 class Cog_Extension(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -18,12 +20,20 @@ class ParsedTweet():
             self.length = length
             self.video_link = video_link
             self.mosaic_url = mosaic_url
+            
+    class Quote():
+        def __init__(self, text: str = None, name: str = None, screen_name: str = None, url: str = None, profile_link: str = None):
+            self.text = text
+            self.name = name
+            self.screen_name = screen_name
+            self.url = url
+            self.profile_link = profile_link
     
     def __init__(self, source: Tweet | BeautifulSoup | dict):
         self.media = self.Media()
+        self.quote = self.Quote()
         
         self.is_mixed = False
-        self.quote_text = None
         
         if isinstance(source, Tweet):
             if hasattr(source, 'media') and len(source.media) > 0:
@@ -38,6 +48,7 @@ class ParsedTweet():
         elif isinstance(source, dict):
             tweet_data = source.get('tweet', {})
             media_data = tweet_data.get('media', {})
+            quote_data = tweet_data.get('quote', {})
 
             if not media_data.get('all') and 'quote' in tweet_data:
                 media_data = tweet_data['quote'].get('media', {})
@@ -66,7 +77,11 @@ class ParsedTweet():
             except: self.media.video_link = None
             
             self.text = tweet_data.get('raw_text', {}).get('text', None)
-            self.quote_text = tweet_data.get('quote', {}).get('raw_text', {}).get('text', None)
+            self.quote.text = quote_data.get('raw_text', {}).get('text', None)
+            self.quote.name = quote_data.get('author', {}).get('name', None)
+            self.quote.screen_name = quote_data.get('author', {}).get('screen_name', None)
+            self.quote.url = quote_data.get('url', None)
+            self.quote.profile_link = quote_data.get('author', {}).get('url', None)
 
         elif isinstance(source, BeautifulSoup):
             meta_image = source.find('meta', property='og:image')
@@ -104,9 +119,29 @@ class ParsedTweet():
         else:
             raise TypeError('source must be a Tweet, BeautifulSoup, or dict')
         
-    def get_quote_text(self, include_main_text: bool = False) -> str | None:
-        if not self.quote_text:
+    def get_quote_text(self, include_quote_info: bool = True, include_main_text: bool = True) -> str | None:
+        if not self.quote or not self.quote.text:
             return None
         
-        quote_text = '\n'.join(f"> {line}" for line in self.quote_text.split('\n'))    
-        return f"{self.text}\n\n{quote_text}" if include_main_text else quote_text
+        quote_inner = []
+        if include_quote_info:
+            quote_info = t(
+                'class.parsed_tweet', 
+                url=self.quote.url, 
+                name=self.quote.name, 
+                screen_name=self.quote.screen_name, 
+                profile_link=self.quote.profile_link
+            )
+            quote_inner.append(f"**{quote_info}**")
+            
+        quote_inner.append(self.quote.text)
+        
+        raw_quote_text = '\n\n'.join(quote_inner)
+        
+        quote_block = '\n'.join(f"> {line}".rstrip() for line in raw_quote_text.splitlines())
+        
+        if include_main_text and getattr(self, 'text', None):
+            return f"{self.text}\n\n{quote_block}"
+            
+        print(quote_block)
+        return quote_block
