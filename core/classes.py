@@ -136,9 +136,7 @@ class ParsedTweet():
             quote_inner.append(f"**{quote_info}**")
             
         quote_inner.append(self.quote.text)
-        
         raw_quote_text = '\n\n'.join(quote_inner)
-        
         quote_block = f">>> {raw_quote_text}"
         
         if include_main_text and getattr(self, 'text', None):
