@@ -120,7 +120,7 @@ class ParsedTweet():
         else:
             raise TypeError('source must be a Tweet, BeautifulSoup, or dict')
         
-    def get_quote_text(self, include_quote_info: bool = True, include_main_text: bool = True) -> str | None:
+    def get_quote_text(self, include_main_text: bool = True, include_quote_info: bool = True, simplified_content = True) -> str | None:
         if not self.quote or not self.quote.text:
             return None
         
@@ -140,6 +140,11 @@ class ParsedTweet():
         quote_block = f">>> {raw_quote_text}"
         
         if include_main_text and getattr(self, 'text', None):
-            return f"{self.text}\n\n{quote_block}"
+            full_content =  f"{self.text}\n\n{quote_block}"
+        else:
+            full_content = quote_block
             
-        return quote_block
+        if simplified_content:
+            full_content = full_content[:397] + '...' if len(full_content) > 397 else full_content
+            
+        return full_content
