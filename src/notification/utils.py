@@ -1,7 +1,44 @@
 import re
 import discord
 
+import aiohttp
+from bs4 import BeautifulSoup
 from tweety.types import Tweet
+
+from core.classes import Media
+from configs.load_configs import configs
+from src.log import setup_logger
+
+log = setup_logger(__name__)
+
+
+async def get_media(tweet: Tweet, session: aiohttp.ClientSession = None) -> Media:
+    async def get_fx_images(s: aiohttp.ClientSession):
+        api_url = re.sub(r'(?:twitter|x)\.com', r'api.fxtwitter.com', tweet.url)
+        try:
+            async with s.get(api_url) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    return Media(data)
+                else:
+                    log.warning(f'failed to get media data from {api_url} (status: {response.status}), fallback to HTML scraping')
+        except Exception as e:
+            log.error(f'error fetching from {api_url}: {e}, fallback to HTML scraping')
+
+        html_url = re.sub(r'(?:twitter|x)\.com', r'fxtwitter.com', tweet.url)
+        async with s.get(html_url) as response:
+            raw = await response.text()
+            soup = BeautifulSoup(raw, 'html.parser')
+            return Media(soup)
+
+    if any(configs['embed']['built_in']['fx_image'].values()):
+        if session:
+            return await get_fx_images(session)
+        else:
+            async with aiohttp.ClientSession() as session_internal:
+                return await get_fx_images(session_internal)
+    else:
+        return Media(tweet)
 
 
 def is_match_type(tweet: Tweet, enable_type: str):
