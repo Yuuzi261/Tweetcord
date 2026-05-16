@@ -10,7 +10,8 @@ from src.i18n import t
 
 def gen_embed(tweet: Tweet, media: Media) -> list[discord.Embed]:
     author = tweet.author
-    embed = discord.Embed(title=f'{author.name} {get_action(tweet, disable_quoted=True)} {get_tweet_type(media)}', description=tweet.text, url=tweet.url, color=0x1da0f2, timestamp=tweet.created_on)
+    disable_quoted = not configs['embed']['built_in']['fx_image']['enhancement']
+    embed = discord.Embed(title=f'{author.name} {get_action(tweet, disable_quoted=disable_quoted)} {get_tweet_type(media)}', description=tweet.text, url=tweet.url, color=0x1da0f2, timestamp=tweet.created_on)
     embed.set_author(name=f'{author.name} (@{author.username})', icon_url=author.profile_image_url_https, url=f'https://twitter.com/{author.username}')
     embed.set_thumbnail(url=re.sub(r'normal(?=\.jpg$)', '400x400', tweet.author.profile_image_url_https))
     embed.set_footer(text='Twitter' if configs['embed']['built_in']['legacy_logo'] else 'X', icon_url='attachment://footer.png')
