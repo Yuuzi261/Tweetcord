@@ -25,7 +25,7 @@ sync:
   background: '正在背景執行同步'
 
 class:
-  parsed_tweet: '[引用]({url}) {name} ([{screen_name}](profile_link))'
+  parsed_tweet: '[引用]({url}) {name} ([{screen_name}]({profile_link}))'
 
 list:
   title: '__***{guild_name}***__ 的通知清單{page_counter}'
