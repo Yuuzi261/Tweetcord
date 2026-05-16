@@ -20,8 +20,9 @@ class Media():
                 self.type = source.media[0].type
                 self.urls = [m.media_url_https for m in source.media]
                 self.length = len(self.urls)
+                self.video_link = source.media[0].expanded_url if self.type == 'video' else None
             else:
-                self.type, self.urls, self.length = None, [], 0
+                self.type, self.urls, self.length, self.video_link = None, [], 0, None
             self.mosaic_url = None
 
         elif isinstance(source, dict):
@@ -50,6 +51,9 @@ class Media():
             self.mosaic_url = media_data.get('mosaic', {}).get('type') == 'mosaic_photo' and media_data.get('mosaic', {}).get('formats', {}).get('jpeg')
             if not self.mosaic_url and self.length > 0:
                  self.mosaic_url = self.urls[0]
+                 
+            try: self.video_link = tweet_data['raw_text']['facets'][0]['replacement']
+            except: self.video_link = None
 
         elif isinstance(source, BeautifulSoup):
             meta_image = source.find('meta', property='og:image')
@@ -81,6 +85,8 @@ class Media():
                 self.urls = [img_url]
                 
             self.length = len(self.urls)
+            
+            self.video_link = f"{source.find('meta', property='og:url').get('content')}/video/1"
 
         else:
             raise TypeError('source must be a Tweet, BeautifulSoup, or dict')
