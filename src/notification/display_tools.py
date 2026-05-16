@@ -86,7 +86,7 @@ class Media():
             raise TypeError('source must be a Tweet, BeautifulSoup, or dict')
 
 
-async def gen_embed(tweet: Tweet, session: aiohttp.ClientSession = None) -> list[discord.Embed]:
+async def get_media(tweet: Tweet, session: aiohttp.ClientSession = None) -> Media:
     async def get_fx_images(s: aiohttp.ClientSession):
         api_url = re.sub(r'(?:twitter|x)\.com', r'api.fxtwitter.com', tweet.url)
         try:
@@ -107,13 +107,15 @@ async def gen_embed(tweet: Tweet, session: aiohttp.ClientSession = None) -> list
 
     if any(configs['embed']['built_in']['fx_image'].values()):
         if session:
-            media = await get_fx_images(session)
+            return await get_fx_images(session)
         else:
             async with aiohttp.ClientSession() as session_internal:
-                media = await get_fx_images(session_internal)
+                return await get_fx_images(session_internal)
     else:
-        media = Media(tweet)
-        
+        return Media(tweet)
+
+
+def gen_embed(tweet: Tweet, media: Media) -> list[discord.Embed]:
     author = tweet.author
     embed = discord.Embed(title=f'{author.name} {get_action(tweet, disable_quoted=True)} {get_tweet_type(media)}', description=tweet.text, url=tweet.url, color=0x1da0f2, timestamp=tweet.created_on)
     embed.set_author(name=f'{author.name} (@{author.username})', icon_url=author.profile_image_url_https, url=f'https://twitter.com/{author.username}')

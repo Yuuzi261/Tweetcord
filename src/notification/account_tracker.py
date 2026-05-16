@@ -13,7 +13,7 @@ from tweety import Twitter
 from configs.load_configs import configs
 from src.i18n import t
 from src.log import setup_logger
-from src.notification.display_tools import gen_embed, get_action
+from src.notification.display_tools import gen_embed, get_action, get_media
 from src.notification.get_tweets import get_tweets
 from src.notification.utils import is_match_media_type, is_match_type, replace_emoji
 from src.utils import get_accounts, get_lock, get_utcnow
@@ -168,14 +168,16 @@ class AccountTracker():
 
             for tweet in latest_tweets:
                 log.info(f'find a new tweet from {username}')
-                
+
                 if EMBED_TYPE == 'built_in':
-                    embeds = await gen_embed(tweet, self.session)
+                    media = await get_media(tweet, self.session)
+                    embeds = gen_embed(tweet, media)
                     
                 view, create_view = None, False
-                if bool(tweet.media) and tweet.media[0].type == 'video' and EMBED_TYPE == 'built_in' and configs['embed']['built_in']['video_link_button']:
+                if EMBED_TYPE == 'built_in' and media.type == 'video' and configs['embed']['built_in']['video_link_button']:
                     create_view = True
-                    button_label, button_url = t('display.button.view_video'), tweet.media[0].expanded_url
+                    button_url = tweet.media[0].expanded_url if bool(tweet.media) else tweet.url
+                    button_label = t('display.button.view_video')
                 elif EMBED_TYPE == 'proxy' and configs['embed']['proxy']['original_url_button']:
                     create_view = True
                     button_label, button_url = t('display.button.view_original'), tweet.url
@@ -186,7 +188,7 @@ class AccountTracker():
                 
                 for data in notifications:
                     channel = self.bot.get_channel(int(data['channel_id']))
-                    if channel is not None and is_match_type(tweet, data['enable_type']) and is_match_media_type(tweet, data['enable_media_type']):
+                    if channel is not None and is_match_type(tweet, data['enable_type']) and is_match_media_type(media, data['enable_media_type']):
                         try:
                             url = tweet.url
                             if EMBED_TYPE == 'proxy':
