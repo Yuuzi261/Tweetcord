@@ -65,6 +65,7 @@ class ParsedTweet():
             try: self.media.video_link = tweet_data['raw_text']['facets'][0]['replacement']
             except: self.media.video_link = None
             
+            self.text = tweet_data.get('raw_text', {}).get('text', None)
             self.quote_text = tweet_data.get('quote', {}).get('raw_text', {}).get('text', None)
 
         elif isinstance(source, BeautifulSoup):
@@ -103,8 +104,9 @@ class ParsedTweet():
         else:
             raise TypeError('source must be a Tweet, BeautifulSoup, or dict')
         
-    def get_quote_text(self) -> str | None:
+    def get_quote_text(self, include_main_text: bool = False) -> str | None:
         if not self.quote_text:
             return None
-            
-        return '\n'.join(f"> {line}" for line in self.quote_text.split('\n'))
+        
+        quote_text = '\n'.join(f"> {line}" for line in self.quote_text.split('\n'))    
+        return f"{self.text}\n\n{quote_text}" if include_main_text else quote_text

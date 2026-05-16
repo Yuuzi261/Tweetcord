@@ -12,7 +12,7 @@ def gen_embed(tweet: Tweet, parsed_tweet: ParsedTweet) -> list[discord.Embed]:
     author = tweet.author
     disable_quoted = not configs['embed']['built_in']['fx']['enhancement']['media']
     embed = discord.Embed(title=f'{author.name} {get_action(tweet, disable_quoted=disable_quoted)} {get_tweet_type(parsed_tweet)}', 
-                          description=f"{tweet.text}\n\n{parsed_tweet.get_quote_text()}" if parsed_tweet.quote_text else tweet.text,
+                          description=parsed_tweet.get_quote_text(include_main_text=True) if parsed_tweet.quote_text and configs['embed']['built_in']['fx']['enhancement']['rt_text'] else tweet.text,
                           url=tweet.url, color=0x1da0f2, timestamp=tweet.created_on)
     embed.set_author(name=f'{author.name} (@{author.username})', icon_url=author.profile_image_url_https, url=f'https://twitter.com/{author.username}')
     embed.set_thumbnail(url=re.sub(r'normal(?=\.jpg$)', '400x400', tweet.author.profile_image_url_https))
