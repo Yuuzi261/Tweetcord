@@ -31,7 +31,7 @@ async def get_media(tweet: Tweet, session: aiohttp.ClientSession = None) -> Medi
             soup = BeautifulSoup(raw, 'html.parser')
             return Media(soup)
 
-    if configs['embed']['built_in']['fx_image']['enhancement'] or (configs['embed']['built_in']['fx_image']['mosaic'] and len(tweet.media) > 0):
+    if configs['embed']['built_in']['fx_image']['enhancement'] or (configs['embed']['built_in']['fx_image']['mosaic'] and len(tweet.media) > 1):
         if session:
             return await get_fx_images(session)
         else:

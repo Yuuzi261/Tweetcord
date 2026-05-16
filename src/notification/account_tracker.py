@@ -169,12 +169,13 @@ class AccountTracker():
             for tweet in latest_tweets:
                 log.info(f'find a new tweet from {username}')
                 
+                media = None
                 if EMBED_TYPE == 'built_in':
                     media = await get_media(tweet, self.session)
                     embeds = gen_embed(tweet, media)
                     
                 view, create_view = None, False
-                if media.type == 'video' and EMBED_TYPE == 'built_in' and configs['embed']['built_in']['video_link_button']:
+                if EMBED_TYPE == 'built_in' and media.type == 'video' and configs['embed']['built_in']['video_link_button']:
                     create_view = True
                     button_url = media.video_link if media.video_link else tweet.url
                     button_label = t('display.button.view_video')
@@ -188,7 +189,7 @@ class AccountTracker():
                 
                 for data in notifications:
                     channel = self.bot.get_channel(int(data['channel_id']))
-                    if channel is not None and is_match_type(tweet, data['enable_type']) and is_match_media_type(media, data['enable_media_type']):
+                    if channel is not None and is_match_type(tweet, data['enable_type']) and is_match_media_type(media if media else tweet, data['enable_media_type']):
                         try:
                             url = tweet.url
                             if EMBED_TYPE == 'proxy':
