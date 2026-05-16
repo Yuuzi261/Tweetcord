@@ -49,6 +49,13 @@ class ParsedTweet():
             tweet_data = source.get('tweet', {})
             media_data = tweet_data.get('media', {})
             quote_data = tweet_data.get('quote', {})
+            
+            self.text = tweet_data.get('raw_text', {}).get('text', None)
+            self.quote.text = quote_data.get('raw_text', {}).get('text', None)
+            self.quote.name = quote_data.get('author', {}).get('name', None)
+            self.quote.screen_name = quote_data.get('author', {}).get('screen_name', None)
+            self.quote.url = quote_data.get('url', None)
+            self.quote.profile_link = quote_data.get('author', {}).get('url', None)
 
             if not media_data.get('all') and 'quote' in tweet_data:
                 media_data = tweet_data['quote'].get('media', {})
@@ -76,12 +83,6 @@ class ParsedTweet():
             try: self.media.video_link = tweet_data['raw_text']['facets'][0]['replacement']
             except: self.media.video_link = None
             
-            self.text = tweet_data.get('raw_text', {}).get('text', None)
-            self.quote.text = quote_data.get('raw_text', {}).get('text', None)
-            self.quote.name = quote_data.get('author', {}).get('name', None)
-            self.quote.screen_name = quote_data.get('author', {}).get('screen_name', None)
-            self.quote.url = quote_data.get('url', None)
-            self.quote.profile_link = quote_data.get('author', {}).get('url', None)
 
         elif isinstance(source, BeautifulSoup):
             meta_image = source.find('meta', property='og:image')
@@ -138,10 +139,9 @@ class ParsedTweet():
         
         raw_quote_text = '\n\n'.join(quote_inner)
         
-        quote_block = '\n'.join(f"> {line}".rstrip() for line in raw_quote_text.splitlines())
+        quote_block = f">>> {raw_quote_text}"
         
         if include_main_text and getattr(self, 'text', None):
             return f"{self.text}\n\n{quote_block}"
             
-        print(quote_block)
         return quote_block
