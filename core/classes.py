@@ -13,6 +13,8 @@ class Cog_Extension(commands.Cog):
 
 
 class ParsedTweet():
+    MAX_DESCRIPTION_LENGTH = 400
+    
     class Media():
         def __init__(self, type: str = None, urls: list[str] = None, length: int = None, video_link: str = None, mosaic_url: str = None):
             self.type = type
@@ -120,7 +122,7 @@ class ParsedTweet():
         else:
             raise TypeError('source must be a Tweet, BeautifulSoup, or dict')
         
-    def get_quote_text(self, include_main_text: bool = True, include_quote_info: bool = True, simplified_content = True) -> str | None:
+    def get_quote_text(self, include_main_text: bool = True, include_quote_info: bool = True, simplified_content: bool = False) -> str | None:
         if not self.quote or not self.quote.text:
             return None
         
@@ -140,11 +142,11 @@ class ParsedTweet():
         quote_block = f">>> {raw_quote_text}"
         
         if include_main_text and getattr(self, 'text', None):
-            full_content =  f"{self.text}\n\n{quote_block}"
+            full_content = f"{self.text}\n\n{quote_block}"
         else:
             full_content = quote_block
             
         if simplified_content:
-            full_content = full_content[:397] + '...' if len(full_content) > 397 else full_content
+            full_content = full_content[:self.MAX_DESCRIPTION_LENGTH - 3] + '...' if len(full_content) > self.MAX_DESCRIPTION_LENGTH else full_content
             
         return full_content
