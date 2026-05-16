@@ -5,23 +5,23 @@ import aiohttp
 from bs4 import BeautifulSoup
 from tweety.types import Tweet
 
-from core.classes import Media
+from core.classes import ParsedTweet
 from configs.load_configs import configs
 from src.log import setup_logger
 
 log = setup_logger(__name__)
 
 
-async def get_media(tweet: Tweet, session: aiohttp.ClientSession = None) -> Media:
-    async def get_fx_images(s: aiohttp.ClientSession):
+async def get_parsed_tweet(tweet: Tweet, session: aiohttp.ClientSession = None) -> ParsedTweet:
+    async def get_fx_data(s: aiohttp.ClientSession):
         api_url = re.sub(r'(?:twitter|x)\.com', r'api.fxtwitter.com', tweet.url)
         try:
             async with s.get(api_url) as response:
                 if response.status == 200:
                     data = await response.json()
-                    return Media(data)
+                    return ParsedTweet(data)
                 else:
-                    log.warning(f'failed to get media data from {api_url} (status: {response.status}), fallback to HTML scraping')
+                    log.warning(f'failed to get fx data from {api_url} (status: {response.status}), fallback to HTML scraping')
         except Exception as e:
             log.error(f'error fetching from {api_url}: {e}, fallback to HTML scraping')
 
@@ -29,16 +29,16 @@ async def get_media(tweet: Tweet, session: aiohttp.ClientSession = None) -> Medi
         async with s.get(html_url) as response:
             raw = await response.text()
             soup = BeautifulSoup(raw, 'html.parser')
-            return Media(soup)
+            return ParsedTweet(soup)
 
-    if configs['embed']['built_in']['fx_image']['enhancement'] or (configs['embed']['built_in']['fx_image']['mosaic'] and len(tweet.media) > 1):
+    if any(configs['embed']['built_in']['fx']['enhancement'].values()) or (configs['embed']['built_in']['fx']['mosaic'] and len(tweet.media) > 1):
         if session:
-            return await get_fx_images(session)
+            return await get_fx_data(session)
         else:
             async with aiohttp.ClientSession() as session_internal:
-                return await get_fx_images(session_internal)
+                return await get_fx_data(session_internal)
     else:
-        return Media(tweet)
+        return ParsedTweet(tweet)
 
 
 def is_match_type(tweet: Tweet, enable_type: str):
@@ -46,9 +46,9 @@ def is_match_type(tweet: Tweet, enable_type: str):
     return tweet_type == -1 or enable_type[tweet_type] == '1'
 
 
-def is_match_media_type(source: Tweet | Media, media_type: str):
+def is_match_media_type(source: Tweet | ParsedTweet, media_type: str):
     if isinstance(source, Tweet): return media_type == '11' or (media_type == '10' and len(source.media) == 0) or (media_type == '01' and len(source.media) > 0)
-    elif isinstance(source, Media): return media_type == '11' or (media_type == '10' and source.length == 0) or (media_type == '01' and source.length > 0)
+    elif isinstance(source, ParsedTweet): return media_type == '11' or (media_type == '10' and source.length == 0) or (media_type == '01' and source.length > 0)
     else: raise TypeError('source must be a Tweet or Media')
 
 

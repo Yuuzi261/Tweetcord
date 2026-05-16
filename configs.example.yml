@@ -22,8 +22,10 @@ embed:
   type: 'built_in'
 
   built_in:
-    fx_image:
-      enhancement: true
+    fx:
+      enhancement:
+        media: true
+        rt_text: true
       mosaic: true
     video_link_button: false
     legacy_logo: true
