@@ -149,12 +149,12 @@ class Notification(Cog_Extension):
             await update_presence(self.bot)
             await itn.followup.send(t('notification.add.success_new', username=new_user.username, account_used=account_used), ephemeral=True)
         else:
-            if is_changed_client:
-                log.info(f'restarting task for {match_user["username"]} due to client change.')
+            if is_changed_client or match_user['username'] != new_user.username:
+                log.info(f'restarting task for {new_user.username} due to client or username change.')
                 await self.account_tracker.removeTask(match_user['username'])
-                await self.account_tracker.addTask(match_user['username'], account_used)
+                await self.account_tracker.addTask(new_user.username, account_used)
             
-            await itn.followup.send(t('notification.add.success_update', username=match_user['username'], client_used=account_used), ephemeral=True)
+            await itn.followup.send(t('notification.add.success_update', username=new_user.username, client_used=account_used), ephemeral=True)
 
     @remove_group.command(name='notifier', description=t('commands.remove.notifier.description'))
     @app_commands.rename(channel_id='channel')
