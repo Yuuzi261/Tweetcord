@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 from tweety.types import Tweet
 
 from core.classes import ParsedTweet
-from configs.load_configs import configs
+from configs.load_configs import FX_SETTINGS
 from src.log import setup_logger
 
 log = setup_logger(__name__)
@@ -31,7 +31,7 @@ async def get_parsed_tweet(tweet: Tweet, session: aiohttp.ClientSession = None) 
             soup = BeautifulSoup(raw, 'html.parser')
             return ParsedTweet(soup)
 
-    if any(configs['embed']['built_in']['fx']['enhancement'].values()) or (configs['embed']['built_in']['fx']['mosaic'] and len(tweet.media) > 1):
+    if FX_SETTINGS['media'] or FX_SETTINGS['rt_text']['enabled'] or (FX_SETTINGS['mosaic'] and len(tweet.media) > 1):
         if session:
             return await get_fx_data(session)
         else:

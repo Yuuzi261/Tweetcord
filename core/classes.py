@@ -85,7 +85,6 @@ class ParsedTweet():
             try: self.media.video_link = tweet_data['raw_text']['facets'][0]['replacement']
             except: self.media.video_link = None
             
-
         elif isinstance(source, BeautifulSoup):
             meta_image = source.find('meta', property='og:image')
             
@@ -122,7 +121,7 @@ class ParsedTweet():
         else:
             raise TypeError('source must be a Tweet, BeautifulSoup, or dict')
         
-    def get_quote_text(self, include_main_text: bool = True, include_quote_info: bool = True, simplified_content: bool = False) -> str | None:
+    def get_quote_text(self, include_main_text: bool = True, include_quote_info: bool = True, simplified_content: bool = False) -> tuple[str, bool] | None:
         if not self.quote or not self.quote.text:
             return None
         
@@ -147,6 +146,8 @@ class ParsedTweet():
             full_content = quote_block
             
         if simplified_content:
-            full_content = full_content[:self.MAX_DESCRIPTION_LENGTH - 3] + '...' if len(full_content) > self.MAX_DESCRIPTION_LENGTH else full_content
+            full_content = (full_content[:self.MAX_DESCRIPTION_LENGTH - 3] + '...', True) if len(full_content) > self.MAX_DESCRIPTION_LENGTH else (full_content, False)
+        else:
+            full_content = (full_content, False)
             
         return full_content

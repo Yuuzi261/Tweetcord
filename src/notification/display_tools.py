@@ -4,25 +4,34 @@ import discord
 from tweety.types import Tweet
 
 from core.classes import ParsedTweet
-from configs.load_configs import configs
+from configs.load_configs import configs, FX_SETTINGS
 from src.i18n import t
 
 
 def gen_embed(tweet: Tweet, parsed_tweet: ParsedTweet) -> list[discord.Embed]:
     author = tweet.author
-    disable_quoted = not configs['embed']['built_in']['fx']['enhancement']['media']
+    disable_quoted = not FX_SETTINGS['media']
+    
+    is_simplified = False
+    if FX_SETTINGS['rt_text']['enabled']:
+        description = parsed_tweet.get_quote_text(simplified_content=FX_SETTINGS['rt_text']['simplified']) or tweet.text
+        if isinstance(description, tuple):
+            description, is_simplified = description[0], description[1]
+    else:
+        description = tweet.text
+
     embed = discord.Embed(title=f'{author.name} {get_action(tweet, disable_quoted=disable_quoted)} {get_tweet_type(parsed_tweet)}', 
-                          description=(parsed_tweet.get_quote_text(simplified_content=True) or tweet.text) if configs['embed']['built_in']['fx']['enhancement']['rt_text'] else tweet.text,
-                          url=tweet.url, color=0x1da0f2, timestamp=tweet.created_on)
+                          description=description, url=tweet.url, color=0x1da0f2, timestamp=tweet.created_on)
     embed.set_author(name=f'{author.name} (@{author.username})', icon_url=author.profile_image_url_https, url=f'https://twitter.com/{author.username}')
-    embed.set_thumbnail(url=re.sub(r'normal(?=\.jpg$)', '400x400', tweet.author.profile_image_url_https))
     embed.set_footer(text='Twitter' if configs['embed']['built_in']['legacy_logo'] else 'X', icon_url='attachment://footer.png')
+    if not is_simplified:
+        embed.set_thumbnail(url=re.sub(r'normal(?=\.jpg$)', '400x400', tweet.author.profile_image_url_https))
     
     if parsed_tweet.media.length == 1:
         embed.set_image(url=parsed_tweet.media.urls[0])
         return [embed]
     elif parsed_tweet.media.length > 1:
-        if configs['embed']['built_in']['fx']['mosaic']:
+        if FX_SETTINGS['mosaic']:
             embed.set_image(url=parsed_tweet.media.mosaic_url)
             return [embed]
         else:
