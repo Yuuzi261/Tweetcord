@@ -202,14 +202,15 @@ Custom activity name is in `f-string` format, currently supporting 1 special var
 
 | Parameter | Description |
 |-----------|-------------|
-| `fx` | Advanced settings for FixupX integration. The bot fetches new tweets from Twitter's notifications via Tweety. Since Twitter's notification API is older, there might be missing media and text for retweets and quoted tweets. By requesting from FixupX, more complete content can be obtained. When any sub-option of `enhancement` is set to `true`, an additional request to the FixupX API is made before sending each new tweet notification. If only `mosaic` is enabled independently, requests will only be made when necessary. See the detailed breakdown below. |
+| `fx` | Advanced settings for FixupX integration. The bot fetches new tweets from Twitter's notifications via Tweety. Since Twitter's notification API is older, there might be missing media and text for retweets and quoted tweets. By requesting from FixupX, more complete content can be obtained. When `media` or `rt_text` is enabled, an additional request to the FixupX API is made before sending each new tweet notification. If only `mosaic` is enabled independently, requests will only be made when necessary. See the detailed breakdown below. |
 | `video_link_button` | Determine whether to use a link button as a prompt when the media is a video. |
 | `legacy_logo` | If set to `true`, the footer will use Twitter's legacy bluebird logo instead of the new X emblem. |
 
 - **fx**
-  - `enhancement.media` : Whether to fetch media from quoted tweets.
-  - `enhancement.rt_text` : Whether to display the original text of quoted tweets.
-  - `mosaic` : Whether to use FixupX's combined image when there are multiple images, friendly for iOS systems that cannot display multiple image embeddings.
+  - `media`: Whether to fetch thumbnails from external links (in any tweet) and media within quoted tweets.
+  - `rt_text.enabled`: Whether to display the original text of quoted tweets. Enabling this will also show the full content for longer retweets.
+  - `rt_text.simplified`: Whether to simplify information when there is too much content (typically in quoted tweets). When enabled, it truncates part of the original quoted text for overly long messages and hides the thumbnail icon (right-side avatar) within the embed.
+  - `mosaic`: Whether to use FixupX's combined image when there are multiple images, friendly for iOS systems that cannot display multiple image embeddings.
 
 ##### proxy:
 

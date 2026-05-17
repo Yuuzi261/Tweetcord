@@ -202,14 +202,15 @@ DATA_PATH=./data
 
 | 參數 | 描述 |
 |------|------|
-| `fx` | 與 FixupX 整合的進階設定。機器人透過 Tweety 從 Twitter 的通知獲取新推文，由於 Twitter 通知的 API 較舊，對於轉推、引用的多媒體以及文字可能會有缺失，透過向 FixupX 請求可以獲得更完整的內容。`enhancement` 的任意子選項設為 `true` 時，每篇新推文通知發送前都會額外向 FixupX API 請求，若只單獨開啟 `mosaic`，則只會在必要時進行請求。詳細說明請見下方列表。 |
+| `fx` | 與 FixupX 整合的進階設定。機器人透過 Tweety 從 Twitter 的通知獲取新推文，由於 Twitter 通知的 API 較舊，對於轉推、引用的多媒體以及文字可能會有缺失，透過向 FixupX 請求可以獲得更完整的內容。`media` 或 `rt_text` 選項啟用時，每篇新推文通知發送前都會額外向 FixupX API 請求，若只單獨開啟 `mosaic`，則只會在必要時進行請求。詳細說明請見下方列表。 |
 | `video_link_button` | 當多媒體為影片時，決定是否使用一個連結按鈕做為提示。 |
 | `legacy_logo` | 設為`true`的話會使用推特以前的藍鳥logo做為footer而不是新的X標誌。 |
 
 - **fx**
-  - `enhancement.media` : 是否擷取引用推文中的多媒體。
-  - `enhancement.rt_text` : 是否顯示引用推文的原文。
-  - `mosaic` : 當有多張圖片時是否使用 FixupX 的組合圖片，對於無法顯示多張圖片嵌入的iOS系統友善。
+  - `media`：是否擷取外部連結提供的縮圖、引用推文中的多媒體。
+  - `rt_text.enabled`：是否顯示引用推文的原文，開啟此設定後對於較長的轉推內容也會完整顯示。
+  - `rt_text.simplified`：內容較多時是否精簡資訊（通常發生於引用推文），啟用時對於過長的訊息會截斷部份引用原文的內容，並隱藏嵌入內容內的右側頭像（thumbnail）。
+  - `mosaic`：當有多張圖片時是否使用 FixupX 的組合圖片，對於無法顯示多張圖片嵌入的iOS系統友善。
 
 ##### proxy:
 
