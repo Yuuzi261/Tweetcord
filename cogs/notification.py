@@ -90,15 +90,20 @@ class Notification(Cog_Extension):
                             if configs['auto_unfollow'] or configs['auto_turn_off_notification']:
                                 old_client_used = match_user['client_used']
                                 old_app = Twitter(old_client_used)
-                                await old_app.connect()
-                                target_user = await old_app.get_user_info(username)
+                                
+                                try:
+                                    await old_app.connect()
+                                    target_user = await old_app.get_user_info(username)
 
-                                if configs['auto_unfollow']:
-                                    status = await old_app.unfollow_user(target_user)
-                                    log.info(f'successfully unfollowed {username} (due to client change)') if status else log.warning(f'unable to unfollow {username}')
-                                else:
-                                    status = await old_app.disable_user_notification(target_user)
-                                    log.info(f'successfully turned off notification for {username} (due to client change)') if status else log.warning(f'unable to turn off notifications for {username}')
+                                    if configs['auto_unfollow']:
+                                        status = await old_app.unfollow_user(target_user)
+                                        log.info(f'successfully unfollowed {username} (due to client change)') if status else log.warning(f'unable to unfollow {username}')
+                                    else:
+                                        status = await old_app.disable_user_notification(target_user)
+                                        log.info(f'successfully turned off notification for {username} (due to client change)') if status else log.warning(f'unable to turn off notifications for {username}')
+                                except Exception as e:
+                                    log.warning(f'unable to unfollow or disable notification for {username} (when client changing to {account_used}): {e}')
+                                
                             is_changed_client = True
                         else:
                             await itn.followup.send(t('notification.add.client_conflict', username=username, account_used=account_used), ephemeral=True)
