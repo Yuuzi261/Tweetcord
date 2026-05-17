@@ -136,7 +136,7 @@ class Notification(Cog_Extension):
                                 
                             await db.commit()
 
-                    if match_user is None or match_user['enabled'] == 0:
+                    if match_user is None or match_user['enabled'] == 0 or is_changed_client:
                         await app.follow_user(new_user)
                         status = await app.enable_user_notification(new_user)
                         if status:
