@@ -4,6 +4,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 from tweety import Twitter
+from tweety.exceptions import UserProtected
 
 from configs.load_configs import configs
 from core.classes import Cog_Extension
@@ -211,14 +212,20 @@ class Notification(Cog_Extension):
                                 client_used = result['client_used']
                                 app = Twitter(client_used)
                                 await app.connect()
-                                target_user = await app.get_user_info(username)
+                                
+                                try:
+                                    target_user = await app.get_user_info(username)
 
-                                if configs['auto_unfollow']:
-                                    status = await app.unfollow_user(target_user)
-                                    log.info(f'successfully unfollowed {username}') if status else log.warning(f'unable to unfollow {username}')
-                                else:
-                                    status = await app.disable_user_notification(target_user)
-                                    log.info(f'successfully turned off notification for {username}') if status else log.warning(f'unable to turn off notifications for {username}')
+                                    if configs['auto_unfollow']:
+                                        status = await app.unfollow_user(target_user)
+                                        log.info(f'successfully unfollowed {username}') if status else log.warning(f'unable to unfollow {username}')
+                                    else:
+                                        status = await app.disable_user_notification(target_user)
+                                        log.info(f'successfully turned off notification for {username}') if status else log.warning(f'unable to turn off notifications for {username}')
+                                except UserProtected:
+                                    log.warning(f'the account: {username} is protected or has been banned, skip this step')
+                                except Exception as e:
+                                    log.warning(f'unable to unfollow or disable notification for {username}: {e}')
                                     
                             await update_presence(self.bot)
                     else:
