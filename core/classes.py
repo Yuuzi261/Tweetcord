@@ -13,7 +13,7 @@ class Cog_Extension(commands.Cog):
 
 
 class ParsedTweet():
-    MAX_DESCRIPTION_LENGTH = 400
+    MAX_DESCRIPTION_LENGTH = 450
     
     class Media():
         def __init__(self, type: str = None, urls: list[str] = None, length: int = None, video_link: str = None, mosaic_url: str = None):
@@ -58,6 +58,8 @@ class ParsedTweet():
             self.quote.screen_name = quote_data.get('author', {}).get('screen_name', None)
             self.quote.url = quote_data.get('url', None)
             self.quote.profile_link = quote_data.get('author', {}).get('url', None)
+            
+            self.text = f"RT @{tweet_data.get('author', {}).get('screen_name', None)}: {self.text}" if tweet_data.get('reposted_by', {}) else self.text
 
             if not media_data.get('all') and 'quote' in tweet_data:
                 media_data = tweet_data['quote'].get('media', {})
