@@ -97,16 +97,16 @@ class Notification(Cog_Extension):
 
                                     if configs['auto_unfollow']:
                                         status = await old_app.unfollow_user(target_user)
-                                        log.info(f'successfully unfollowed {username} (due to client change)') if status else log.warning(f'unable to unfollow {username}')
+                                        log.info(f'successfully unfollowed {new_user.username} (due to client change)') if status else log.warning(f'unable to unfollow {new_user.username}')
                                     else:
                                         status = await old_app.disable_user_notification(target_user)
-                                        log.info(f'successfully turned off notification for {username} (due to client change)') if status else log.warning(f'unable to turn off notifications for {username}')
+                                        log.info(f'successfully turned off notification for {new_user.username} (due to client change)') if status else log.warning(f'unable to turn off notifications for {new_user.username}')
                                 except Exception as e:
-                                    log.warning(f'unable to unfollow or disable notification for {username} (when client changing to {account_used}): {e}')
+                                    log.warning(f'unable to unfollow or disable notification for {new_user.username} (when client changing to {account_used}): {e}')
                                 
                             is_changed_client = True
                         else:
-                            await itn.followup.send(t('notification.add.client_conflict', username=username, account_used=account_used), ephemeral=True)
+                            await itn.followup.send(t('notification.add.client_conflict', username=new_user.username, account_used=account_used), ephemeral=True)
                             return
 
                     server_id = str(channel.guild.id)
@@ -140,9 +140,9 @@ class Notification(Cog_Extension):
                         await app.follow_user(new_user)
                         status = await app.enable_user_notification(new_user)
                         if status:
-                            log.info(f'successfully turned on notification for {username}')
+                            log.info(f'successfully turned on notification for {new_user.username}')
                         else:
-                            log.warning(f'unable to turn on notifications for {username}')
+                            log.warning(f'unable to turn on notifications for {new_user.username}')
                 except Exception as e:
                     log.error(f'an error occurred while adding notifier: {e}')
                     await itn.followup.send(t('notification.add.failed'), ephemeral=True)
