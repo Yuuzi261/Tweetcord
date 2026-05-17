@@ -83,66 +83,61 @@ class Notification(Cog_Extension):
 
                     await cursor.execute('SELECT * FROM user WHERE id = ?', (str(new_user.id),))
                     match_user = await cursor.fetchone()
+                    
+                    is_changed_client = False            
+                    if match_user and match_user['client_used'] != account_used:
+                        if configs['auto_change_client']:
+                            if configs['auto_unfollow'] or configs['auto_turn_off_notification']:
+                                old_client_used = match_user['client_used']
+                                old_app = Twitter(old_client_used)
+                                await old_app.connect()
+                                target_user = await old_app.get_user_info(username)
+
+                                if configs['auto_unfollow']:
+                                    status = await old_app.unfollow_user(target_user)
+                                    log.info(f'successfully unfollowed {username} (due to client change)') if status else log.warning(f'unable to unfollow {username}')
+                                else:
+                                    status = await old_app.disable_user_notification(target_user)
+                                    log.info(f'successfully turned off notification for {username} (due to client change)') if status else log.warning(f'unable to turn off notifications for {username}')
+                            is_changed_client = True
+                        else:
+                            await itn.followup.send(t('notification.add.client_conflict', username=username, account_used=account_used), ephemeral=True)
+                            return
 
                     server_id = str(channel.guild.id)
                     roleID = str(mention.id) if mention is not None else ''
-                    if match_user is None or match_user['enabled'] == 0:
-                        if match_user is None:
-                            async with lock:
-                                await db.execute('BEGIN')
-                                await cursor.execute('INSERT INTO user (id, username, latest_tweet, client_used) VALUES (?, ?, ?, ?)', (str(new_user.id), new_user.username, get_utcnow(), account_used))
-                                await cursor.execute('INSERT OR IGNORE INTO channel VALUES (?, ?)', (str(channel.id), server_id))
-                                await cursor.execute('INSERT INTO notification (user_id, channel_id, role_id, enable_type, enable_media_type) VALUES (?, ?, ?, ?, ?)', (str(new_user.id), str(channel.id), roleID, enable_type, media_type))
-                                await db.commit()
-                        else:
-                            is_changed_client = False
+                    if match_user is None:
+                        async with lock:
+                            await db.execute('BEGIN')
+                            await cursor.execute('INSERT INTO user (id, username, latest_tweet, client_used) VALUES (?, ?, ?, ?)', (str(new_user.id), new_user.username, get_utcnow(), account_used))
+                            await cursor.execute('INSERT OR IGNORE INTO channel VALUES (?, ?)', (str(channel.id), server_id))
+                            await cursor.execute('INSERT INTO notification (user_id, channel_id, role_id, enable_type, enable_media_type) VALUES (?, ?, ?, ?, ?)', (str(new_user.id), str(channel.id), roleID, enable_type, media_type))
+                            await db.commit()
+                    else:
+                        async with lock:
+                            await db.execute('BEGIN')
+                            
                             if match_user['username'] != new_user.username:
-                                async with lock:
-                                    await db.execute('BEGIN')
-                                    await cursor.execute('UPDATE user SET username = ? WHERE id = ?', (new_user.username, str(new_user.id)))
-                                    await db.commit()
-
-                            if match_user['client_used'] != account_used:
-                                if configs['auto_change_client']:
-                                    if configs['auto_unfollow'] or configs['auto_turn_off_notification']:
-                                        old_client_used = match_user['client_used']
-                                        old_app = Twitter(old_client_used)
-                                        await app.connect()
-                                        target_user = await old_app.get_user_info(username)
-
-                                        if configs['auto_unfollow']:
-                                            status = await old_app.unfollow_user(target_user)
-                                            log.info(f'successfully unfollowed {username} (due to client change)') if status else log.warning(f'unable to unfollow {username}')
-                                        else:
-                                            status = await old_app.disable_user_notification(target_user)
-                                            log.info(f'successfully turned off notification for {username} (due to client change)') if status else log.warning(f'unable to turn off notifications for {username}')
-
-                                    is_changed_client = True
-                                else:
-                                    await itn.followup.send(t('notification.add.client_conflict', username=username, account_used=account_used), ephemeral=True)
-                                    return
-                            async with lock:
-                                await db.execute('BEGIN')
-                                if is_changed_client:
-                                    await cursor.execute('REPLACE INTO user (client_used) VALUES (?) WHERE id = ?', (account_used, match_user['id']))
-                                await cursor.execute('INSERT OR IGNORE INTO channel VALUES (?, ?)', (str(channel.id), server_id))
-                                await cursor.execute('REPLACE INTO notification (user_id, channel_id, role_id, enable_type, enable_media_type) VALUES (?, ?, ?, ?, ?)', (match_user['id'], str(channel.id), roleID, enable_type, media_type))
+                                await cursor.execute('UPDATE user SET username = ? WHERE id = ?', (new_user.username, str(new_user.id)))
+                            
+                            if is_changed_client:
+                                await cursor.execute('UPDATE user SET client_used = ? WHERE id = ?', (account_used, match_user['id']))
+                            
+                            await cursor.execute('INSERT OR IGNORE INTO channel VALUES (?, ?)', (str(channel.id), server_id))
+                            await cursor.execute('REPLACE INTO notification (user_id, channel_id, role_id, enable_type, enable_media_type) VALUES (?, ?, ?, ?, ?)', (match_user['id'], str(channel.id), roleID, enable_type, media_type))
+                            
+                            if match_user['enabled'] == 0:
                                 await cursor.execute('UPDATE user SET enabled = 1 WHERE id = ?', (match_user['id'],))
-                                await db.commit()
+                                
+                            await db.commit()
 
+                    if match_user is None or match_user['enabled'] == 0:
                         await app.follow_user(new_user)
-
                         status = await app.enable_user_notification(new_user)
                         if status:
                             log.info(f'successfully turned on notification for {username}')
                         else:
                             log.warning(f'unable to turn on notifications for {username}')
-                    else:
-                        async with lock:
-                            await db.execute('BEGIN')
-                            await cursor.execute('INSERT OR IGNORE INTO channel VALUES (?, ?)', (str(channel.id), server_id))
-                            await cursor.execute('REPLACE INTO notification (user_id, channel_id, role_id, enable_type, enable_media_type) VALUES (?, ?, ?, ?, ?)', (match_user['id'], str(channel.id), roleID, enable_type, media_type))
-                            await db.commit()
                 except Exception as e:
                     log.error(f'an error occurred while adding notifier: {e}')
                     await itn.followup.send(t('notification.add.failed'), ephemeral=True)
@@ -154,7 +149,12 @@ class Notification(Cog_Extension):
             await update_presence(self.bot)
             await itn.followup.send(t('notification.add.success_new', username=new_user.username, account_used=account_used), ephemeral=True)
         else:
-            await itn.followup.send(t('notification.add.success_update', username=match_user['username'], client_used=match_user['client_used']), ephemeral=True)
+            if is_changed_client:
+                log.info(f'restarting task for {match_user["username"]} due to client change.')
+                await self.account_tracker.removeTask(match_user['username'])
+                await self.account_tracker.addTask(match_user['username'], account_used)
+            
+            await itn.followup.send(t('notification.add.success_update', username=match_user['username'], client_used=account_used), ephemeral=True)
 
     @remove_group.command(name='notifier', description=t('commands.remove.notifier.description'))
     @app_commands.rename(channel_id='channel')
