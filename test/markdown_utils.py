@@ -106,6 +106,12 @@ class TestMarkdownUtils(unittest.TestCase):
         self.assertEqual(res, "Blue_Ar...")
         self.assertTrue(truncated)
         self.assertFalse(res.endswith("_"))
+        
+    def test_safe_truncate_link_with_parentheses(self):
+        """Test URLs with parentheses are handled correctly."""
+        text = "[Wikipedia](https://en.wikipedia.org/wiki/File_(command))"
+        res, truncated = safe_truncate(text, 50)
+        self.assertEqual(res, text)
 
 if __name__ == '__main__':
     unittest.main()
