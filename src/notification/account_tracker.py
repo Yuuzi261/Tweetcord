@@ -193,7 +193,7 @@ class AccountTracker():
                         if EMBED_TYPE == 'built_in':
                             p_tweet = await get_parsed_tweet(tweet, self.session, lang=lang)
                             embeds = gen_embed(tweet, p_tweet)
-                            if p_tweet.media.type == 'video' and configs['embed']['built_in']['video_link_button']:
+                            if view is None and p_tweet.media.type == 'video' and configs['embed']['built_in']['video_link_button']:
                                 button_url = p_tweet.media.video_link or tweet.url
                                 view = gen_view(t('display.button.view_video'), button_url)
                         
