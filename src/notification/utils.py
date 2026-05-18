@@ -27,7 +27,6 @@ async def get_parsed_tweet(tweet: Tweet, session: aiohttp.ClientSession = None, 
             log.error(f'error fetching from {api_url}: {e}, fallback to HTML scraping')
 
         html_url = re.sub(r'(?:twitter|x)\.com', r'fxtwitter.com', tweet.url)
-        if lang: html_url += f"/{lang}"
         async with s.get(html_url) as response:
             raw = await response.text()
             soup = BeautifulSoup(raw, 'html.parser')
