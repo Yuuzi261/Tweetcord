@@ -25,7 +25,7 @@ def gen_embed(tweet: Tweet, parsed_tweet: ParsedTweet) -> list[discord.Embed]:
     embed.set_author(name=f'{author.name} (@{author.username})', icon_url=author.profile_image_url_https, url=f'https://twitter.com/{author.username}')
     embed.set_footer(text='Twitter' if configs['embed']['built_in']['legacy_logo'] else 'X', icon_url='attachment://footer.png')
     if not is_simplified:
-        embed.set_thumbnail(url=re.sub(r'normal(?=\.jpg$)', '400x400', tweet.author.profile_image_url_https))
+        embed.set_thumbnail(url=re.sub(r'normal(?=\.(?:jpg|png)$)', '400x400', tweet.author.profile_image_url_https))
     
     if parsed_tweet.media.length == 1:
         embed.set_image(url=parsed_tweet.media.urls[0])
