@@ -67,7 +67,7 @@ def clean_markdown(text: str) -> str:
     if not text:
         return ""
     # Links: [text](url) -> text
-    text = re.sub(r'\[([^\]]+)\]\([^\)]+\)', r'\1', text)
+    text = re.sub(r'\[([^\]]+)\]\((?:[^\(\)]|\([^\(\)]*\))+\)', r'\1', text)
     # Formatting tokens
     text = re.sub(r'(\*\*\*|\*\*|__|\*|_|~~|\|\||`|>>>)', '', text)
     # Quote prefixes at start of lines
@@ -95,7 +95,7 @@ def safe_truncate(text: str, max_len: int) -> tuple[str, bool]:
     # Regex for tokens
     token_re = re.compile(r"""
         (?P<quote>^>[ ]?) |
-        (?P<link>\[(?P<link_text>[^\]]+)\]\((?P<link_url>[^\)]+)\)) |
+        (?P<link>\[(?P<link_text>[^\]]+)\]\((?P<link_url>(?:[^\(\)]|\([^\(\)]*\))+)\)) |
         (?P<bold_italic>(?<![a-zA-Z0-9])\*\*\*|\*\*\*(?![a-zA-Z0-9])) |
         (?P<bold>(?<![a-zA-Z0-9])\*\*|\*\*(?![a-zA-Z0-9])) |
         (?P<underline>(?<![a-zA-Z0-9])__|__(?![a-zA-Z0-9])) |
