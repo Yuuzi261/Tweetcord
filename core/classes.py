@@ -129,11 +129,18 @@ class ParsedTweet():
         else:
             raise TypeError('source must be a Tweet, BeautifulSoup, or dict')
         
+    @staticmethod
+    def _wrap_quote(text: str) -> str:
+        return "\n".join([f"> {line}" for line in text.splitlines()]) if text else ""
+
     def get_translated_text(self) -> str | None:
-        trans_info = f'**{self.DCOS_ICON} {t("class.parsed_tweet.trans_text", lang=self.trans_lang.upper())}**'
-        original_text = f">>> **{t('class.parsed_tweet.original_text')}**\n{self.text}"
+        if not self.trans_text:
+            return None
         
-        return '\n\n'.join([trans_info, self.trans_text, original_text]) if self.trans_text else None
+        trans_info = f'**{self.DCOS_ICON} {t("class.parsed_tweet.trans_text", lang=self.trans_lang.upper())}**'
+        original_text = f"**{t('class.parsed_tweet.original_text')}**\n{self.text}"
+        
+        return '\n\n'.join([trans_info, self.trans_text, self._wrap_quote(original_text)])
         
     def get_quote_text(self, include_main_text: bool = True, include_quote_info: bool = True, simplified_content: bool = False) -> tuple[str, bool] | None:
         if not self.quote or not self.quote.text:
@@ -152,7 +159,7 @@ class ParsedTweet():
             
         quote_inner.append(self.quote.trans_text or self.quote.text)
         raw_quote_text = '\n\n'.join(quote_inner)
-        quote_block = f">>> {raw_quote_text}"
+        quote_block = self._wrap_quote(raw_quote_text)
         
         if include_main_text and getattr(self, 'text', None):
             full_content = f"{self.get_translated_text() or self.text}\n\n{quote_block}"
