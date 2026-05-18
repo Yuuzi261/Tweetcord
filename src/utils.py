@@ -96,11 +96,11 @@ def safe_truncate(text: str, max_len: int) -> tuple[str, bool]:
     token_re = re.compile(r"""
         (?P<quote>^>[ ]?) |
         (?P<link>\[(?P<link_text>[^\]]+)\]\((?P<link_url>[^\)]+)\)) |
-        (?P<bold_italic>\*\*\*) |
-        (?P<bold>\*\*) |
-        (?P<underline>__) |
-        (?P<italic_star>\*) |
-        (?P<italic_underscore>_) |
+        (?P<bold_italic>(?<![a-zA-Z0-9])\*\*\*|\*\*\*(?![a-zA-Z0-9])) |
+        (?P<bold>(?<![a-zA-Z0-9])\*\*|\*\*(?![a-zA-Z0-9])) |
+        (?P<underline>(?<![a-zA-Z0-9])__|__(?![a-zA-Z0-9])) |
+        (?P<italic_star>(?<![a-zA-Z0-9])\*|\*(?![a-zA-Z0-9])) |
+        (?P<italic_underscore>(?<![a-zA-Z0-9])_|_(?![a-zA-Z0-9])) |
         (?P<strike>~~) |
         (?P<spoiler>\|\|) |
         (?P<code>`+[^`]+`+) |
