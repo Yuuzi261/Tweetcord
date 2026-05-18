@@ -10,6 +10,7 @@ import discord
 from discord.ext import commands
 from tweety import Twitter
 
+from core.classes import ParsedTweet
 from configs.load_configs import configs, IS_TRANSLATION_ENABLED
 from src.i18n import t
 from src.log import setup_logger
@@ -168,52 +169,65 @@ class AccountTracker():
             for tweet in latest_tweets:
                 log.info(f'find a new tweet from {username}')
                 
-                parsed_tweet = None
-                if EMBED_TYPE == 'built_in':
-                    parsed_tweet = await get_parsed_tweet(tweet, self.session)
-                    embeds = gen_embed(tweet, parsed_tweet)
-                    
-                view, create_view = None, False
-                if EMBED_TYPE == 'built_in' and parsed_tweet.media.type == 'video' and configs['embed']['built_in']['video_link_button']:
-                    create_view = True
-                    button_url = parsed_tweet.media.video_link if parsed_tweet.media.video_link else tweet.url
-                    button_label = t('display.button.view_video')
-                elif EMBED_TYPE == 'proxy' and configs['embed']['proxy']['original_url_button']:
-                    create_view = True
-                    button_label, button_url = t('display.button.view_original'), tweet.url
-
-                if create_view:
-                    view = discord.ui.View(timeout=5)
-                    view.add_item(discord.ui.Button(label=button_label, style=discord.ButtonStyle.link, url=button_url))
+                content_cache: dict[str, tuple[list[discord.Embed], discord.ui.View, ParsedTweet]] = {}
                 
+                def gen_view(label: str, url: str):
+                    view = discord.ui.View(timeout=5)
+                    view.add_item(discord.ui.Button(label=label, style=discord.ButtonStyle.link, url=url))
+                    return view
+                
+                view = None
+                if EMBED_TYPE == 'proxy' and configs['embed']['proxy']['original_url_button']:
+                    view = gen_view(t('display.button.view_original'), tweet.url)
+
                 for data in notifications:
                     channel = self.bot.get_channel(int(data['channel_id']))
-                    if channel is not None and is_match_type(tweet, data['enable_type']) and is_match_media_type(parsed_tweet if parsed_tweet else tweet, data['enable_media_type']):
-                        try:
-                            url = tweet.url
-                            if EMBED_TYPE == 'proxy':
-                                url = url.replace('twitter', DOMAIN_NAME)
-                                if IS_TRANSLATION_ENABLED:
-                                    lang = data['server_translate'] if data['server_translate'] is not None else configs['embed']['trans_default_lang']
-                                    url += f"/{lang}"
+                    if channel is None or not is_match_type(tweet, data['enable_type']):
+                        continue
+                    
+                    lang = (data['server_translate'] or configs['embed']['trans_default_lang']) if IS_TRANSLATION_ENABLED else None
+                    
+                    if lang not in content_cache:
+                        p_tweet, embeds = None, None
+                        
+                        if EMBED_TYPE == 'built_in':
+                            p_tweet = await get_parsed_tweet(tweet, self.session, lang=lang)
+                            embeds = gen_embed(tweet, p_tweet)
+                            if p_tweet.media.type == 'video' and configs['embed']['built_in']['video_link_button']:
+                                button_url = p_tweet.media.video_link or tweet.url
+                                view = gen_view(t('display.button.view_video'), button_url)
+                        
+                        content_cache[lang] = (embeds, view, p_tweet)
 
-                            mention = f"{channel.guild.get_role(int(data['role_id'])).mention} " if data['role_id'] else ''
-                            author, action = tweet.author.name, get_action(tweet)
-                            
-                            if not data['customized_msg']: msg = configs['default_message']
-                            else: msg = re.sub(r":(\w+):", lambda match: replace_emoji(match, channel.guild), data['customized_msg']) if configs['emoji_auto_format'] else data['customized_msg']
-                            msg = msg.format(mention=mention, author=author, action=action, url=url)
+                    current_embeds, current_view, current_p_tweet = content_cache[lang]
 
-                            if EMBED_TYPE == 'proxy':
-                                await channel.send(msg, view=view)
-                            else:
-                                footer = 'twitter.png' if configs['embed']['built_in']['legacy_logo'] else 'x.png'
-                                file = discord.File(f'images/{footer}', filename='footer.png')
-                                await channel.send(msg, file=file, embeds=embeds, view=view)
+                    if not is_match_media_type(current_p_tweet if current_p_tweet else tweet, data['enable_media_type']):
+                        continue
 
-                        except Exception as e:
-                            if not isinstance(e, discord.errors.Forbidden):
-                                log.error(f'an error occurred at {channel.mention} while sending notification: {e}')
+                    try:
+                        url = tweet.url
+                        if EMBED_TYPE == 'proxy':
+                            url = url.replace('twitter', DOMAIN_NAME)
+                            if IS_TRANSLATION_ENABLED:
+                                url += f"/{lang}"
+
+                        mention = f"{channel.guild.get_role(int(data['role_id'])).mention} " if data['role_id'] else ''
+                        author, action = tweet.author.name, get_action(tweet)
+                        
+                        if not data['customized_msg']: msg = configs['default_message']
+                        else: msg = re.sub(r":(\w+):", lambda match: replace_emoji(match, channel.guild), data['customized_msg']) if configs['emoji_auto_format'] else data['customized_msg']
+                        msg = msg.format(mention=mention, author=author, action=action, url=url)
+
+                        if EMBED_TYPE == 'proxy':
+                            await channel.send(msg, view=current_view)
+                        else:
+                            footer = 'twitter.png' if configs['embed']['built_in']['legacy_logo'] else 'x.png'
+                            file = discord.File(f'images/{footer}', filename='footer.png')
+                            await channel.send(msg, file=file, embeds=current_embeds, view=current_view)
+
+                    except Exception as e:
+                        if not isinstance(e, discord.errors.Forbidden):
+                            log.error(f'an error occurred at {channel.mention} while sending notification: {e}')
 
     async def tweetsUpdater(self, app: Twitter):
         updater_name = asyncio.current_task().get_name().split('_', 1)[1]

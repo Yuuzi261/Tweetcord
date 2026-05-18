@@ -12,9 +12,10 @@ from src.log import setup_logger
 log = setup_logger(__name__)
 
 
-async def get_parsed_tweet(tweet: Tweet, session: aiohttp.ClientSession = None) -> ParsedTweet:
+async def get_parsed_tweet(tweet: Tweet, session: aiohttp.ClientSession = None, lang: str = None) -> ParsedTweet:
     async def get_fx_data(s: aiohttp.ClientSession):
         api_url = re.sub(r'(?:twitter|x)\.com', r'api.fxtwitter.com', tweet.url)
+        if lang: api_url += f"/{lang}"
         try:
             async with s.get(api_url) as response:
                 if response.status == 200:
@@ -26,6 +27,7 @@ async def get_parsed_tweet(tweet: Tweet, session: aiohttp.ClientSession = None) 
             log.error(f'error fetching from {api_url}: {e}, fallback to HTML scraping')
 
         html_url = re.sub(r'(?:twitter|x)\.com', r'fxtwitter.com', tweet.url)
+        if lang: html_url += f"/{lang}"
         async with s.get(html_url) as response:
             raw = await response.text()
             soup = BeautifulSoup(raw, 'html.parser')

@@ -14,6 +14,7 @@ class Cog_Extension(commands.Cog):
 
 class ParsedTweet():
     MAX_DESCRIPTION_LENGTH = 450
+    DCOS_ICON = '\ud83d\udcd1'
     
     class Media():
         def __init__(self, type: str = None, urls: list[str] = None, length: int = None, video_link: str = None, mosaic_url: str = None):
@@ -24,12 +25,13 @@ class ParsedTweet():
             self.mosaic_url = mosaic_url
             
     class Quote():
-        def __init__(self, text: str = None, name: str = None, screen_name: str = None, url: str = None, profile_link: str = None):
+        def __init__(self, text: str = None, name: str = None, screen_name: str = None, url: str = None, profile_link: str = None, trans_text: str = None):
             self.text = text
             self.name = name
             self.screen_name = screen_name
             self.url = url
             self.profile_link = profile_link
+            self.trans_text = trans_text
     
     def __init__(self, source: Tweet | BeautifulSoup | dict):
         self.media = self.Media()
@@ -49,15 +51,19 @@ class ParsedTweet():
 
         elif isinstance(source, dict):
             tweet_data = source.get('tweet', {})
-            media_data = tweet_data.get('media', {})
             quote_data = tweet_data.get('quote', {})
+            trans_data = tweet_data.get('translation', {})
+            media_data = tweet_data.get('media', {})
             
             self.text = tweet_data.get('raw_text', {}).get('text', None)
+            self.trans_text = trans_data.get('text', None)
+            self.trans_lang = trans_data.get('source_lang', None)
             self.quote.text = quote_data.get('raw_text', {}).get('text', None)
             self.quote.name = quote_data.get('author', {}).get('name', None)
             self.quote.screen_name = quote_data.get('author', {}).get('screen_name', None)
             self.quote.url = quote_data.get('url', None)
             self.quote.profile_link = quote_data.get('author', {}).get('url', None)
+            self.quote.trans_text = quote_data.get('translation', {}).get('text', None)
             
             self.text = f"RT @{tweet_data.get('author', {}).get('screen_name', None)}: {self.text}" if tweet_data.get('reposted_by', {}) else self.text
 
@@ -123,6 +129,13 @@ class ParsedTweet():
         else:
             raise TypeError('source must be a Tweet, BeautifulSoup, or dict')
         
+    def get_translated_text(self) -> str | None:
+        # TODO: trans_info = f'{self.DCOS_ICON} {t("class.parsed_tweet.trans_text", lang=self.trans_lang)}'
+        trans_info = f'{self.DCOS_ICON} Translated from {self.trans_lang}'
+        original_text = f">>> Original text\n{self.text}"
+        
+        return '\n\n'.join([trans_info, self.trans_text, original_text]) if self.trans_text else None
+        
     def get_quote_text(self, include_main_text: bool = True, include_quote_info: bool = True, simplified_content: bool = False) -> tuple[str, bool] | None:
         if not self.quote or not self.quote.text:
             return None
@@ -138,12 +151,12 @@ class ParsedTweet():
             )
             quote_inner.append(f"**{quote_info}**")
             
-        quote_inner.append(self.quote.text)
+        quote_inner.append(self.quote.trans_text or self.quote.text)
         raw_quote_text = '\n\n'.join(quote_inner)
         quote_block = f">>> {raw_quote_text}"
         
         if include_main_text and getattr(self, 'text', None):
-            full_content = f"{self.text}\n\n{quote_block}"
+            full_content = f"{self.get_translated_text() or self.text}\n\n{quote_block}"
         else:
             full_content = quote_block
             
