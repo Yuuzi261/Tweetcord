@@ -13,7 +13,8 @@ class Cog_Extension(commands.Cog):
 
 
 class ParsedTweet():
-    MAX_DESCRIPTION_LENGTH = 450
+    SIMPLIFIED_THRESHOLD = 450
+    MAX_DESCRIPTION_LENGTH = 750
     DCOS_ICON = '\ud83d\udcd1'
     
     class Media():
@@ -136,7 +137,7 @@ class ParsedTweet():
     def get_translated_text(self) -> str | None:
         if not self.trans_text:
             return None
-        
+            
         trans_info = f'**{self.DCOS_ICON} {t("class.parsed_tweet.trans_text", lang=self.trans_lang.upper())}**'
         original_text = f"**{t('class.parsed_tweet.original_text')}**\n{self.text}"
         
@@ -167,7 +168,10 @@ class ParsedTweet():
             full_content = quote_block
             
         if simplified_content:
-            full_content = (full_content[:self.MAX_DESCRIPTION_LENGTH - 3] + '...', True) if len(full_content) > self.MAX_DESCRIPTION_LENGTH else (full_content, False)
+            is_simplified = len(full_content) > self.SIMPLIFIED_THRESHOLD
+            content = full_content[:self.MAX_DESCRIPTION_LENGTH - 3]
+            content += '...' if content != full_content else ''
+            full_content = (content, is_simplified)
         else:
             full_content = (full_content, False)
             
