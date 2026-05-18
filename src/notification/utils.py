@@ -32,13 +32,12 @@ async def get_parsed_tweet(tweet: Tweet, session: aiohttp.ClientSession = None, 
             soup = BeautifulSoup(raw, 'html.parser')
             return ParsedTweet(soup)
 
-    fx_enhancement_conditions = [
-        FX_SETTINGS['media'],
-        FX_SETTINGS['rt_text']['enabled'],
-        FX_SETTINGS['auto_translation'],
-        FX_SETTINGS['mosaic'] and len(tweet.media) > 1,
-    ]
-    if any(fx_enhancement_conditions):
+    if (
+        FX_SETTINGS['media']
+        or FX_SETTINGS['rt_text']['enabled']
+        or FX_SETTINGS['auto_translation']
+        or (FX_SETTINGS['mosaic'] and len(tweet.media) > 1)
+    ):
         if session:
             return await get_fx_data(session)
         else:
