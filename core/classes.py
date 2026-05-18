@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 from tweety.types import Tweet
 
 from src.i18n import t
+from src.utils import get_visible_length, safe_truncate
 
 
 class Cog_Extension(commands.Cog):
@@ -13,8 +14,8 @@ class Cog_Extension(commands.Cog):
 
 
 class ParsedTweet():
-    SIMPLIFIED_THRESHOLD = 450
-    MAX_DESCRIPTION_LENGTH = 750
+    SIMPLIFIED_THRESHOLD = 400
+    MAX_DESCRIPTION_LENGTH = 650
     DCOS_ICON = '\ud83d\udcd1'
     
     class Media():
@@ -168,10 +169,9 @@ class ParsedTweet():
             full_content = quote_block
             
         if simplified_content:
-            is_simplified = len(full_content) > self.SIMPLIFIED_THRESHOLD
-            content = full_content[:self.MAX_DESCRIPTION_LENGTH - 3]
-            content += '...' if content != full_content else ''
-            full_content = (content, is_simplified)
+            is_simplified = get_visible_length(full_content) > self.SIMPLIFIED_THRESHOLD
+            full_content, _ = safe_truncate(full_content, self.MAX_DESCRIPTION_LENGTH)
+            full_content = (full_content, is_simplified)
         else:
             full_content = (full_content, False)
             
