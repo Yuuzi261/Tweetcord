@@ -10,7 +10,7 @@ import discord
 from discord.ext import commands
 from tweety import Twitter
 
-from configs.load_configs import configs
+from configs.load_configs import configs, IS_TRANSLATION_ENABLED
 from src.i18n import t
 from src.log import setup_logger
 from src.notification.display_tools import gen_embed, get_action
@@ -23,7 +23,6 @@ from src.db_function.init_db import init_latest_tweet_on_startup
 EMBED_TYPE: str = configs['embed']['type']
 SERVICE: str = configs['embed']['proxy']['service']
 DOMAIN_NAME: str = configs['embed']['proxy']['domain_name']
-AUTO_TRANSLATION: dict[bool, str] = configs['embed']['proxy']['auto_translation']
 
 log = setup_logger(__name__)
 lock = get_lock()
@@ -146,7 +145,7 @@ class AccountTracker():
                         await cursor.execute('SELECT id FROM user WHERE username = ?', (username,))
                         user = await cursor.fetchone()
                         if user:
-                            if EMBED_TYPE == 'proxy' and AUTO_TRANSLATION['enabled']:
+                            if IS_TRANSLATION_ENABLED:
                                 await cursor.execute('''
                                     SELECT n.*, suc.translate AS server_translate
                                     FROM notification n
@@ -194,8 +193,8 @@ class AccountTracker():
                             url = tweet.url
                             if EMBED_TYPE == 'proxy':
                                 url = url.replace('twitter', DOMAIN_NAME)
-                                if AUTO_TRANSLATION['enabled']:
-                                    lang = data['server_translate'] if data['server_translate'] is not None else AUTO_TRANSLATION['default_language']
+                                if IS_TRANSLATION_ENABLED:
+                                    lang = data['server_translate'] if data['server_translate'] is not None else configs['embed']['trans_default_lang']
                                     url += f"/{lang}"
 
                             mention = f"{channel.guild.get_role(int(data['role_id'])).mention} " if data['role_id'] else ''

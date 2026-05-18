@@ -20,6 +20,7 @@ init_latest_tweet_on_startup: false
 
 embed:
   type: 'built_in'
+  trans_default_lang: 'en'
 
   built_in:
     fx:
@@ -28,6 +29,7 @@ embed:
         enabled: true
         simplified: true
       mosaic: true
+      auto_translation: false
     video_link_button: false
     legacy_logo: true
     
@@ -35,9 +37,7 @@ embed:
     service: 'fx'
     domain_name: 'fxtwitter'
     original_url_button: true
-    auto_translation:
-      enabled: false
-      default_language: 'en'
+    auto_translation: false
 
 default_message: |
   {mention}**{author}** just {action} here: 

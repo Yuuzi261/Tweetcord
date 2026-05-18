@@ -6,7 +6,7 @@ from discord.ext import commands
 from tweety import Twitter
 from tweety.exceptions import UserProtected
 
-from configs.load_configs import configs
+from configs.load_configs import configs, IS_TRANSLATION_ENABLED
 from core.classes import Cog_Extension
 from src.i18n import t
 from src.discord_ui.fetch_tracked_channels import fetch_tracked_channels
@@ -287,7 +287,7 @@ class Notification(Cog_Extension):
         language: str
             The language code you want to translate to (e.g. en, ja). Leave it empty to use default.
         """
-        if configs['embed']['type'] != 'proxy' or not configs['embed']['proxy']['auto_translation']['enabled']:
+        if not IS_TRANSLATION_ENABLED:
             await itn.response.send_message(t('notification.customize.translation.not_enabled'), ephemeral=True)
             return
 
@@ -312,7 +312,7 @@ class Notification(Cog_Extension):
                         await db.commit()
                     
                     if language is None:
-                        await itn.followup.send(t('notification.customize.translation.success_default', username=username, default_lang=configs['embed']['proxy']['auto_translation']['default_language']), ephemeral=True)
+                        await itn.followup.send(t('notification.customize.translation.success_default', username=username, default_lang=configs['embed']['trans_default_lang']), ephemeral=True)
                     else:
                         await itn.followup.send(t('notification.customize.translation.success_set', username=username, lang_code=lang_code), ephemeral=True)
                 else:
