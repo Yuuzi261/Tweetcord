@@ -130,9 +130,8 @@ class ParsedTweet():
             raise TypeError('source must be a Tweet, BeautifulSoup, or dict')
         
     def get_translated_text(self) -> str | None:
-        # TODO: trans_info = f'{self.DCOS_ICON} {t("class.parsed_tweet.trans_text", lang=self.trans_lang)}'
-        trans_info = f'{self.DCOS_ICON} Translated from {self.trans_lang}'
-        original_text = f">>> Original text\n{self.text}"
+        trans_info = f'{self.DCOS_ICON} {t("class.parsed_tweet.trans_text", lang=self.trans_lang)}'
+        original_text = f">>> {t('class.parsed_tweet.original_text')}\n{self.text}"
         
         return '\n\n'.join([trans_info, self.trans_text, original_text]) if self.trans_text else None
         
@@ -143,7 +142,7 @@ class ParsedTweet():
         quote_inner = []
         if include_quote_info:
             quote_info = t(
-                'class.parsed_tweet', 
+                'class.parsed_tweet.quote_info',
                 url=self.quote.url, 
                 name=self.quote.name, 
                 screen_name=self.quote.screen_name, 

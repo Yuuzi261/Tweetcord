@@ -25,7 +25,10 @@ sync:
   background: 'synchronizing in the background'
 
 class:
-  parsed_tweet: '[Quoting]({url}) {name} ([{screen_name}]({profile_link}))'
+  parsed_tweet:
+    quote_info: "[Quoting]({url}) {name} ([{screen_name}]({profile_link}))"
+    trans_text: "Translated from {lang}"
+    original_text: "Original text"
 
 list:
   title: 'Notification List in __***{guild_name}***__{page_counter}'
