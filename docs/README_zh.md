@@ -81,7 +81,7 @@ Tweetcord是一個Discord機器人，它使用[tweety-ns](https://github.com/mah
 
 自定義通知訊息為 `f-string` 格式，目前支援4種特別的變數可供使用，將在下面說明：
 
-- `{action}` : 發文者的動作（例如 `發推了`、`轉推了`、`引用了`），實際顯示的文字取決於 `configs.yml` 中的 `locale` 設定
+- `{action}` : 發文者的動作（例如 `推了`、`轉推了`、`引用了`），實際顯示的文字取決於 `configs.yml` 中的 `locale` 設定
 - `{author}` : 發文者的顯示名稱
 - `{mention}` : 發送到discord時提及的身份組
 - `{url}` : 推文的連結
