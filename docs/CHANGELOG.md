@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.7.0 (May 19, 2026)
+## 0.7 (May 19, 2026)
 
 **✨Features:**
 - Replaced the `/customize_message` command with `/customize_settings`. This new command allows you to modify a specific notifier's mention role, enabled tweet types, media types, and custom messages via a modal, eliminating the need to re-add and overwrite settings with `/add notifier`.
