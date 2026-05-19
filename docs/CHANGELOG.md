@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.7.0 (May 19, 2026)
+
+**✨Features:**
+- Replaced the `/customize_message` command with `/customize_settings`. This new command allows you to modify a specific notifier's mention role, enabled tweet types, media types, and custom messages via a modal, eliminating the need to re-add and overwrite settings with `/add notifier`.
+- Upgraded the built-in embed mode with a new FixupX enhancement option. This feature provides full media display for retweets, quotes, and external links, more detailed retweet text, display of quoted tweet content, and tweet translation.
+- Added internationalization (i18n) support for command descriptions, bot responses, and other UI text. Currently supports English and Traditional Chinese.
+
+**♻️Refactor:**
+- Refactored the `/add notifier` command to remove redundant logic and fix incorrect SQL statements.
+
+**🐛Fixes:**
+- Resolved issue [#88](https://github.com/Yuuzi261/Tweetcord/issues/88): The bot now skips account-related operations for banned or protected users during `/sync` or `/remove notifier`, allowing database processing to continue safely without errors.
+- Fixed error handling in `/add notifier` when using multiple tracking clients. If `auto_change_client` is enabled, you can now switch tracking clients for a user by adding a notifier with a different client without removing existing ones. If disabled, the switch is blocked with a prompt to enable the setting.
+- Fixed an issue where tracking tasks were not updated when a user changed their Twitter username.
+- Corrected a regular expression used to fetch high-resolution user avatars in built-in embed mode, fixing a bug where avatars would sometimes appear smaller than intended.
+
+**🚀Performance:**
+- Performance improvements, including persistent `aiohttp` sessions and optimized SQL query execution.
+
+**🔒Security:**
+- Upgraded `python-dotenv` to `1.2.2` to patch CVE-2026-28684.
+
+**🎉New Contributors:**
+- @hungsean made their first contribution in [#85](https://github.com/Yuuzi261/Tweetcord/pull/85)
+
 ## 0.6.1 (March 18, 2026)
 
 **✨Features:**
@@ -7,7 +32,7 @@
 - Added support for per-user translation language settings.
 - Added `init_latest_tweet_on_startup` config to prevent notification spamming after downtime. If `true`, it sets all users' last post time to the current time on startup.
 
-**♻️Refactor:** 
+**♻️Refactor:**
 - Fixed typo in `lastest_tweet` (now `latest_tweet`).
 
 **🎉New Contributors:**
@@ -19,7 +44,7 @@
 - Renamed `fx_twitter` to `proxy` in the configuration and added support for multiple proxy services.
 - Added a global setting for translation language with FxTwitter (resolves issue [#57](https://github.com/Yuuzi261/Tweetcord/issues/57)).
 
-**♻️Refactor:** 
+**♻️Refactor:**
 - Conducted a major refactoring of the notification system (`AccountTracker`) to resolve critical performance bottlenecks under high load (issue [#59](https://github.com/Yuuzi261/Tweetcord/issues/59)). This includes centralizing database operations, using a producer-consumer pattern for database writes, and optimizing database connection handling.
 - Improved the task monitor to dynamically track tasks from a live cache, eliminating the need to restart the monitor when tasks are added or removed.
 - Improved and simplified the handling of configuration files.
