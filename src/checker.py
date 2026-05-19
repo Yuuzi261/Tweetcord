@@ -78,10 +78,10 @@ def build_and_validate_configs():
         new_domain = valid_domains_for_service[0]
         log.warning(f"domain '{proxy_domain}' is invalid for service '{proxy_service}'. Falling back to a valid domain '{new_domain}'.")
         final_configs['embed']['proxy']['domain_name'] = new_domain
-        
-    if proxy_service != 'fx':
+    
+    if final_configs['embed']['type'] == 'proxy' and final_configs['embed']['proxy']['auto_translation'] and proxy_service != 'fx':
         log.warning(f"service '{proxy_service}' is not support for auto translation, disabling auto translation")
-        final_configs['embed']['proxy']['auto_translation']['enabled'] = False
+        final_configs['embed']['proxy']['auto_translation'] = False
 
     try:
         os.makedirs('configs', exist_ok=True)

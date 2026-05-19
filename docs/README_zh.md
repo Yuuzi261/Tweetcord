@@ -70,13 +70,14 @@ Tweetcord是一個Discord機器人，它使用[tweety-ns](https://github.com/mah
 
 - 將新Twitter帳戶的通知與資料庫同步。如果你更改了bot使用的Twitter帳戶，請使用此指令
 
-👉 `/customize message` `channel` `username` | `default`
+👉 `/customize settings` `channel` `username`
 
 | 參數 | 類型 | 描述 |
 |------|------|-----|
 | `channel` | str | 機器人發送通知的頻道 |
-| `username` | str | 欲設定自定義通知訊息的Twitter用戶的用戶名 |
-| `default` | bool | 是否要還原至預設的設定 _(預設是false)_ |
+| `username` | str | 欲自定義設定的Twitter用戶的用戶名 |
+
+送出指令後將會出現設定面板，目前支持修改 `mention`、`type`、`media_type` 以及自訂義通知訊息，`account_used` 仍僅能使用 `/add notifier` 指令進行修改。
 
 自定義通知訊息為 `f-string` 格式，目前支援4種特別的變數可供使用，將在下面說明：
 
@@ -106,7 +107,7 @@ https://twitter.com/nyachodayo/status/1869000108697960952
 | `username` | str | 欲設定自定義翻譯語言的Twitter用戶的用戶名 |
 | `language` | str | 欲翻譯成的語言代碼（例如 en、ja），留空則使用預設值 |
 
-【注意】：你需要在 `embed` 設定中將 `type` 設定為 `proxy`，並將 `auto_translation` 的 `enabled` 設為 `true` 才能使用（目前只有 `fx` 這個嵌入代理服務可以支持這個設定）。
+【注意】：你需要在 `embed` 設定中將 `auto_translation` 設為 `true` 才能使用（僅能在 `embed.type` 選擇了 `built_in` 模式或是在 `proxy` 模式中選用 `fx` 作為嵌入代理服務時使用，其他嵌入代理服務並不支援此功能）。
 
 </details>
 
@@ -120,7 +121,7 @@ pip install -r requirements.txt
 
 ## ⚡使用
 
-**📢本教學適用於0.5或更高版本，舊版設定請參考各個歷史版本的README。**
+**📢本教學適用於0.6或更高版本，舊版設定請參考各個歷史版本的README。**
 
 ### [⬆️查看歷史版本升級指南](./UPGRADE_GUIDE.md)
 
@@ -196,14 +197,22 @@ DATA_PATH=./data
 | 參數 | 描述 |
 |------|------|
 | `type` | 決定嵌入內容的類型，支援的類型有: `built_in` / `proxy`。 |
+| `trans_default_lang` | 啟用 `auto_translation` 時使用的預設翻譯語言。 |
 
 ##### built_in:
 
 | 參數 | 描述 |
 |------|------|
-| `fx_image` | 當有多張圖片時是否使用FxTwitter的組合圖片，對於無法顯示多張圖片嵌入的iOS系統友善。 |
+| `fx` | 與 FixupX 整合的進階設定。機器人透過 Tweety 從 Twitter 的通知獲取新推文，由於 Twitter 通知的 API 較舊，對於轉推、引用的多媒體以及文字可能會有缺失，透過向 FixupX 請求可以獲得更完整的內容。`media`、`rt_text` 或 `auto_translation` 選項啟用時，每篇新推文通知發送前都會額外向 FixupX API 請求，若只單獨開啟 `mosaic`，則只會在必要時進行請求。詳細說明請見下方列表。 |
 | `video_link_button` | 當多媒體為影片時，決定是否使用一個連結按鈕做為提示。 |
 | `legacy_logo` | 設為`true`的話會使用推特以前的藍鳥logo做為footer而不是新的X標誌。 |
+
+- **fx**
+  - `media`：是否擷取外部連結提供的縮圖、引用推文中的多媒體。
+  - `rt_text.enabled`：是否顯示引用推文的原文，開啟此設定後對於較長的轉推內容也會完整顯示。
+  - `rt_text.simplified`：內容較多時是否精簡資訊（通常發生於引用推文），啟用時對於過長的訊息會截斷部份引用原文的內容，並隱藏嵌入內容內的右側頭像（thumbnail）。
+  - `mosaic`：當有多張圖片時是否使用 FixupX 的組合圖片，對於無法顯示多張圖片嵌入的iOS系統友善。
+  - `auto_translation`：是否自動將推文內容翻譯為 `trans_default_lang` 指定的語言。
 
 ##### proxy:
 
@@ -212,7 +221,7 @@ DATA_PATH=./data
 | `service` | 傳送推文連結時的嵌入代理服務，可以是 [`fx`](https://github.com/FxEmbed/FxEmbed) 或 [`vx`](https://github.com/dylanpdx/BetterTwitFix)。 |
 | `domain_name` | 傳送推文連結時的域名，使用 `fx` 服務時可選 `fxtwitter` 或 `fixupx`，使用 `vx` 服務時可選 `vxtwitter` 或 `fixvx`。 |
 | `original_url_button` | 在訊息最下方加入連結按鈕，導向原始推文連結，可以解決某些裝置點擊嵌入代理服務網址不會開啟APP的問題。 |
-| `auto_translation` | 傳送推文連結時的自動翻譯設定，僅有使用 `fx` 時可以啟用（使用其他嵌入代理服務時會自動關閉），`enabled` 表示是否啟用自動翻譯，`default_language` 表示預設翻譯的語言，詳細請參考 [Translate Posts (X/Twitter)](https://github.com/FxEmbed/FxEmbed?tab=readme-ov-file#translate-posts-xtwitter)。 |
+| `auto_translation` | 傳送推文連結時的自動翻譯設定，僅有使用 `fx` 時可以啟用（使用其他嵌入代理服務時會自動關閉）。開啟設定後預設將貼文翻譯成 `trans_default_lang` 設定的語言，詳細請參考 [Translate Posts (X/Twitter)](https://docs.fxembed.com/guide/url-modifiers/translate)。 |
 
 > [!NOTE]
 > 如果需要支援更多嵌入代理服務，請透過 [Issue](https://github.com/Yuuzi261/Tweetcord/issues/new) 告訴我們。

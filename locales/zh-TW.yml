@@ -11,10 +11,9 @@ notification:
     channel_not_found: '在 {guild_name} 中找不到頻道 <#{channel_id}>！'
     failed: '移除通知失敗，請稍後再試。'
   customize:
-    message:
+    settings:
       channel_not_found: '找不到頻道 {channel_id}！'
       notifier_not_found: '在 {channel_mention} 中找不到 {username} 的通知！'
-      success_default: '已成功還原為預設設定'
     translation:
       not_enabled: '設定檔中未啟用翻譯功能！'
       invalid_lang: '無效的語言代碼！'
@@ -24,6 +23,12 @@ notification:
 
 sync:
   background: '正在背景執行同步'
+
+class:
+  parsed_tweet:
+    quote_info: '[引用]({url}) {name} ([{screen_name}]({profile_link}))'
+    trans_text: "翻譯自 {lang}"
+    original_text: "原文"
 
 list:
   title: '__***{guild_name}***__ 的通知清單{page_counter}'
@@ -37,27 +42,41 @@ list:
   label_using: '使用'
 
 modal:
-  customize_message:
-    title: '自訂訊息'
-    label_full: '為 @{username} 在 #{channel_name} 中自訂訊息'
-    label_short: '為 @{username} 自訂訊息'
-    label_fallback: '自訂訊息'
-    placeholder: '請輸入自訂訊息'
+  customize_settings:
+    label_full: '對在 #{channel_name} 的 @{username} 編輯中'
+    label_short: '在 #{channel_name} 的 @{username}'
+    label_fallback: '@{username}'
+    role_select:
+      label: '提及身份組：'
+      placeholder: '選擇要提及的身份組（留空則不提及身份組）。'
+    enable_type:
+      label: '啟用以下通知類型：'
+      retweet: '轉推'
+      quote: '引用'
+    media_type:
+      label: '媒體類型：'
+      all: '全部'
+      no_media: '無媒體'
+      media_only: '僅含媒體'
+    customized_message:
+      label: '自定義訊息：'
+      placeholder: '留空則使用預設值。'
     success: '設定成功'
 
 display:
   action:
-    tweeted: '發推了'
+    tweeted: '推了'
     retweeted: '轉推了'
     quoted: '引用了'
   tweet_type:
     photos: '{count} 張圖片'
-    media: '一則{media_type}'
+    media: '一個{media_type}'
+    multi_media: '{count} 個媒體'
     status: '一則推文'
   media_type_map:
     photo: '照片'
     video: '影片'
-    gif: 'GIF'
+    animated_gif: 'GIF'
   button:
     view_video: '查看影片'
     view_original: '查看原始網站'
@@ -93,12 +112,11 @@ commands:
         username: '你想要關閉通知的Twitter用戶的用戶名'
   customize:
     description: '自訂項目'
-    message:
-      description: '設定通知的自訂訊息。'
+    settings:
+      description: '自訂通知設定 (包含轉推、引用、媒體與訊息)。'
       params:
         channel: '機器人發送通知的頻道'
         username: '欲設定自定義通知訊息的Twitter用戶的用戶名'
-        default: '是否要還原至預設的設定'
     translation:
       description: '為追蹤帳號設定自訂翻譯語言。'
       params:

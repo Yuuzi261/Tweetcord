@@ -70,13 +70,14 @@ Tweetcord is a Discord bot that leverages the [tweety-ns module](https://github.
 
 - Sync the notification of new Twitter account with database.  If you change the twitter account used by bot, please use this command
 
-👉 `/customize message` `channel` `username` | `default`
+👉 `/customize settings` `channel` `username`
 
 | Parameter | Type | Description |
 | --------- | ---- | ----------- |
 | `channel` | str | The channel id which set to delivers notifications |
-| `username` | str | The username of the twitter user you want to set customized message |
-| `default` | bool | Whether to use default setting _(default is false)_ |
+| `username` | str | The username of the twitter user you want to set customized settings |
+
+After sending the command, a settings panel will appear. Currently, you can modify `mention`, `type`, `media_type`, and custom notification messages. Note that `account_used` can still only be modified using the `/add notifier` command.
 
 Custom notification messages are in `f-string format`, currently supporting 4 special variables for use, which will be explained below.
 
@@ -106,7 +107,7 @@ https://twitter.com/nyachodayo/status/1869000108697960952
 | `username` | str | The username of the tracked account you want to set customized translation language |
 | `language` | str | The language code you want to translate to (e.g. en, ja), leave it empty to use default. |
 
-Note: You need to set `type` to `proxy` in the `embed` settings and set `enabled` to `true` for `auto_translation` to use this (currently only the `fx` embedding proxy service supports this setting).
+Note: You need to set `auto_translation` to `true` in the `embed` settings to use this (only available when the `embed.type` is set to `built_in` mode or when `fx` is chosen as the embedding proxy service in `proxy` mode; other embedding proxy services do not support this feature).
 
 </details>
 
@@ -120,7 +121,7 @@ pip install -r requirements.txt
 
 ## ⚡Usage
 
-**📢This tutorial applies to version 0.5 or higher. For settings of older versions, please refer to the README files of the respective historical versions.**
+**📢This tutorial applies to version 0.6 or higher. For settings of older versions, please refer to the README files of the respective historical versions.**
 
 ### [⬆️View Version Upgrade Guides](./UPGRADE_GUIDE.md)
 
@@ -196,14 +197,22 @@ Custom activity name is in `f-string` format, currently supporting 1 special var
 | Parameter | Description |
 |-----------|-------------|
 | `type` | Determine the type of embed, supported types: `built_in` / `proxy`. |
+| `trans_default_lang` | The default language used for automatic translation when `auto_translation` is enabled. |
 
 ##### built_in:
 
 | Parameter | Description |
 |-----------|-------------|
-| `fx_image` | Whether to use FxTwitter's combined image when there are multiple images, friendly for iOS systems that cannot display multiple image embeddings. |
+| `fx` | Advanced settings for FixupX integration. The bot fetches new tweets from Twitter's notifications via Tweety. Since Twitter's notification API is older, there might be missing media and text for retweets and quoted tweets. By requesting from FixupX, more complete content can be obtained. When `media`, `rt_text` or `auto_translation` is enabled, an additional request to the FixupX API is made before sending each new tweet notification. If only `mosaic` is enabled independently, requests will only be made when necessary. See the detailed breakdown below. |
 | `video_link_button` | Determine whether to use a link button as a prompt when the media is a video. |
 | `legacy_logo` | If set to `true`, the footer will use Twitter's legacy bluebird logo instead of the new X emblem. |
+
+- **fx**
+  - `media`: Whether to fetch thumbnails from external links (in any tweet) and media within quoted tweets.
+  - `rt_text.enabled`: Whether to display the original text of quoted tweets. Enabling this will also show the full content for longer retweets.
+  - `rt_text.simplified`: Whether to simplify information when there is too much content (typically in quoted tweets). When enabled, it truncates part of the original quoted text for overly long messages and hides the thumbnail icon (right-side avatar) within the embed.
+  - `mosaic`: Whether to use FixupX's combined image when there are multiple images, friendly for iOS systems that cannot display multiple image embeddings.
+  - `auto_translation`: Whether to automatically translate tweet content to `trans_default_lang`.
 
 ##### proxy:
 
@@ -212,7 +221,7 @@ Custom activity name is in `f-string` format, currently supporting 1 special var
 | `service` | The embedding proxy service to use when sending tweet links, can be [`fx`](https://github.com/FxEmbed/FxEmbed) or [`vx`](https://github.com/dylanpdx/BetterTwitFix). |
 | `domain_name` | The domain name to be used when sending tweet links. When using the `fx` service, options are `fxtwitter` or `fixupx`. When using the `vx` service, options are `vxtwitter` or `fixvx`. |
 | `original_url_button` | Add a link button at the bottom of the message that directs to the original tweet. This can resolve the issue where clicking a proxy service URL does not open the app on certain devices. |
-| `auto_translation` | Auto-translation settings when sending tweet links. This is only available when using the `fx` service (it will be automatically disabled for other proxy services). `enabled` indicates whether to enable auto-translation, and `default_language` specifies the default translation language. For details, please refer to [Translate Posts (X/Twitter)](https://github.com/FxEmbed/FxEmbed?tab=readme-ov-file#translate-posts-xtwitter). |
+| `auto_translation` | Auto-translation settings when sending tweet links. This is only available when using the `fx` service (it will be automatically disabled for other proxy services). When enabled, the post will be translated to the language set in `trans_default_lang` by default. For details, please refer to [Translate Posts (X/Twitter)](https://docs.fxembed.com/guide/url-modifiers/translate). |
 
 > [!NOTE]
 > If you need support for more embedding proxy services, please let us know via an [Issue](https://github.com/Yuuzi261/Tweetcord/issues/new).

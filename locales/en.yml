@@ -11,10 +11,9 @@ notification:
     channel_not_found: "can't find channel <#{channel_id}> in {guild_name}!"
     failed: 'failed to remove notifier, please try again later.'
   customize:
-    message:
+    settings:
       channel_not_found: "can't find channel {channel_id}!"
       notifier_not_found: "can't find notifier {username} in {channel_mention}!"
-      success_default: 'successfully restored to default settings'
     translation:
       not_enabled: 'translation is not enabled in configs!'
       invalid_lang: 'invalid language code!'
@@ -24,6 +23,12 @@ notification:
 
 sync:
   background: 'synchronizing in the background'
+
+class:
+  parsed_tweet:
+    quote_info: "[Quoting]({url}) {name} ([{screen_name}]({profile_link}))"
+    trans_text: "Translated from {lang}"
+    original_text: "Original text"
 
 list:
   title: 'Notification List in __***{guild_name}***__{page_counter}'
@@ -37,12 +42,25 @@ list:
   label_using: 'using'
 
 modal:
-  customize_message:
-    title: 'customize message'
-    label_full: 'customizing message for @{username} in #{channel_name}'
-    label_short: 'customizing message for @{username}'
-    label_fallback: 'customizing message'
-    placeholder: 'enter customized message'
+  customize_settings:
+    label_full: 'Editing @{username} in #{channel_name}'
+    label_short: '@{username} in #{channel_name}'
+    label_fallback: '@{username}'
+    role_select:
+      label: 'Mention role:'
+      placeholder: 'Select a role to mention (leave empty to clear).'
+    enable_type:
+      label: 'Enable notifications for:'
+      retweet: 'Retweet'
+      quote: 'Quote'
+    media_type:
+      label: 'Media type:'
+      all: 'All'
+      no_media: 'No Media'
+      media_only: 'Media Only'
+    customized_message:
+      label: 'Customizing message:'
+      placeholder: 'Leave it empty to use default.'
     success: 'setting successful'
 
 display:
@@ -53,11 +71,12 @@ display:
   tweet_type:
     photos: '{count} photos'
     media: 'a {media_type}'
+    multi_media: '{count} media'
     status: 'a status'
   media_type_map:
     photo: 'photo'
     video: 'video'
-    gif: 'gif'
+    animated_gif: 'gif'
   button:
     view_video: 'View Video'
     view_original: 'View Original'
@@ -93,12 +112,11 @@ commands:
         username: 'The username of the twitter user you want to turn off notifications for.'
   customize:
     description: 'Customize something'
-    message:
-      description: 'Set customized messages for notification.'
+    settings:
+      description: 'Set customized notification settings (retweets, quotes, media, and messages).'
       params:
         channel: 'The channel id which set to delivers notifications.'
         username: 'The username of the twitter user you want to set customized message.'
-        default: 'Whether to use default setting.'
     translation:
       description: 'Set customized translation language for a tracked account.'
       params:
