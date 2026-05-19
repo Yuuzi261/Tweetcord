@@ -86,6 +86,28 @@ class TestParsedTweet(unittest.TestCase):
         self.assertTrue(is_simplified)
         self.assertTrue(len(result) < 700)
 
+    def test_rt_translation_preservation(self):
+        """Test that RT information is preserved in trans_text when it's an RT."""
+        rt_source_dict = {
+            'tweet': {
+                'raw_text': {'text': 'Original Text'},
+                'author': {'screen_name': 'original_author'},
+                'reposted_by': {'screen_name': 'retweeter'},
+                'media': {'all': []},
+                'translation': {'text': 'Translated Text', 'source_lang': 'en'}
+            }
+        }
+        rt_parsed_tweet = ParsedTweet(rt_source_dict)
+        
+        # Check if RT prefix is added to both text and trans_text
+        self.assertEqual(rt_parsed_tweet.text, "RT @original_author: Original Text")
+        self.assertEqual(rt_parsed_tweet.trans_text, "RT @original_author: Translated Text")
+        
+        # Verify get_text output contains the RT prefix
+        result, _ = rt_parsed_tweet.get_text()
+        self.assertIn("RT @original_author:", result)
+        self.assertIn("Translated Text", result)
+
     def test_get_quote_text_repro(self):
         """Test get_quote_text with the new simplified logic."""
         self.parsed_tweet.quote.text = "Quote Content"
