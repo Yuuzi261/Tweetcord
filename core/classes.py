@@ -134,6 +134,23 @@ class ParsedTweet():
     @staticmethod
     def _wrap_quote(text: str) -> str:
         return "\n".join([f"> {line}" for line in text.splitlines()]) if text else ""
+    
+    def _simplified_content(self, content: str) -> tuple[str, bool] | None:
+        if not content:
+            return None
+        
+        is_simplified = get_visible_length(content) > self.SIMPLIFIED_THRESHOLD
+        truncated_content, _ = safe_truncate(content, self.MAX_DESCRIPTION_LENGTH)
+        return (truncated_content, is_simplified)
+    
+    def get_text(self, simplified_content: bool = False) -> tuple[str, bool] | None:        
+        content = self.get_translated_text() or self.text
+        if not content:
+            return None
+        
+        if simplified_content:
+            return self._simplified_content(content)
+        return (content, False)
 
     def get_translated_text(self) -> str | None:
         if not self.trans_text:
@@ -164,15 +181,13 @@ class ParsedTweet():
         quote_block = self._wrap_quote(raw_quote_text)
         
         if include_main_text and getattr(self, 'text', None):
-            full_content = f"{self.get_translated_text() or self.text}\n\n{quote_block}"
+            content = f"{self.get_text()[0]}\n\n{quote_block}"
         else:
-            full_content = quote_block
+            content = quote_block
             
         if simplified_content:
-            is_simplified = get_visible_length(full_content) > self.SIMPLIFIED_THRESHOLD
-            full_content, _ = safe_truncate(full_content, self.MAX_DESCRIPTION_LENGTH)
-            full_content = (full_content, is_simplified)
+            full_content = self._simplified_content(content)
         else:
-            full_content = (full_content, False)
+            full_content = (content, False)
             
         return full_content

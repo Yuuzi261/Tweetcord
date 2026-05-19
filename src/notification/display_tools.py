@@ -14,7 +14,9 @@ def gen_embed(tweet: Tweet, parsed_tweet: ParsedTweet) -> list[discord.Embed]:
     
     is_simplified = False
     if FX_SETTINGS['rt_text']['enabled']:
-        description = parsed_tweet.get_quote_text(simplified_content=FX_SETTINGS['rt_text']['simplified']) or parsed_tweet.text or tweet.text
+        description = (parsed_tweet.get_quote_text(simplified_content=FX_SETTINGS['rt_text']['simplified'])
+                       or parsed_tweet.get_text(simplified_content=FX_SETTINGS['rt_text']['simplified'])
+                       or tweet.text)
         if isinstance(description, tuple):
             description, is_simplified = description[0], description[1]
     else:
