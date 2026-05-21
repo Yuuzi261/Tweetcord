@@ -122,5 +122,23 @@ class TestParsedTweet(unittest.TestCase):
         self.assertIn("> Quote Content", content)
         self.assertNotIn("('Main Content', False)", content)
 
+    def test_markdown_escaping(self):
+        """Test that ParsedTweet escapes markdown in source text."""
+        source = {
+            'tweet': {
+                'raw_text': {'text': '(*’▽’) #SDVX'},
+                'author': {'screen_name': 'test_user'},
+                'media': {'all': []},
+                'translation': {'text': None, 'source_lang': 'ja'}
+            }
+        }
+        parsed = ParsedTweet(source)
+        # Check text (should be escaped)
+        self.assertEqual(parsed.text, r"\(\*’▽’\) #SDVX")
+        
+        # Check that get_text returns escaped text
+        text, _ = parsed.get_text()
+        self.assertEqual(text, r"\(\*’▽’\) #SDVX")
+
 if __name__ == '__main__':
     unittest.main()

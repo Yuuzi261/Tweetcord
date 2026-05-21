@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 from tweety.types import Tweet
 
 from src.i18n import t
-from src.utils import get_visible_length, safe_truncate
+from src.utils import get_visible_length, safe_truncate, escape_markdown
 
 
 class Cog_Extension(commands.Cog):
@@ -57,19 +57,21 @@ class ParsedTweet():
             trans_data = tweet_data.get('translation', {})
             media_data = tweet_data.get('media', {})
             
-            self.text = tweet_data.get('raw_text', {}).get('text', None)
-            self.trans_text = trans_data.get('text', None)
+            self.text = escape_markdown(tweet_data.get('raw_text', {}).get('text', None))
+            self.trans_text = escape_markdown(trans_data.get('text', None))
             self.trans_lang = trans_data.get('source_lang', None)
-            self.quote.text = quote_data.get('raw_text', {}).get('text', None)
+            
+            self.quote.text = escape_markdown(quote_data.get('raw_text', {}).get('text', None))
             self.quote.name = quote_data.get('author', {}).get('name', None)
             self.quote.screen_name = quote_data.get('author', {}).get('screen_name', None)
             self.quote.url = quote_data.get('url', None)
             self.quote.profile_link = quote_data.get('author', {}).get('url', None)
-            self.quote.trans_text = quote_data.get('translation', {}).get('text', None)
+            self.quote.trans_text = escape_markdown(quote_data.get('translation', {}).get('text', None))
             
             if tweet_data.get('reposted_by', {}):
-                self.text = f"RT @{tweet_data.get('author', {}).get('screen_name', None)}: {self.text}"
-                self.trans_text = f"RT @{tweet_data.get('author', {}).get('screen_name', None)}: {self.trans_text}" if self.trans_text else None
+                author_name = tweet_data.get('author', {}).get('screen_name', None)
+                self.text = f"RT @{author_name}: {self.text}"
+                if self.trans_text: self.trans_text = f"RT @{author_name}: {self.trans_text}"
 
             if not media_data.get('all') and 'quote' in tweet_data:
                 media_data = tweet_data['quote'].get('media', {})

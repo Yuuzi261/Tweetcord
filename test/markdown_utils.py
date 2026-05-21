@@ -5,7 +5,7 @@ import unittest
 # Ensure project root is importable
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from src.utils import clean_markdown, get_visible_length, safe_truncate
+from src.utils import clean_markdown, get_visible_length, safe_truncate, escape_markdown
 
 class TestMarkdownUtils(unittest.TestCase):
     
@@ -24,10 +24,25 @@ class TestMarkdownUtils(unittest.TestCase):
             ("> Multiple\n> Quotes", "Multiple\nQuotes"),
             ("Normal text with **Bold** and [Link](url)", "Normal text with Bold and Link"),
             ("___***Nested***___", "Nested"),
+            (r"\*Literal Asterisk\*", "*Literal Asterisk*"),
+            (r"Escaped \[Link\]\(url\)", "Escaped [Link](url)"),
         ]
         for input_text, expected in test_cases:
             with self.subTest(input_text=input_text):
                 self.assertEqual(clean_markdown(input_text), expected)
+
+    def test_escape_markdown(self):
+        """Test that markdown characters are escaped."""
+        test_cases = [
+            ("*", r"\*"),
+            ("_", r"\_"),
+            ("(*’▽’)", r"\(\*’▽’\)"),
+            ("[Link](url)", r"\[Link\]\(url\)"),
+            ("> Quote", r"\> Quote"),
+        ]
+        for input_text, expected in test_cases:
+            with self.subTest(input_text=input_text):
+                self.assertEqual(escape_markdown(input_text), expected)
 
     def test_get_visible_length(self):
         """Test that character count only includes visible characters."""
@@ -35,6 +50,7 @@ class TestMarkdownUtils(unittest.TestCase):
         self.assertEqual(get_visible_length("[123](url)"), 3)
         self.assertEqual(get_visible_length("> 12345"), 5)
         self.assertEqual(get_visible_length("12\n34"), 5)  # \n counts as 1
+        self.assertEqual(get_visible_length(r"\*123\*"), 5)
 
     def test_safe_truncate_simple(self):
         """Test truncation of plain text."""
@@ -45,6 +61,14 @@ class TestMarkdownUtils(unittest.TestCase):
         res, truncated = safe_truncate("Short", 10)
         self.assertEqual(res, "Short")
         self.assertFalse(truncated)
+
+    def test_safe_truncate_escaped(self):
+        """Test that escaped characters are handled as single visible characters."""
+        # Visible: "(*’▽’)" (6 characters). Limit: 5. Max visible allowed: 2.
+        # "(\*" (2 visible) -> "\(\*..."
+        res, truncated = safe_truncate(r"\(\*’▽’\)", 5)
+        self.assertEqual(res, r"\(\*...")
+        self.assertTrue(truncated)
 
     def test_safe_truncate_bold(self):
         """Test that bold tags are preserved and closed after truncation."""

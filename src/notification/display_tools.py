@@ -6,6 +6,7 @@ from tweety.types import Tweet
 from core.classes import ParsedTweet
 from configs.load_configs import configs, FX_SETTINGS
 from src.i18n import t
+from src.utils import escape_markdown
 
 
 def gen_embed(tweet: Tweet, parsed_tweet: ParsedTweet) -> list[discord.Embed]:
@@ -16,11 +17,11 @@ def gen_embed(tweet: Tweet, parsed_tweet: ParsedTweet) -> list[discord.Embed]:
     if FX_SETTINGS['rt_text']['enabled']:
         description = (parsed_tweet.get_quote_text(simplified_content=FX_SETTINGS['rt_text']['simplified'])
                        or parsed_tweet.get_text(simplified_content=FX_SETTINGS['rt_text']['simplified'])
-                       or tweet.text)
+                       or escape_markdown(tweet.text))
         if isinstance(description, tuple):
             description, is_simplified = description[0], description[1]
     else:
-        description = tweet.text
+        description = escape_markdown(tweet.text)
 
     embed = discord.Embed(title=f'{author.name} {get_action(tweet, disable_quoted=disable_quoted)} {get_tweet_type(parsed_tweet)}', 
                           description=description, url=tweet.url, color=0x1da0f2, timestamp=tweet.created_on)

@@ -66,17 +66,32 @@ def clean_markdown(text: str) -> str:
     """Remove markdown syntax and return the visible text."""
     if not text:
         return ""
-    # Links: [text](url) -> text
+    
+    # Handle links: [text](url) -> text
     text = re.sub(r'\[([^\]]+)\]\((?:[^\(\)]|\([^\(\)]*\))+\)', r'\1', text)
-    # Formatting tokens
-    text = re.sub(r'(\*\*\*|\*\*|__|\*|_|~~|\|\||`|>>>)', '', text)
-    # Quote prefixes at start of lines
-    text = re.sub(r'^> ?', '', text, flags=re.MULTILINE)
-    return text
+    
+    # Handle escaped characters and other tokens
+    # Group 1: escaped char, Group 2: markdown token
+    pattern = r'\\(?P<escaped>.)|(?P<token>\*\*\*|\*\*|__|\*|_|~~|\|\||`|>>>|^> ?)'
+    
+    def replace(match):
+        if match.group('escaped'):
+            return match.group('escaped')
+        return "" # remove tokens
+        
+    return re.sub(pattern, replace, text, flags=re.MULTILINE)
 
 
 def get_visible_length(text: str) -> int:
     return len(clean_markdown(text))
+
+
+def escape_markdown(text: str) -> str:
+    """Escape Discord markdown characters in a string."""
+    if not text:
+        return ""
+    # Characters that can be escaped in Discord markdown
+    return re.sub(r'([\\*_~|`>\[\]\(\)])', r'\\\1', text)
 
 
 def safe_truncate(text: str, max_len: int) -> tuple[str, bool]:
@@ -94,6 +109,7 @@ def safe_truncate(text: str, max_len: int) -> tuple[str, bool]:
 
     # Regex for tokens
     token_re = re.compile(r"""
+        (?P<escaped>\\.) |
         (?P<quote>^>[ ]?) |
         (?P<link>\[(?P<link_text>[^\]]+)\]\((?P<link_url>(?:[^\(\)]|\([^\(\)]*\))+)\)) |
         (?P<bold_italic>(?<![a-zA-Z0-9])\*\*\*|\*\*\*(?![a-zA-Z0-9])) |
@@ -116,7 +132,10 @@ def safe_truncate(text: str, max_len: int) -> tuple[str, bool]:
 
         groups = match.groupdict()
 
-        if groups['quote']:
+        if groups['escaped']:
+            result += groups['escaped']
+            visible_chars += 1
+        elif groups['quote']:
             result += match.group(0)
         elif groups['link']:
             l_text = groups['link_text']
