@@ -71,6 +71,7 @@ def clean_markdown(text: str) -> str:
     text = re.sub(r'\[([^\]]+)\]\((?:[^\(\)]|\([^\(\)]*\))+\)', r'\1', text)
 
     # Handle escaped characters and other tokens
+    # Group 1: escaped char, Group 2: markdown token
     pattern = r'\\(?P<escaped>.)|(?P<token>\*\*\*|\*\*|__|\*|_|~~|\|\||`|>>>|^> ?)'
 
     def replace(match):
@@ -92,7 +93,7 @@ def escape_markdown(text: str) -> str:
     # Characters that are always safe to escape and often cause issues as pairs or sequences, we escape: \ * _ ~ | ` [ ] ( )
     text = re.sub(r'([\\*_~|`\[\]\(\)])', r'\\\1', text)
     # Escape block markers at line start: > # - +
-    text = re.sub(r'^(?P<prefix>[#>+-])', r'\\\1', text, flags=re.MULTILINE)
+    text = re.sub(r'^([#>+-])', r'\\\1', text, flags=re.MULTILINE)
     return text
 
 

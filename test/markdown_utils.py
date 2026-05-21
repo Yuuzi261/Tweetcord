@@ -53,7 +53,6 @@ class TestMarkdownUtils(unittest.TestCase):
     def test_escape_markdown_multiline(self):
         """Test escape_markdown with multiline input."""
         input_text = "> Line 1\nLine 2 > Mid\n> Line 3"
-        expected = r"\> Line 1" + "\n" + r"Line 2 \> Mid" + "\n" + r"\> Line 3"
         expected = r"\> Line 1" + "\n" + "Line 2 > Mid" + "\n" + r"\> Line 3"
         self.assertEqual(escape_markdown(input_text), expected)
 
