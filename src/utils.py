@@ -66,19 +66,18 @@ def clean_markdown(text: str) -> str:
     """Remove markdown syntax and return the visible text."""
     if not text:
         return ""
-    
+
     # Handle links: [text](url) -> text
     text = re.sub(r'\[([^\]]+)\]\((?:[^\(\)]|\([^\(\)]*\))+\)', r'\1', text)
-    
+
     # Handle escaped characters and other tokens
-    # Group 1: escaped char, Group 2: markdown token
     pattern = r'\\(?P<escaped>.)|(?P<token>\*\*\*|\*\*|__|\*|_|~~|\|\||`|>>>|^> ?)'
-    
+
     def replace(match):
         if match.group('escaped'):
             return match.group('escaped')
         return "" # remove tokens
-        
+
     return re.sub(pattern, replace, text, flags=re.MULTILINE)
 
 
@@ -90,8 +89,11 @@ def escape_markdown(text: str) -> str:
     """Escape Discord markdown characters in a string."""
     if not text:
         return ""
-    # Characters that can be escaped in Discord markdown
-    return re.sub(r'([\\*_~|`>\[\]\(\)])', r'\\\1', text)
+    # Characters that are always safe to escape and often cause issues as pairs or sequences, we escape: \ * _ ~ | ` [ ] ( )
+    text = re.sub(r'([\\*_~|`\[\]\(\)])', r'\\\1', text)
+    # Escape block markers at line start: > # - +
+    text = re.sub(r'^(?P<prefix>[#>+-])', r'\\\1', text, flags=re.MULTILINE)
+    return text
 
 
 def safe_truncate(text: str, max_len: int) -> tuple[str, bool]:

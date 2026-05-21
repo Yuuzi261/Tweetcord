@@ -26,23 +26,36 @@ class TestMarkdownUtils(unittest.TestCase):
             ("___***Nested***___", "Nested"),
             (r"\*Literal Asterisk\*", "*Literal Asterisk*"),
             (r"Escaped \[Link\]\(url\)", "Escaped [Link](url)"),
+            ("> First line\nNormal second line", "First line\nNormal second line"),
         ]
         for input_text, expected in test_cases:
             with self.subTest(input_text=input_text):
                 self.assertEqual(clean_markdown(input_text), expected)
 
     def test_escape_markdown(self):
-        """Test that markdown characters are escaped."""
+        """Test that markdown characters are escaped selectively."""
         test_cases = [
             ("*", r"\*"),
             ("_", r"\_"),
             ("(*’▽’)", r"\(\*’▽’\)"),
             ("[Link](url)", r"\[Link\]\(url\)"),
-            ("> Quote", r"\> Quote"),
+            ("> Quote at start", r"\> Quote at start"),
+            ("10 > 5 mid sentence", r"10 > 5 mid sentence"),
+            ("# Header", r"\# Header"),
+            ("Sentence with #hashtag", r"Sentence with #hashtag"),
+            ("- List item", r"\- List item"),
+            ("10 - 5 = 5", r"10 - 5 = 5"),
         ]
         for input_text, expected in test_cases:
             with self.subTest(input_text=input_text):
                 self.assertEqual(escape_markdown(input_text), expected)
+
+    def test_escape_markdown_multiline(self):
+        """Test escape_markdown with multiline input."""
+        input_text = "> Line 1\nLine 2 > Mid\n> Line 3"
+        expected = r"\> Line 1" + "\n" + r"Line 2 \> Mid" + "\n" + r"\> Line 3"
+        expected = r"\> Line 1" + "\n" + "Line 2 > Mid" + "\n" + r"\> Line 3"
+        self.assertEqual(escape_markdown(input_text), expected)
 
     def test_get_visible_length(self):
         """Test that character count only includes visible characters."""
