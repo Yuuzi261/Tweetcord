@@ -11,7 +11,7 @@ from src.utils import escape_markdown
 
 def gen_embed(tweet: Tweet, parsed_tweet: ParsedTweet) -> list[discord.Embed]:
     author = tweet.author
-    disable_quoted = not FX_SETTINGS['media']
+    disable_quoted = not FX_SETTINGS['media']['enabled']
     
     is_simplified = False
     if FX_SETTINGS['rt_text']['enabled']:
@@ -41,6 +41,9 @@ def gen_embed(tweet: Tweet, parsed_tweet: ParsedTweet) -> list[discord.Embed]:
             imgs_embed = [discord.Embed(url=tweet.url).set_image(url=url) for url in parsed_tweet.media.urls]
             imgs_embed.insert(0, embed)
             return imgs_embed
+    elif FX_SETTINGS['media']['external'] and parsed_tweet.media.external_url:
+        embed.set_image(url=parsed_tweet.media.external_url)
+        return [embed]
     return [embed]
 
 

@@ -24,7 +24,9 @@ embed:
 
   built_in:
     fx:
-      media: true
+      media:
+        enabled: true
+        external: false
       rt_text:
         enabled: true
         simplified: true

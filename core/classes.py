@@ -19,12 +19,13 @@ class ParsedTweet():
     DCOS_ICON = '\ud83d\udcd1'
     
     class Media():
-        def __init__(self, type: str = None, urls: list[str] = None, length: int = None, video_link: str = None, mosaic_url: str = None):
+        def __init__(self, type: str = None, urls: list[str] = None, length: int = None, video_link: str = None, mosaic_url: str = None, external_url: str = None):
             self.type = type
             self.urls = urls
             self.length = length
             self.video_link = video_link
             self.mosaic_url = mosaic_url
+            self.external_url = external_url
             
     class Quote():
         def __init__(self, text: str = None, name: str = None, screen_name: str = None, url: str = None, profile_link: str = None, trans_text: str = None):
@@ -80,6 +81,7 @@ class ParsedTweet():
 
             if not all_media:
                 self.media.type, self.media.urls, self.media.length, self.media.mosaic_url = None, [], 0, None
+                self.media.external_url = media_data.get('external', None)  # External link preview images do not affect tweet media type, treat as sending a regular tweet
                 return
 
             self.media.length = len(all_media)
