@@ -81,7 +81,12 @@ class ParsedTweet():
 
             if not all_media:
                 self.media.type, self.media.urls, self.media.length, self.media.mosaic_url = None, [], 0, None
-                self.media.external_url = media_data.get('external', None)  # External link preview images do not affect tweet media type, treat as sending a regular tweet
+                
+                # External link preview images do not affect tweet media type, treat as sending a regular tweet
+                ex_media = media_data.get('external', None)
+                if ex_media:
+                    self.media.external_url = ex_media.get('url', None) if ex_media.get('type', None) == 'photo' else ex_media.get('thumbnail_url')
+                    
                 return
 
             self.media.length = len(all_media)
