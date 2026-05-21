@@ -40,6 +40,7 @@ class ParsedTweet():
         self.media = self.Media()
         self.quote = self.Quote()
         
+        self.text, self.trans_text, self.trans_lang = None, None, None
         self.is_mixed = False
         
         if isinstance(source, Tweet):
@@ -58,11 +59,11 @@ class ParsedTweet():
             trans_data = tweet_data.get('translation', {})
             media_data = tweet_data.get('media', {})
             
-            self.text = escape_markdown(tweet_data.get('raw_text', {}).get('text', None))
+            self.text = self._handle_raw_text(tweet_data.get('raw_text', {}))
             self.trans_text = escape_markdown(trans_data.get('text', None))
             self.trans_lang = trans_data.get('source_lang', None)
             
-            self.quote.text = escape_markdown(quote_data.get('raw_text', {}).get('text', None))
+            self.quote.text = self._handle_raw_text(quote_data.get('raw_text', {}))
             self.quote.name = quote_data.get('author', {}).get('name', None)
             self.quote.screen_name = quote_data.get('author', {}).get('screen_name', None)
             self.quote.url = quote_data.get('url', None)
@@ -145,6 +146,27 @@ class ParsedTweet():
     @staticmethod
     def _wrap_quote(text: str) -> str:
         return "\n".join([f"> {line}" for line in text.splitlines()]) if text else ""
+    
+    @staticmethod
+    def _handle_raw_text(raw_text: dict) -> str | None:
+        text = raw_text.get('text', None)
+        if not text:
+            return None
+        
+        text = escape_markdown(text)
+        for facet in raw_text.get('facets', []):
+            f_type = facet['type']
+            original = facet['original']
+            original_escaped = escape_markdown(original)
+            
+            if f_type == 'url':
+                display = escape_markdown(facet.get('display', original))
+                replacement = facet.get('replacement', original)
+                text = text.replace(original_escaped, f"[{display}]({replacement})")
+            elif f_type == 'media':
+                text = text.replace(original_escaped, '')
+                
+        return text
     
     def _simplified_content(self, content: str) -> tuple[str, bool] | None:
         if not content:

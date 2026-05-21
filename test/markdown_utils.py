@@ -50,6 +50,12 @@ class TestMarkdownUtils(unittest.TestCase):
             with self.subTest(input_text=input_text):
                 self.assertEqual(escape_markdown(input_text), expected)
 
+    def test_escape_markdown_with_urls(self):
+        """Test how escape_markdown handles URLs with special characters."""
+        url = "https://example.com/page_with_underscore"
+        expected = "https://example.com/page_with_underscore"
+        self.assertEqual(escape_markdown(url), expected)
+
     def test_escape_markdown_multiline(self):
         """Test escape_markdown with multiline input."""
         input_text = "> Line 1\nLine 2 > Mid\n> Line 3"

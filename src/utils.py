@@ -87,14 +87,33 @@ def get_visible_length(text: str) -> int:
 
 
 def escape_markdown(text: str) -> str:
-    """Escape Discord markdown characters in a string."""
+    """Escape Discord markdown characters in a string, but avoid breaking URLs."""
     if not text:
         return ""
-    # Characters that are always safe to escape and often cause issues as pairs or sequences, we escape: \ * _ ~ | ` [ ] ( )
-    text = re.sub(r'([\\*_~|`\[\]\(\)])', r'\\\1', text)
+    
+    # Regex to identify URLs
+    url_re = re.compile(r'https?://[^\s<>"]+|www\.[^\s<>"]+')
+    
+    parts = []
+    last_idx = 0
+    for match in url_re.finditer(text):
+        # Escape the text before the URL
+        before = text[last_idx:match.start()]
+        parts.append(re.sub(r'([\\*_~|`\[\]\(\)])', r'\\\1', before))
+        # Add the URL unescaped
+        parts.append(match.group(0))
+        last_idx = match.end()
+    
+    # Escape the remaining text
+    after = text[last_idx:]
+    parts.append(re.sub(r'([\\*_~|`\[\]\(\)])', r'\\\1', after))
+    
+    result = "".join(parts)
+    
     # Escape block markers at line start: > # - +
-    text = re.sub(r'^([#>+-])', r'\\\1', text, flags=re.MULTILINE)
-    return text
+    result = re.sub(r'^([#>+-])', r'\\\1', result, flags=re.MULTILINE)
+    
+    return result
 
 
 def safe_truncate(text: str, max_len: int) -> tuple[str, bool]:
