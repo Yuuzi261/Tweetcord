@@ -157,14 +157,21 @@ class ParsedTweet():
         for facet in raw_text.get('facets', []):
             f_type = facet['type']
             original = facet['original']
-            original_escaped = escape_markdown(original)
+            esc_orig = escape_markdown(original)
             
-            if f_type == 'url':
-                display = escape_markdown(facet.get('display', original))
-                replacement = facet.get('replacement', original)
-                text = text.replace(original_escaped, f"[{display}]({replacement})")
-            elif f_type == 'media':
-                text = text.replace(original_escaped, '')
+            if f_type in ['url', 'media']:
+                if f_type == 'url':
+                    display = facet.get('display', original)
+                    replacement = facet.get('replacement', original)
+                    text = text.replace(esc_orig, f"[{display}]({replacement})", 1)
+                else:
+                    text = text.replace(esc_orig, '', 1)
+            elif f_type in ['mention', 'hashtag']:
+                url = f"https://x.com/{original}" if f_type == 'mention' else f"https://x.com/hashtag/{original}"
+                prefix = '@' if f_type == 'mention' else '#'
+                # Match optional backslash for prefix and escaped content
+                pattern = f"\\\\?{re.escape(prefix)}{re.escape(esc_orig)}"
+                text = re.sub(pattern, lambda m, u=url: "[" + m.group(0).replace('\\', '') + f"]({u})", text, count=1)
                 
         return text
     
