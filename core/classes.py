@@ -150,30 +150,43 @@ class ParsedTweet():
     @staticmethod
     def _handle_raw_text(raw_text: dict) -> str | None:
         text = raw_text.get('text', None)
+        facets = raw_text.get('facets', [])
         if not text:
             return None
+        if not facets or not all('indices' in f for f in facets):
+            return escape_markdown(text)
+
+        # Replace facets with unique placeholders from back to front
+        placeholders = {}
+        sorted_facets = sorted(facets, key=lambda f: f['indices'][0], reverse=True)
         
-        text = escape_markdown(text)
-        for facet in raw_text.get('facets', []):
+        for i, facet in enumerate(sorted_facets):
+            start, end = facet['indices']
             f_type = facet['type']
             original = facet['original']
-            esc_orig = escape_markdown(original)
+            facet_text = text[start:end]
             
-            if f_type in ['url', 'media']:
-                if f_type == 'url':
-                    display = facet.get('display', original)
-                    replacement = facet.get('replacement', original)
-                    text = text.replace(esc_orig, f"[{display}]({replacement})", 1)
-                else:
-                    text = text.replace(esc_orig, '', 1)
+            if f_type == 'url':
+                display = facet.get('display', original)
+                replacement = facet.get('replacement', original)
+                md_link = f"[{display}]({replacement})"
+            elif f_type == 'media':
+                md_link = ""
             elif f_type in ['mention', 'hashtag']:
                 url = f"https://x.com/{original}" if f_type == 'mention' else f"https://x.com/hashtag/{original}"
-                prefix = '@' if f_type == 'mention' else '#'
-                # Match optional backslash for prefix and escaped content
-                pattern = f"\\\\?{re.escape(prefix)}{re.escape(esc_orig)}"
-                text = re.sub(pattern, lambda m, u=url: "[" + m.group(0).replace('\\', '') + f"]({u})", text, count=1)
-                
-        return text
+                md_link = f"[{facet_text}]({url})"
+            else:
+                continue
+            
+            ph = f"\x01{i}\x02"
+            placeholders[ph] = md_link
+            text = text[:start] + ph + text[end:]
+
+        # Escape the remaining plain text safely in one go
+        text = escape_markdown(text)
+        
+        # Restore all placeholders to true Markdown links
+        return re.sub(r'\x01(\d+)\x02', lambda m: placeholders[m.group(0)], text)
     
     def _simplified_content(self, content: str) -> tuple[str, bool] | None:
         if not content:

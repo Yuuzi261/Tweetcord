@@ -140,5 +140,29 @@ class TestParsedTweet(unittest.TestCase):
         text, _ = parsed.get_text()
         self.assertEqual(text, r"\(\*’▽’\) #SDVX")
 
+    def test_duplicate_facets_in_raw_text(self):
+        """Test that duplicate facets are correctly formatted when indices are provided."""
+        source = {
+            'tweet': {
+                'raw_text': {
+                    'text': 'Abstract #TAG1 and #TAG2 and #TAG1.',
+                    'facets': [
+                        {"type": "hashtag", "indices": [9, 14], "original": "TAG1"},
+                        {"type": "hashtag", "indices": [19, 24], "original": "TAG2"},
+                        {"type": "hashtag", "indices": [29, 34], "original": "TAG1"}
+                    ]
+                },
+                'author': {'screen_name': 'test_user'},
+                'media': {'all': []},
+                'translation': {'text': None, 'source_lang': 'en'}
+            }
+        }
+        parsed = ParsedTweet(source)
+        
+        expected_text = (
+            r"Abstract [#TAG1](https://x.com/hashtag/TAG1) and [#TAG2](https://x.com/hashtag/TAG2) and [#TAG1](https://x.com/hashtag/TAG1)."
+        )
+        self.assertEqual(parsed.text, expected_text)
+
 if __name__ == '__main__':
     unittest.main()
