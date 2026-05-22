@@ -162,8 +162,11 @@ class ParsedTweet():
         
         for i, facet in enumerate(sorted_facets):
             start, end = facet['indices']
-            f_type = facet['type']
-            original = facet['original']
+            f_type = facet.get('type')
+            if f_type not in ['url', 'media', 'mention', 'hashtag', 'bold']:
+                continue
+            
+            original = facet.get('original')
             facet_text = text[start:end]
             
             if f_type == 'url':
@@ -173,10 +176,10 @@ class ParsedTweet():
             elif f_type == 'media':
                 md_link = ""
             elif f_type in ['mention', 'hashtag']:
-                url = f"https://x.com/{original}" if f_type == 'mention' else f"https://x.com/hashtag/{original}"
+                url = f"https://twitter.com/{original}" if f_type == 'mention' else f"https://twitter.com/hashtag/{original}"
                 md_link = f"[{facet_text}]({url})"
-            else:
-                continue
+            elif f_type == 'bold':
+                md_link = f"**{escape_markdown(facet_text)}**"
             
             ph = f"\x01{i}\x02"
             placeholders[ph] = md_link
