@@ -156,12 +156,20 @@ class ParsedTweet():
         if not facets or not all('indices' in f for f in facets):
             return escape_markdown(text)
 
-        # Replace facets with unique placeholders from back to front
+        # Sort facets: back-to-front, prioritizing non-media if indices overlap
+        def facet_sort_key(f):
+            priority = 0 if f.get('type') == 'media' else 1
+            return (f['indices'][0], f['indices'][1], priority)
+
+        sorted_facets = sorted(facets, key=facet_sort_key, reverse=True)
         placeholders = {}
-        sorted_facets = sorted(facets, key=lambda f: f['indices'][0], reverse=True)
-        
+        last_processed_start = float('inf')
+
         for i, facet in enumerate(sorted_facets):
             start, end = facet['indices']
+            if end > last_processed_start:
+                continue
+            
             f_type = facet.get('type')
             if f_type not in ['url', 'media', 'mention', 'hashtag', 'bold']:
                 continue
@@ -184,7 +192,8 @@ class ParsedTweet():
             ph = f"\x01{i}\x02"
             placeholders[ph] = md_link
             text = text[:start] + ph + text[end:]
-
+            last_processed_start = start
+        
         # Escape the remaining plain text safely in one go
         text = escape_markdown(text)
         

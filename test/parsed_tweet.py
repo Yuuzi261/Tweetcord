@@ -160,7 +160,7 @@ class TestParsedTweet(unittest.TestCase):
         parsed = ParsedTweet(source)
         
         expected_text = (
-            r"Abstract [#TAG1](https://x.com/hashtag/TAG1) and [#TAG2](https://x.com/hashtag/TAG2) and [#TAG1](https://x.com/hashtag/TAG1)."
+            r"Abstract [#TAG1](https://twitter.com/hashtag/TAG1) and [#TAG2](https://twitter.com/hashtag/TAG2) and [#TAG1](https://twitter.com/hashtag/TAG1)."
         )
         self.assertEqual(parsed.text, expected_text)
 
