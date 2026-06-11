@@ -36,9 +36,7 @@ bot = commands.Bot(command_prefix=configs['prefix'], intents=intents)
 
 @bot.event
 async def on_ready():
-    if not (os.path.isfile(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db'))):
-        await init_db()
-        
+    await init_db()
     check_upgrade()
         
     invalid_clients = await check_db()

@@ -15,6 +15,8 @@ async def init_db():
 
     db_path = os.path.join(data_path, 'tracked_accounts.db')
     db_exists = os.path.exists(db_path)
+    
+    if db_exists: return
 
     async with aiosqlite.connect(db_path) as db:
         await db.executescript("""
@@ -25,8 +27,7 @@ async def init_db():
         """)
         await db.commit()
 
-    if not db_exists:
-        log.info('database file not found, a blank database file has been created')
+    log.info('database file not found, a blank database file has been created')
 
 
 async def init_latest_tweet_on_startup(db_path: str):
