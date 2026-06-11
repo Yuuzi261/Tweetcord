@@ -9,10 +9,16 @@ log = setup_logger(__name__)
 
 
 async def init_db():
-    if not os.path.exists(os.getenv('DATA_PATH')):
-        os.mkdir(os.getenv('DATA_PATH'))
+    data_path = os.getenv('DATA_PATH')
+    if not os.path.exists(data_path):
+        os.mkdir(data_path)
 
-    async with aiosqlite.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
+    db_path = os.path.join(data_path, 'tracked_accounts.db')
+    db_exists = os.path.exists(db_path)
+    
+    if db_exists: return
+
+    async with aiosqlite.connect(db_path) as db:
         await db.executescript("""
             CREATE TABLE IF NOT EXISTS user (id TEXT PRIMARY KEY, username TEXT, latest_tweet TEXT, client_used TEXT, enabled INTEGER DEFAULT 1);
             CREATE TABLE IF NOT EXISTS channel (id TEXT PRIMARY KEY, server_id TEXT);
