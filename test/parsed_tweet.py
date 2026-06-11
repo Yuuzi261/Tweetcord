@@ -100,12 +100,12 @@ class TestParsedTweet(unittest.TestCase):
         rt_parsed_tweet = ParsedTweet(rt_source_dict)
         
         # Check if RT prefix is added to both text and trans_text
-        self.assertEqual(rt_parsed_tweet.text, "RT @original_author: Original Text")
-        self.assertEqual(rt_parsed_tweet.trans_text, "RT @original_author: Translated Text")
+        self.assertEqual(rt_parsed_tweet.text, "RT [@original_author](https://twitter.com/original_author): Original Text")
+        self.assertEqual(rt_parsed_tweet.trans_text, "RT [@original_author](https://twitter.com/original_author): Translated Text")
         
         # Verify get_text output contains the RT prefix
         result, _ = rt_parsed_tweet.get_text()
-        self.assertIn("RT @original_author:", result)
+        self.assertIn("RT [@original_author](https://twitter.com/original_author):", result)
         self.assertIn("Translated Text", result)
 
     def test_get_quote_text_repro(self):

@@ -72,8 +72,9 @@ class ParsedTweet():
             
             if tweet_data.get('reposted_by', {}):
                 author_name = tweet_data.get('author', {}).get('screen_name', None)
-                self.text = f"RT @{author_name}: {self.text}"
-                if self.trans_text: self.trans_text = f"RT @{author_name}: {self.trans_text}"
+                rt_info = f"RT [@{author_name}](https://twitter.com/{author_name}): "
+                self.text = rt_info + self.text
+                if self.trans_text: self.trans_text = rt_info + self.trans_text
 
             if not media_data.get('all') and 'quote' in tweet_data:
                 media_data = tweet_data['quote'].get('media', {})
