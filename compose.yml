@@ -1,6 +1,5 @@
 services:
   Tweetcord:
-    build: .
     image: ghcr.io/yuuzi261/tweetcord:0.7.1
     container_name: tweetcord
     restart: unless-stopped
