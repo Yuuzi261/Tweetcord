@@ -25,7 +25,7 @@ class Sync(Cog_Extension):
 
         async with connect_readonly(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
             db.row_factory = aiosqlite.Row
-            async with db.execute('SELECT id, client_used FROM user') as cursor:
+            async with db.execute('SELECT id, client_used FROM user WHERE enabled = 1') as cursor:
                 follow_list = {row[0]: row[1] async for row in cursor}
 
         self.bot.loop.create_task(sync_db(follow_list))

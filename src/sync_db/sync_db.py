@@ -18,8 +18,11 @@ async def sync_db(follow_list: dict[str, str]) -> None:
         apps[account_name] = app
 
     for user_id, client_used in follow_list.items():
-        app = apps[client_used]
-        
+        app = apps.get(client_used)
+        if app is None:
+            log.warning(f'client "{client_used}" for user {user_id} is not configured, skip synchronization')
+            continue
+
         try:
             await app.follow_user(user_id)
             await app.enable_user_notification(user_id)
