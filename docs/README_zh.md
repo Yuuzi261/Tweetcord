@@ -162,6 +162,7 @@ DATA_PATH=./data
 | `activity_type` | 機器人顯示的活動類型。 | 僅限 `playing`、`streaming`、`listening`、`watching` 和 `competing`。 |
 | `users_list_pagination_size` | `list users` 指令的分頁大小。 | 只接受整數，不宜使用過大或過小的值。 |
 | `users_list_page_counter_position` | `list users` 指令的分頁計數器位置。 | 僅限 `title` 和 `footer` 。 |
+| `enable_prefix_commands_in_guild` | 是否在伺服器啟用前綴指令（關閉這個選項僅會影響前綴指令，不影響任何功能，需要使用前綴指令上傳/備份資料庫或下載日誌可以私訊機器人），若為 `false`，則可以禁用訊息內容意圖 (Message Content Intent)。 | 布林值。 |
 
 自定義活動名稱為 `f-string` 格式，目前支援1種特別的變數可供使用，將在下面說明：
 
@@ -261,7 +262,9 @@ python bot.py
 |--------|-------------|
 | ❌  | 成員狀態意圖 (Presence Intent) |
 | ❌ | 伺服器成員意圖 (Server Members Intent) |
-| ✔️ | 訊息內容意圖 (Message Content Intent) |
+| ⚠️ | 訊息內容意圖 (Message Content Intent) |
+
+如果你在 `configs.yml` 中將 `enable_prefix_commands_in_guild` 禁用，則可禁用**訊息內容意圖**，反之，請啟用它。
 
 > [!NOTE]
 > 如果想將機器人架到伺服器上，這裡推薦一個基本免費的服務：[fly.io](https://fly.io)。 _(更新：fly.io已停止向新用戶提供免費的方案)_
