@@ -4,6 +4,7 @@ activity_name: '{count} accounts'
 activity_type: 'watching'
 users_list_pagination_size: 8
 users_list_page_counter_position: 'title'
+enable_prefix_commands_in_guild: true
 
 tweets_check_period: 18
 tweets_updater_retry_delay: 5
