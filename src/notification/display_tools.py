@@ -6,21 +6,22 @@ from tweety.types import Tweet
 from core.classes import ParsedTweet
 from configs.load_configs import configs, FX_SETTINGS
 from src.i18n import t
+from src.utils import escape_markdown
 
 
 def gen_embed(tweet: Tweet, parsed_tweet: ParsedTweet) -> list[discord.Embed]:
     author = tweet.author
-    disable_quoted = not FX_SETTINGS['media']
+    disable_quoted = not FX_SETTINGS['media']['enabled']
     
     is_simplified = False
     if FX_SETTINGS['rt_text']['enabled']:
         description = (parsed_tweet.get_quote_text(simplified_content=FX_SETTINGS['rt_text']['simplified'])
                        or parsed_tweet.get_text(simplified_content=FX_SETTINGS['rt_text']['simplified'])
-                       or tweet.text)
+                       or escape_markdown(tweet.text))
         if isinstance(description, tuple):
             description, is_simplified = description[0], description[1]
     else:
-        description = tweet.text
+        description = escape_markdown(tweet.text)
 
     embed = discord.Embed(title=f'{author.name} {get_action(tweet, disable_quoted=disable_quoted)} {get_tweet_type(parsed_tweet)}', 
                           description=description, url=tweet.url, color=0x1da0f2, timestamp=tweet.created_on)
@@ -40,6 +41,9 @@ def gen_embed(tweet: Tweet, parsed_tweet: ParsedTweet) -> list[discord.Embed]:
             imgs_embed = [discord.Embed(url=tweet.url).set_image(url=url) for url in parsed_tweet.media.urls]
             imgs_embed.insert(0, embed)
             return imgs_embed
+    elif FX_SETTINGS['media']['external'] and parsed_tweet.media.external_url:
+        embed.set_image(url=parsed_tweet.media.external_url)
+        return [embed]
     return [embed]
 
 

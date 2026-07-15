@@ -3,6 +3,12 @@ import logging.handlers
 import os
 
 
+class MessageContentIntentWarningFilter(logging.Filter):
+    def filter(self, record):
+        # This is blocking specific warnings from discord.py for not enabling Intent
+        return "Privileged message content intent is missing" not in record.getMessage()
+
+
 class LogFormatter(logging.Formatter):
 
     LEVEL_COLORS = [
@@ -88,5 +94,10 @@ def setup_logger(module_name: str) -> logging.Logger:
         # Add handlers to logger
         logger.addHandler(log_handler)
         logger.addHandler(console_handler)
+        
+    discord_bot_logger = logging.getLogger('discord.ext.commands.bot')
+    
+    if not any(isinstance(f, MessageContentIntentWarningFilter) for f in discord_bot_logger.filters):
+        discord_bot_logger.addFilter(MessageContentIntentWarningFilter())
 
     return logger

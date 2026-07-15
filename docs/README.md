@@ -162,6 +162,7 @@ Create `configs.yml` and copy the contents of `configs.example.yml` into it, and
 | `activity_type` | The activity type displayed by the bot. | `playing`, `streaming`, `listening`, `watching` and `competing` only. |
 | `users_list_pagination_size` | `list users` command's pagination size. | Only accepts integers, and it is not recommended to use too large or too small values. |
 | `users_list_page_counter_position` | `list users` command's pagination counter position. | `title` and `footer` only. |
+| `enable_prefix_commands_in_guild` | Whether to enable prefix commands in the server (disabling this option only affects prefix commands and does not affect any features. You can still DM the bot to use prefix commands to upload/backup databases or download logs). If `false`, you can disable the Message Content Intent. | Boolean. |
 
 Custom activity name is in `f-string` format, currently supporting 1 special variable for use, which will be explained below.
 
@@ -208,7 +209,8 @@ Custom activity name is in `f-string` format, currently supporting 1 special var
 | `legacy_logo` | If set to `true`, the footer will use Twitter's legacy bluebird logo instead of the new X emblem. |
 
 - **fx**
-  - `media`: Whether to fetch thumbnails from external links (in any tweet) and media within quoted tweets.
+  - `media.enabled`: Whether to fetch media within quoted tweets.
+  - `media.external`: Whether to fetch thumbnails from external links.
   - `rt_text.enabled`: Whether to display the original text of quoted tweets. Enabling this will also show the full content for longer retweets.
   - `rt_text.simplified`: Whether to simplify information when there is too much content (typically in quoted tweets). When enabled, it truncates part of the original quoted text for overly long messages and hides the thumbnail icon (right-side avatar) within the embed.
   - `mosaic`: Whether to use FixupX's combined image when there are multiple images, friendly for iOS systems that cannot display multiple image embeddings.
@@ -261,13 +263,12 @@ python bot.py
 |--------|-------------|
 | ❌  | Presence Intent |
 | ❌ | Server Members Intent |
-| ✔️ | Message Content Intent |
+| ⚠️ | Message Content Intent |
+
+If you disable `enable_prefix_commands_in_guild` in `configs.yml`, you can disable **Message Content Intent**. Otherwise, please enable it.
 
 > [!NOTE]
 > If you want to host the bot on a server, here is a recommended service that is basically free: [fly.io](https://fly.io) _(update: fly.io has stopped offering free plans to new users)_
-
-> [!TIP]
-> Alternatively, you can try this virtual hosting service provided by Taiwanese students: [FreeServer](https://freeserver.tw/index.html)
 
 <details>
    <summary><b>⚙️some configuration files you may need if you use fly.io</b></summary>

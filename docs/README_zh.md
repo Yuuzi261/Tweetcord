@@ -162,6 +162,7 @@ DATA_PATH=./data
 | `activity_type` | 機器人顯示的活動類型。 | 僅限 `playing`、`streaming`、`listening`、`watching` 和 `competing`。 |
 | `users_list_pagination_size` | `list users` 指令的分頁大小。 | 只接受整數，不宜使用過大或過小的值。 |
 | `users_list_page_counter_position` | `list users` 指令的分頁計數器位置。 | 僅限 `title` 和 `footer` 。 |
+| `enable_prefix_commands_in_guild` | 是否在伺服器啟用前綴指令（關閉這個選項僅會影響前綴指令，不影響任何功能，需要使用前綴指令上傳/備份資料庫或下載日誌可以私訊機器人），若為 `false`，則可以禁用訊息內容意圖 (Message Content Intent)。 | 布林值。 |
 
 自定義活動名稱為 `f-string` 格式，目前支援1種特別的變數可供使用，將在下面說明：
 
@@ -208,7 +209,8 @@ DATA_PATH=./data
 | `legacy_logo` | 設為`true`的話會使用推特以前的藍鳥logo做為footer而不是新的X標誌。 |
 
 - **fx**
-  - `media`：是否擷取外部連結提供的縮圖、引用推文中的多媒體。
+  - `media.enabled`：啟用後可擷取引用推文中的多媒體。
+  - `media.external`：是否擷取外部連結提供的縮圖。
   - `rt_text.enabled`：是否顯示引用推文的原文，開啟此設定後對於較長的轉推內容也會完整顯示。
   - `rt_text.simplified`：內容較多時是否精簡資訊（通常發生於引用推文），啟用時對於過長的訊息會截斷部份引用原文的內容，並隱藏嵌入內容內的右側頭像（thumbnail）。
   - `mosaic`：當有多張圖片時是否使用 FixupX 的組合圖片，對於無法顯示多張圖片嵌入的iOS系統友善。
@@ -261,13 +263,12 @@ python bot.py
 |--------|-------------|
 | ❌  | 成員狀態意圖 (Presence Intent) |
 | ❌ | 伺服器成員意圖 (Server Members Intent) |
-| ✔️ | 訊息內容意圖 (Message Content Intent) |
+| ⚠️ | 訊息內容意圖 (Message Content Intent) |
+
+如果你在 `configs.yml` 中將 `enable_prefix_commands_in_guild` 禁用，則可禁用**訊息內容意圖**，反之，請啟用它。
 
 > [!NOTE]
 > 如果想將機器人架到伺服器上，這裡推薦一個基本免費的服務：[fly.io](https://fly.io)。 _(更新：fly.io已停止向新用戶提供免費的方案)_
-
-> [!TIP]
-> 或是你可以試試這個由台灣學生提供的虛擬主機服務： [FreeServer](https://freeserver.tw/index.html)
 
 <details>
    <summary><b>⚙️如果你使用fly.io的話你可能會需要的一些配置檔案</b></summary>

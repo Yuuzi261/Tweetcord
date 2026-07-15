@@ -4,6 +4,19 @@
 > Cross-version updates are **NOT SUPPORTED**. For multi-version updates, please iterate through each version to update to the latest version. Before updating, please back up your data using the prefix command `download_data`.
 
 <details>
+   <summary><b>⬆️Click Here to Upgrade from 0.7 or 0.7.1 to 0.7.2</b></summary>
+
+This update involves upgrading the versions of dependency packages, please make sure to update:
+
+```bash
+pip install --upgrade --no-cache-dir --force-reinstall -r requirements.txt
+```
+
+Since the parameters in configs have been adjusted, please refer to `configs.example.yml` to update the configs.
+
+</details>
+
+<details>
    <summary><b>⬆️Click Here to Upgrade from 0.6.1 to 0.7</b></summary>
 
 This update involves upgrading the versions of dependency packages, please make sure to update:
@@ -141,6 +154,19 @@ Because the database structure has been updated, you must use the following code
 
 > [!WARNING]
 > **不支援**跨版本更新，多版本更新請迭代更新至新版本。更新前請先透過前綴指令 `download_data` 進行資料備份。
+
+<details>
+   <summary><b>⬆️0.7或0.7.1升級到0.7.2請點這裡</b></summary>
+
+本次更新對依賴套件的版本進行了升級，請務必進行更新：
+
+```bash
+pip install --upgrade --no-cache-dir --force-reinstall -r requirements.txt
+```
+
+因為configs的參數有進行調整，請參考 `configs.example.yml` 對configs進行更新）。
+
+</details>
 
 <details>
    <summary><b>⬆️0.6.1升級到0.7請點這裡</b></summary>

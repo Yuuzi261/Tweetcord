@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.7.2 (July 15, 2026)
+
+**✨Features:**
+- Significantly enhanced Markdown escaping functionality, optimizing text replacement for URLs, media, mentions (@), and hashtags (#) to prevent broken Markdown formatting in Discord messages (applies when using the `built_in` embed type with fx enhancements enabled).
+- Added support for reading from the configuration to dynamically determine whether to enable prefix commands in guilds. If prefix commands are disabled in guilds, the Message Content Intent can be safely turned off without affecting any functionality.
+
+**♻️Refactor:**
+- Refactored the `init_db` function logic, decoupling the database existence check into the `init_db` function.
+
+**🐛Fixes:**
+- Fixed the `/sync` command to prevent re-following and re-enabling notifications for removed users, and prevented unconfigured clients from interrupting the sync process.
+- Implemented a temporary patch for issue [#93](https://github.com/Yuuzi261/Tweetcord/issues/93).
+- Fixed and refined edge cases in the Markdown cleaning and escaping logic.
+
+**🎉New Contributors:**
+- @tomokarin made their first contribution in [#90](https://github.com/Yuuzi261/Tweetcord/pull/90)
+- @Ishannaik made their first contribution in [#95](https://github.com/Yuuzi261/Tweetcord/pull/95)
+
+## 0.7.1 (May 20, 2026)
+
+**🐛Fixes:**
+- Fix task crash on retweets caused by forcing RT info into `self.trans`, changing it from `None` to a `string` and breaking downstream logic.
+
 ## 0.7 (May 19, 2026)
 
 **✨Features:**
