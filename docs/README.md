@@ -269,9 +269,6 @@ If you disable `enable_prefix_commands_in_guild` in `configs.yml`, you can disab
 > [!NOTE]
 > If you want to host the bot on a server, here is a recommended service that is basically free: [fly.io](https://fly.io) _(update: fly.io has stopped offering free plans to new users)_
 
-> [!TIP]
-> Alternatively, you can try this virtual hosting service provided by Taiwanese students: [FreeServer](https://freeserver.tw/index.html)
-
 <details>
    <summary><b>⚙️some configuration files you may need if you use fly.io</b></summary>
 

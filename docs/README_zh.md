@@ -269,9 +269,6 @@ python bot.py
 > [!NOTE]
 > 如果想將機器人架到伺服器上，這裡推薦一個基本免費的服務：[fly.io](https://fly.io)。 _(更新：fly.io已停止向新用戶提供免費的方案)_
 
-> [!TIP]
-> 或是你可以試試這個由台灣學生提供的虛擬主機服務： [FreeServer](https://freeserver.tw/index.html)
-
 <details>
    <summary><b>⚙️如果你使用fly.io的話你可能會需要的一些配置檔案</b></summary>
 
