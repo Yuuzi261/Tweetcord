@@ -209,7 +209,8 @@ DATA_PATH=./data
 | `legacy_logo` | 設為`true`的話會使用推特以前的藍鳥logo做為footer而不是新的X標誌。 |
 
 - **fx**
-  - `media`：是否擷取外部連結提供的縮圖、引用推文中的多媒體。
+  - `media.enabled`：啟用後可擷取引用推文中的多媒體。
+  - `media.external`：是否擷取外部連結提供的縮圖。
   - `rt_text.enabled`：是否顯示引用推文的原文，開啟此設定後對於較長的轉推內容也會完整顯示。
   - `rt_text.simplified`：內容較多時是否精簡資訊（通常發生於引用推文），啟用時對於過長的訊息會截斷部份引用原文的內容，並隱藏嵌入內容內的右側頭像（thumbnail）。
   - `mosaic`：當有多張圖片時是否使用 FixupX 的組合圖片，對於無法顯示多張圖片嵌入的iOS系統友善。

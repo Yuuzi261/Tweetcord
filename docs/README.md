@@ -209,7 +209,8 @@ Custom activity name is in `f-string` format, currently supporting 1 special var
 | `legacy_logo` | If set to `true`, the footer will use Twitter's legacy bluebird logo instead of the new X emblem. |
 
 - **fx**
-  - `media`: Whether to fetch thumbnails from external links (in any tweet) and media within quoted tweets.
+  - `media.enabled`: Whether to fetch media within quoted tweets.
+  - `media.external`: Whether to fetch thumbnails from external links.
   - `rt_text.enabled`: Whether to display the original text of quoted tweets. Enabling this will also show the full content for longer retweets.
   - `rt_text.simplified`: Whether to simplify information when there is too much content (typically in quoted tweets). When enabled, it truncates part of the original quoted text for overly long messages and hides the thumbnail icon (right-side avatar) within the embed.
   - `mosaic`: Whether to use FixupX's combined image when there are multiple images, friendly for iOS systems that cannot display multiple image embeddings.
