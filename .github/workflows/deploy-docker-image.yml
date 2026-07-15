@@ -12,7 +12,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: yuuzi261/tweetcord
-  IMAGE_DESCRIPTION: A Discord bot for Twitter notifications, using tweety-ns module.
+  IMAGE_DESCRIPTION: A Discord bot for Twitter notifications, using tweety-ns package.
   LICENSES: MIT
   PLATFORMS: linux/amd64,linux/arm64
 

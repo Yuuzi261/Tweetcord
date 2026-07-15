@@ -16,7 +16,7 @@ A Discord Bot for Twitter Notifications
 
 ## 📝Introduction
 
-Tweetcord is a Discord bot that leverages the [tweety-ns module](https://github.com/mahrtayyab/tweety) to provide real-time tweet updates from specific Twitter users directly to your Discord server. Simply configure the Twitter users and Discord channels you want to monitor, and Tweetcord will automatically forward tweets to the designated channels, ensuring you never miss important updates.🐦
+Tweetcord is a Discord bot that leverages the [tweety-ns package](https://github.com/mahrtayyab/tweety) to provide real-time tweet updates from specific Twitter users directly to your Discord server. Simply configure the Twitter users and Discord channels you want to monitor, and Tweetcord will automatically forward tweets to the designated channels, ensuring you never miss important updates.🐦
 
 ## ✨Features
 
@@ -113,7 +113,7 @@ Note: You need to set `auto_translation` to `true` in the `embed` settings to us
 
 ## 📥Installation
 
-Before running the bot, you need to install the necessary modules.
+Before running the bot, you need to install the necessary packages.
 
 ```shell
 pip install -r requirements.txt
