@@ -59,6 +59,10 @@ def build_and_validate_configs():
             elif current_path == 'embed.proxy.service':
                 if user_value not in VALID_PROXY_SERVICES:
                     is_valid = False
+            elif current_path == 'notification_max_retries' and (isinstance(user_value, bool) or not isinstance(user_value, int) or user_value < 0):
+                is_valid = False
+            elif current_path == 'notification_retry_delay' and (isinstance(user_value, bool) or not isinstance(user_value, (int, float)) or user_value <= 0):
+                is_valid = False
             # --- End Validation ---
 
             if is_valid:

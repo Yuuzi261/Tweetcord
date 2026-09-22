@@ -10,6 +10,8 @@ tweets_check_period: 18
 tweets_updater_retry_delay: 5
 tasks_monitor_check_period: 1
 tasks_monitor_log_period: 4
+notification_max_retries: 3
+notification_retry_delay: 2
 auth_max_attempts: 2
 
 auto_change_client: false
