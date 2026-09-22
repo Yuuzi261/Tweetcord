@@ -56,8 +56,19 @@ class AccountTracker():
         # Wait for the initial timestamp load
         await self.timestamps_ready.wait()
 
-        async def authenticate_account(account_name, account_token):
+        async def authenticate_account(account_name, account_token):            
             app = Twitter(account_name)
+            
+            if configs['use_existing_sessions_first']:
+                try:
+                    saved_token = app.session.cookies_dict().get('auth_token')
+                    if saved_token and saved_token != account_token:
+                        log.info(f"detected updated auth token in environmental variables for account: {account_name}, re-authenticating...")
+                    elif await app.connect():
+                        return app
+                except Exception as e:
+                    log.warning(f"failed to load existing session for account {account_name}: {e}")
+            
             max_attempts = configs['auth_max_attempts']
             for attempt in range(max_attempts):
                 try:
