@@ -44,32 +44,57 @@ class TestNotificationRetry(unittest.IsolatedAsyncioTestCase):
     @patch('src.notification.account_tracker.log')
     @patch('asyncio.sleep', new_callable=AsyncMock)
     async def test_retry_success_after_failure(self, mock_sleep, mock_log):
-        """Fails with 503 discord.DiscordServerError on first attempt, succeeds on second attempt."""
+        """Fails with 503 discord.DiscordServerError on first attempt, succeeds on second attempt in built_in mode."""
         with patch.dict(configs, {'notification_retry_delay': 2, 'notification_max_retries': 3}):
-            # Attempt 1 fails with 503, Attempt 2 succeeds
-            self.channel.send.side_effect = [self.server_error, None]
+            with patch('src.notification.account_tracker.EMBED_TYPE', 'built_in'):
+                # Attempt 1 fails with 503, Attempt 2 succeeds
+                self.channel.send.side_effect = [self.server_error, None]
 
-            await self.tracker._retry_send_notification(
-                channel=self.channel,
-                msg="test notification",
-                view=None,
-                embeds=None,
-            )
+                await self.tracker._retry_send_notification(
+                    channel=self.channel,
+                    msg="test notification",
+                    view=None,
+                    embeds=None,
+                )
 
-            # Channel send should have been attempted twice
-            self.assertEqual(self.channel.send.call_count, 2)
-            for c in self.channel.send.call_args_list:
-                self.assertEqual(c.args[0], "test notification")
-                self.assertIsNone(c.kwargs.get('view'))
+                # Channel send should have been attempted twice
+                self.assertEqual(self.channel.send.call_count, 2)
+                for c in self.channel.send.call_args_list:
+                    self.assertEqual(c.args[0], "test notification")
+                    self.assertIsNone(c.kwargs.get('view'))
+                    self.assertIsNotNone(c.kwargs.get('file'))
 
-            # Exponential backoff sleeps: initial delay (2), then backoff before second attempt (4)
-            self.assertEqual(mock_sleep.call_count, 2)
-            mock_sleep.assert_has_calls([call(2), call(4)])
+                # Exponential backoff sleeps: initial delay (2), then backoff before second attempt (4)
+                self.assertEqual(mock_sleep.call_count, 2)
+                mock_sleep.assert_has_calls([call(2), call(4)])
 
-            # Info log should report success after retry
-            mock_log.info.assert_called_with(
-                f"successfully sent notification to {self.channel.mention} after retry 2/3"
-            )
+                # Info log should report success after retry
+                mock_log.info.assert_called_with(
+                    f"successfully sent notification to {self.channel.mention} after retry 2/3"
+                )
+
+    @patch('src.notification.account_tracker.log')
+    @patch('asyncio.sleep', new_callable=AsyncMock)
+    async def test_retry_proxy_mode(self, mock_sleep, mock_log):
+        """Tests retry in proxy mode (sends without file attachments)."""
+        with patch.dict(configs, {'notification_retry_delay': 2, 'notification_max_retries': 3}):
+            with patch('src.notification.account_tracker.EMBED_TYPE', 'proxy'):
+                self.channel.send.side_effect = [self.server_error, None]
+
+                await self.tracker._retry_send_notification(
+                    channel=self.channel,
+                    msg="test notification",
+                    view=None,
+                    embeds=None,
+                )
+
+                self.assertEqual(self.channel.send.call_count, 2)
+                self.channel.send.assert_has_calls([
+                    call("test notification", view=None),
+                    call("test notification", view=None),
+                ])
+                self.assertEqual(mock_sleep.call_count, 2)
+                mock_sleep.assert_has_calls([call(2), call(4)])
 
     @patch('src.notification.account_tracker.log')
     @patch('asyncio.sleep', new_callable=AsyncMock)
