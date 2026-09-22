@@ -6,6 +6,7 @@ from discord import app_commands
 from discord.ext import commands
 
 from core.classes import Cog_Extension
+from configs.constants import AUTOCOMPLETE_MAX_CHOICES, AUTOCOMPLETE_MAX_CHOICE_LENGTH
 from configs.load_configs import configs
 from src.i18n import t
 from src.permission import ADMINISTRATOR
@@ -85,7 +86,8 @@ class ListUsers(Cog_Extension):
             async with db.cursor() as cursor:
                 await cursor.execute('SELECT client_used FROM user WHERE enabled = 1')
                 client_used = list(set([row['client_used'] async for row in cursor]))
-                return [app_commands.Choice(name=row, value=row) for row in client_used if account.lower() in row.lower()]
+                return [app_commands.Choice(name=row[:AUTOCOMPLETE_MAX_CHOICE_LENGTH], value=row) 
+                        for row in client_used if account.lower() in row.lower()][:AUTOCOMPLETE_MAX_CHOICES]
 
     @list_users.autocomplete('channel')
     async def get_channel(self, itn: discord.Interaction, input_channel: str) -> list[app_commands.Choice[str]]:

@@ -2,6 +2,7 @@ import os
 
 import discord
 from discord import app_commands
+from configs.constants import AUTOCOMPLETE_MAX_CHOICES, AUTOCOMPLETE_MAX_CHOICE_LENGTH
 import aiosqlite
 
 from src.db_function.readonly_db import connect_readonly
@@ -37,5 +38,5 @@ async def fetch_tracked_channels(itn: discord.Integration, input_channel: str, i
                 elif not include_unknown: continue
                 else: name = f'# unknown ({channel_id})'
 
-                result.append(app_commands.Choice(name=name, value=channel_id))
-            return result
+                result.append(app_commands.Choice(name=name[:AUTOCOMPLETE_MAX_CHOICE_LENGTH], value=channel_id))
+            return result[:AUTOCOMPLETE_MAX_CHOICES]
