@@ -39,4 +39,5 @@ async def fetch_tracked_channels(itn: discord.Integration, input_channel: str, i
                 else: name = f'# unknown ({channel_id})'
 
                 result.append(app_commands.Choice(name=name[:AUTOCOMPLETE_MAX_CHOICE_LENGTH], value=channel_id))
-            return result[:AUTOCOMPLETE_MAX_CHOICES]
+                if len(result) >= AUTOCOMPLETE_MAX_CHOICES: break
+            return result
