@@ -14,7 +14,7 @@ from core.classes import ParsedTweet
 from configs.load_configs import configs, IS_TRANSLATION_ENABLED
 from src.i18n import t
 from src.log import setup_logger
-from src.notification.display_tools import gen_embed, get_action
+from src.notification.display_tools import gen_embed, get_action, get_footer_name
 from src.notification.get_tweets import get_tweets
 from src.notification.utils import is_match_media_type, is_match_type, replace_emoji, get_parsed_tweet
 from src.utils import get_accounts, get_lock, get_utcnow
@@ -219,15 +219,13 @@ class AccountTracker():
                         else: msg = re.sub(r":(\w+):", lambda match: replace_emoji(match, channel.guild), data['customized_msg']) if configs['emoji_auto_format'] else data['customized_msg']
                         msg = msg.format(mention=mention, author=author, action=action, url=url)
 
-                        footer_name = None if EMBED_TYPE == 'proxy' else ('twitter.png' if configs['embed']['built_in']['legacy_logo'] else 'x.png')
-
-                        await self._send_notification(channel, msg, current_view, current_embeds, footer_name)
+                        await self._send_notification(channel, msg, current_view, current_embeds)
                     except (discord.errors.DiscordServerError, aiohttp.ClientError, asyncio.TimeoutError, ConnectionResetError) as e:
                         max_retries = configs.get('notification_max_retries', 3)
                         if max_retries > 0:
                             log.warning(f"transient error ({e}) at {channel.mention} while sending notification, scheduling retry task...")
                             task = asyncio.create_task(
-                                self._retry_send_notification(channel, msg, current_view, current_embeds, footer_name)
+                                self._retry_send_notification(channel, msg, current_view, current_embeds)
                             )
                             self.sending_retry_tasks.add(task)
                             task.add_done_callback(self.sending_retry_tasks.discard)
@@ -237,23 +235,21 @@ class AccountTracker():
                         if not isinstance(e, discord.errors.Forbidden):
                             log.error(f"an error occurred at {channel.mention} while sending notification: {e}")
                             
-    async def _send_notification(self, channel: discord.abc.Messageable, msg: str, 
-                                view: discord.ui.View | None, embeds: list[discord.Embed] | None, footer_filename: str | None):
-        if EMBED_TYPE == 'proxy' or not footer_filename:
+    async def _send_notification(self, channel: discord.abc.Messageable, msg: str, view: discord.ui.View | None, embeds: list[discord.Embed] | None):
+        if EMBED_TYPE == 'proxy':
             await channel.send(msg, view=view)
         else:
-            file = discord.File(f'images/{footer_filename}', filename='footer.png')
+            file = discord.File(f'images/{get_footer_name()}', filename='footer.png')
             await channel.send(msg, file=file, embeds=embeds, view=view)
 
-    async def _retry_send_notification(self, channel: discord.abc.Messageable, msg: str, 
-                                       view: discord.ui.View | None, embeds: list[discord.Embed] | None, footer_filename: str | None):
+    async def _retry_send_notification(self, channel: discord.abc.Messageable, msg: str, view: discord.ui.View | None, embeds: list[discord.Embed] | None):
         delay = configs.get('notification_retry_delay', 2)
         max_retries = configs.get('notification_max_retries', 3)
         
         for attempt in range(1, max_retries + 1):
             await asyncio.sleep(delay)
             try:
-                await self._send_notification(channel, msg, view, embeds, footer_filename)
+                await self._send_notification(channel, msg, view, embeds)
                 log.info(f"successfully sent notification to {channel.mention} after retry {attempt}/{max_retries}")
                 return
             except (discord.errors.DiscordServerError, aiohttp.ClientError, asyncio.TimeoutError, ConnectionResetError) as e:

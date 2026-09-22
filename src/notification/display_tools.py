@@ -69,3 +69,6 @@ def get_tweet_type(parsed_tweet: ParsedTweet) -> str:
         return t('display.tweet_type.media', media_type=media_type)
     else:
         return t('display.tweet_type.status')
+    
+def get_footer_name() -> str | None:
+    return None if configs['embed']['type'] == 'proxy' else ('twitter.png' if configs['embed']['built_in']['legacy_logo'] else 'x.png')

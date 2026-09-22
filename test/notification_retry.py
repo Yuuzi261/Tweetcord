@@ -35,6 +35,12 @@ class TestNotificationRetry(unittest.IsolatedAsyncioTestCase):
         self.mock_resp_403 = MagicMock(status=403, reason='Forbidden')
         self.forbidden_error = discord.Forbidden(self.mock_resp_403, 'Missing Access')
 
+    async def asyncTearDown(self):
+        for c in self.channel.send.call_args_list:
+            f = c.kwargs.get('file')
+            if f and hasattr(f, 'close'):
+                f.close()
+
     @patch('src.notification.account_tracker.log')
     @patch('asyncio.sleep', new_callable=AsyncMock)
     async def test_retry_success_after_failure(self, mock_sleep, mock_log):
@@ -48,15 +54,13 @@ class TestNotificationRetry(unittest.IsolatedAsyncioTestCase):
                 msg="test notification",
                 view=None,
                 embeds=None,
-                footer_filename=None,
             )
 
             # Channel send should have been attempted twice
             self.assertEqual(self.channel.send.call_count, 2)
-            self.channel.send.assert_has_calls([
-                call("test notification", view=None),
-                call("test notification", view=None),
-            ])
+            for c in self.channel.send.call_args_list:
+                self.assertEqual(c.args[0], "test notification")
+                self.assertIsNone(c.kwargs.get('view'))
 
             # Exponential backoff sleeps: initial delay (2), then backoff before second attempt (4)
             self.assertEqual(mock_sleep.call_count, 2)
@@ -80,7 +84,6 @@ class TestNotificationRetry(unittest.IsolatedAsyncioTestCase):
                 msg="test notification",
                 view=None,
                 embeds=None,
-                footer_filename=None,
             )
 
             # Channel send should have been called max_retries (3) times
@@ -107,7 +110,6 @@ class TestNotificationRetry(unittest.IsolatedAsyncioTestCase):
                 msg="test notification",
                 view=None,
                 embeds=None,
-                footer_filename=None,
             )
 
             # Channel send should have been called only once
@@ -133,7 +135,6 @@ class TestNotificationRetry(unittest.IsolatedAsyncioTestCase):
                 msg="test notification",
                 view=None,
                 embeds=None,
-                footer_filename=None,
             )
 
             self.assertEqual(self.channel.send.call_count, 1)
@@ -160,7 +161,6 @@ class TestNotificationRetry(unittest.IsolatedAsyncioTestCase):
                 msg="test notification",
                 view=None,
                 embeds=[mock_embed],
-                footer_filename="twitter.png",
             )
 
             # discord.File must be instantiated freshly on each attempt
@@ -201,7 +201,6 @@ class TestNotificationRetry(unittest.IsolatedAsyncioTestCase):
                         msg="test msg",
                         view=None,
                         embeds=None,
-                        footer_filename=None,
                     )
 
                     self.assertEqual(self.channel.send.call_count, 2)
