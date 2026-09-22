@@ -73,9 +73,8 @@ class TestNotificationRetry(unittest.IsolatedAsyncioTestCase):
                     f"successfully sent notification to {self.channel.mention} after retry 2/3"
                 )
 
-    @patch('src.notification.account_tracker.log')
     @patch('asyncio.sleep', new_callable=AsyncMock)
-    async def test_retry_proxy_mode(self, mock_sleep, mock_log):
+    async def test_retry_proxy_mode(self, mock_sleep):
         """Tests retry in proxy mode (sends without file attachments)."""
         with patch.dict(configs, {'notification_retry_delay': 2, 'notification_max_retries': 3}):
             with patch('src.notification.account_tracker.EMBED_TYPE', 'proxy'):
