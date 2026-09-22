@@ -221,11 +221,7 @@ class AccountTracker():
 
                         footer_name = None if EMBED_TYPE == 'proxy' else ('twitter.png' if configs['embed']['built_in']['legacy_logo'] else 'x.png')
 
-                        if EMBED_TYPE == 'proxy':
-                            await channel.send(msg, view=current_view)
-                        else:
-                            file = discord.File(f'images/{footer_name}', filename='footer.png')
-                            await channel.send(msg, file=file, embeds=current_embeds, view=current_view)
+                        await self._send_notification(channel, msg, current_view, current_embeds, footer_name)
                     except (discord.errors.DiscordServerError, aiohttp.ClientError, asyncio.TimeoutError, ConnectionResetError) as e:
                         max_retries = configs.get('notification_max_retries', 3)
                         if max_retries > 0:
@@ -240,26 +236,24 @@ class AccountTracker():
                     except Exception as e:
                         if not isinstance(e, discord.errors.Forbidden):
                             log.error(f"an error occurred at {channel.mention} while sending notification: {e}")
+                            
+    async def _send_notification(self, channel: discord.abc.Messageable, msg: str, 
+                                view: discord.ui.View | None, embeds: list[discord.Embed] | None, footer_filename: str | None):
+        if EMBED_TYPE == 'proxy' or not footer_filename:
+            await channel.send(msg, view=view)
+        else:
+            file = discord.File(f'images/{footer_filename}', filename='footer.png')
+            await channel.send(msg, file=file, embeds=embeds, view=view)
 
-    async def _retry_send_notification(
-        self,
-        channel: discord.abc.Messageable,
-        msg: str,
-        view: discord.ui.View | None,
-        embeds: list[discord.Embed] | None,
-        footer_filename: str | None,
-    ):
+    async def _retry_send_notification(self, channel: discord.abc.Messageable, msg: str, 
+                                       view: discord.ui.View | None, embeds: list[discord.Embed] | None, footer_filename: str | None):
         delay = configs.get('notification_retry_delay', 2)
         max_retries = configs.get('notification_max_retries', 3)
         
         for attempt in range(1, max_retries + 1):
             await asyncio.sleep(delay)
             try:
-                if EMBED_TYPE == 'proxy' or not footer_filename:
-                    await channel.send(msg, view=view)
-                else:
-                    file = discord.File(f'images/{footer_filename}', filename='footer.png')
-                    await channel.send(msg, file=file, embeds=embeds, view=view)
+                await self._send_notification(channel, msg, view, embeds, footer_filename)
                 log.info(f"successfully sent notification to {channel.mention} after retry {attempt}/{max_retries}")
                 return
             except (discord.errors.DiscordServerError, aiohttp.ClientError, asyncio.TimeoutError, ConnectionResetError) as e:
