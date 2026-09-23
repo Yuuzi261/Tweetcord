@@ -164,5 +164,24 @@ class TestParsedTweet(unittest.TestCase):
         )
         self.assertEqual(parsed.text, expected_text)
 
+    def test_html_entities_in_raw_text(self):
+        """Test that HTML entities like &amp; in raw_text are unescaped in ParsedTweet."""
+        source = {
+            'tweet': {
+                'raw_text': {
+                    'text': 'A &amp; B &lt;tag&gt; https://t.co/xyz',
+                    'facets': [
+                        {"type": "media", "indices": [22, 38], "original": "https://t.co/xyz"}
+                    ]
+                },
+                'author': {'screen_name': 'test_user'},
+                'media': {'all': []},
+                'translation': {'text': None, 'source_lang': 'en'}
+            }
+        }
+        parsed = ParsedTweet(source)
+        self.assertEqual(parsed.text, 'A & B <tag> ')
+
+
 if __name__ == '__main__':
     unittest.main()

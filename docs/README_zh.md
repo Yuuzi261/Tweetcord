@@ -121,7 +121,7 @@ pip install -r requirements.txt
 
 ## ⚡使用
 
-**📢本教學適用於0.6或更高版本，舊版設定請參考各個歷史版本的README。**
+**📢本教學適用於 0.7.3 或更高版本，舊版設定請參考各個歷史版本的README。**
 
 ### [⬆️查看歷史版本升級指南](./UPGRADE_GUIDE.md)
 
@@ -163,6 +163,7 @@ DATA_PATH=./data
 | `users_list_pagination_size` | `list users` 指令的分頁大小。 | 只接受整數，不宜使用過大或過小的值。 |
 | `users_list_page_counter_position` | `list users` 指令的分頁計數器位置。 | 僅限 `title` 和 `footer` 。 |
 | `enable_prefix_commands_in_guild` | 是否在伺服器啟用前綴指令（關閉這個選項僅會影響前綴指令，不影響任何功能，需要使用前綴指令上傳/備份資料庫或下載日誌可以私訊機器人），若為 `false`，則可以禁用訊息內容意圖 (Message Content Intent)。 | 布林值。 |
+| `use_existing_sessions_first` | 啟動時是否優先嘗試連接本地既有的 session，若無或失效才使用 auth_token 重新登入。若在環境變數中更新了 auth_token，機器人會自動偵測並重新認證。 | 布林值。 |
 
 自定義活動名稱為 `f-string` 格式，目前支援1種特別的變數可供使用，將在下面說明：
 
@@ -176,6 +177,8 @@ DATA_PATH=./data
 | `tweets_updater_retry_delay` | 當Tweets Updater遇到異常時的重試間隔。 | 分鐘 |
 | `tasks_monitor_check_period` | 檢查每個任務是否正常運行的間隔，如果某個任務停止了，嘗試重新啟動。 | 分鐘 |
 | `tasks_monitor_log_period` | 將當前運行中的任務列表輸出到執行日誌的間隔。 | 小時 |
+| `notification_max_retries` | 發送 Discord 通知遇到暫時性錯誤（如 503 伺服器錯誤、網路超時、連線重設等）時的最大重試次數。 | 次 |
+| `notification_retry_delay` | 發送 Discord 通知遇到暫時性錯誤時，重試機制的初始延遲時間（採用指數退避，每次重試失敗後等待時間加倍）。 | 秒 |
 | `auth_max_attempts` | 登入Twitter帳號時的最大嘗試次數，失敗超過此次數將會強制停止機器人運行。 | 次 |
 
 #### 控制帳戶行為

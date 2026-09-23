@@ -62,6 +62,15 @@ class TestMarkdownUtils(unittest.TestCase):
         expected = r"\> Line 1" + "\n" + "Line 2 > Mid" + "\n" + r"\> Line 3"
         self.assertEqual(escape_markdown(input_text), expected)
 
+    def test_escape_markdown_html_entities(self):
+        """Test that HTML entities like &amp;, &lt;, &gt; are unescaped in escape_markdown."""
+        # Simple ampersand test
+        self.assertEqual(escape_markdown("Bed &amp; Breakfast"), "Bed & Breakfast")
+        # Line-starting blockquote after unescape should be escaped
+        self.assertEqual(escape_markdown("&gt; Quote"), r"\> Quote")
+        # Mid-sentence comparison after unescape should not be escaped
+        self.assertEqual(escape_markdown("10 &gt; 5"), "10 > 5")
+
     def test_get_visible_length(self):
         """Test that character count only includes visible characters."""
         self.assertEqual(get_visible_length("**12345**"), 5)

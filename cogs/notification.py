@@ -6,6 +6,7 @@ from discord.ext import commands
 from tweety import Twitter
 from tweety.exceptions import UserProtected
 
+from configs.constants import AUTOCOMPLETE_MAX_CHOICES
 from configs.load_configs import configs, IS_TRANSLATION_ENABLED
 from core.classes import Cog_Extension
 from src.i18n import t
@@ -329,8 +330,8 @@ class Notification(Cog_Extension):
     @r_notifier.autocomplete('username')
     @customize_settings.autocomplete('username')
     async def get_enabled_users(self, itn: discord.Interaction, username: str) -> list[app_commands.Choice[str]]:
-        selected_channel_id = itn.data['options'][0]['options'][0]['value']
-        if selected_channel_id is None:
+        selected_channel_id = getattr(itn.namespace, 'channel', None)
+        if not selected_channel_id:
             return []
 
         async with connect_readonly(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
@@ -338,7 +339,7 @@ class Notification(Cog_Extension):
             async with db.cursor() as cursor:
                 await cursor.execute('SELECT user.username FROM user JOIN notification ON user.id = notification.user_id WHERE notification.channel_id = ? AND notification.enabled = 1', (selected_channel_id,))
                 users = [row['username'] async for row in cursor]
-                return [app_commands.Choice(name=row, value=row) for row in users if username.lower() in row.lower()]
+                return [app_commands.Choice(name=row, value=row) for row in users if username.lower() in row.lower()][:AUTOCOMPLETE_MAX_CHOICES]
 
     @customize_translation.autocomplete('username')
     async def get_guild_enabled_users(self, itn: discord.Interaction, username: str) -> list[app_commands.Choice[str]]:
@@ -347,7 +348,7 @@ class Notification(Cog_Extension):
             async with db.cursor() as cursor:
                 await cursor.execute('SELECT user.username FROM user JOIN notification ON user.id = notification.user_id JOIN channel ON notification.channel_id = channel.id WHERE channel.server_id = ? AND notification.enabled = 1', (str(itn.guild_id),))
                 users = [row['username'] async for row in cursor]
-                return [app_commands.Choice(name=row, value=row) for row in users if username.lower() in row.lower()]
+                return [app_commands.Choice(name=row, value=row) for row in users if username.lower() in row.lower()][:AUTOCOMPLETE_MAX_CHOICES]
 
     async def cog_unload(self):
         await self.account_tracker.close()

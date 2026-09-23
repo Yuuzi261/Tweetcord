@@ -121,7 +121,7 @@ pip install -r requirements.txt
 
 ## ⚡Usage
 
-**📢This tutorial applies to version 0.6 or higher. For settings of older versions, please refer to the README files of the respective historical versions.**
+**📢This tutorial applies to version 0.7.3 or higher. For settings of older versions, please refer to the README files of the respective historical versions.**
 
 ### [⬆️View Version Upgrade Guides](./UPGRADE_GUIDE.md)
 
@@ -163,6 +163,7 @@ Create `configs.yml` and copy the contents of `configs.example.yml` into it, and
 | `users_list_pagination_size` | `list users` command's pagination size. | Only accepts integers, and it is not recommended to use too large or too small values. |
 | `users_list_page_counter_position` | `list users` command's pagination counter position. | `title` and `footer` only. |
 | `enable_prefix_commands_in_guild` | Whether to enable prefix commands in the server (disabling this option only affects prefix commands and does not affect any features. You can still DM the bot to use prefix commands to upload/backup databases or download logs). If `false`, you can disable the Message Content Intent. | Boolean. |
+| `use_existing_sessions_first` | Whether to prioritize connecting to an existing saved session on startup before authenticating with the auth token. If the auth token in the environment variables is updated, the bot will automatically detect it and re-authenticate. | Boolean. |
 
 Custom activity name is in `f-string` format, currently supporting 1 special variable for use, which will be explained below.
 
@@ -176,6 +177,8 @@ Custom activity name is in `f-string` format, currently supporting 1 special var
 | `tweets_updater_retry_delay` | Retry Interval when Tweets Updater encounters exceptions. | minutes |
 | `tasks_monitor_check_period` | Interval at which to check if each tasks is functioning properly, and if a task has stopped, attempt a restart. | minutes |
 | `tasks_monitor_log_period` | Interval at which to output the list of currently running tasks to the execution log. | hours |
+| `notification_max_retries` | The maximum number of retry attempts when sending notification to Discord encounters transient errors (e.g. 503 Server Error, network timeout, connection reset). | times |
+| `notification_retry_delay` | The initial delay for exponential backoff between retry attempts when sending notification encounters transient errors (doubles after each failed retry). | seconds |
 | `auth_max_attempts` | The maximum number of attempts to log in to the Twitter account, if the number of failures exceeds this number, the bot will be forced to stop running. | times |
 
 #### Control Account Behavior

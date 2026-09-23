@@ -1,4 +1,5 @@
 import asyncio
+import html
 import os
 import re
 
@@ -90,6 +91,8 @@ def escape_markdown(text: str) -> str:
     """Escape Discord markdown characters in a string, but avoid breaking URLs."""
     if not text:
         return ""
+
+    text = html.unescape(text)
     
     # Regex to identify URLs
     url_re = re.compile(r'https?://[^\s<>"]+|www\.[^\s<>"]+')
