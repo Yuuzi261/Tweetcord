@@ -7,7 +7,7 @@ import aiosqlite
 
 from src.db_function.readonly_db import connect_readonly
 
-async def fetch_tracked_channels(itn: discord.Integration, input_channel: str, include_unknown: bool) -> list[app_commands.Choice[str]]:
+async def fetch_tracked_channels(itn: discord.Interaction, input_channel: str, include_unknown: bool) -> list[app_commands.Choice[str]]:
     input_channel = input_channel.lower().replace("#", "")
 
     async with connect_readonly(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
