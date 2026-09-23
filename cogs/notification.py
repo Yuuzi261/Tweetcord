@@ -330,8 +330,8 @@ class Notification(Cog_Extension):
     @r_notifier.autocomplete('username')
     @customize_settings.autocomplete('username')
     async def get_enabled_users(self, itn: discord.Interaction, username: str) -> list[app_commands.Choice[str]]:
-        selected_channel_id = itn.data['options'][0]['options'][0]['value']
-        if selected_channel_id is None:
+        selected_channel_id = getattr(itn.namespace, 'channel', None)
+        if not selected_channel_id:
             return []
 
         async with connect_readonly(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
