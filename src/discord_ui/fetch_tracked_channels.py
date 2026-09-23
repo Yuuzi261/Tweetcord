@@ -29,14 +29,18 @@ async def fetch_tracked_channels(itn: discord.Interaction, input_channel: str, i
             async for row in cursor:
                 channel_id = row['id']
                 channel = itn.guild.get_channel_or_thread(int(channel_id))
-
-                if (channel is None and input_channel) or (channel is not None and input_channel not in channel.name.lower()):
+                channel_name = getattr(channel, 'name', f'unknown ({channel_id})').lower()
+                
+                if input_channel and input_channel not in channel_name:
                     continue
 
-                if isinstance(channel, discord.TextChannel): name = f'# {channel.name}'
-                elif isinstance(channel, discord.Thread): name = f'🧵 {channel.name}'
-                elif not include_unknown: continue
-                else: name = f'# unknown ({channel_id})'
+                if isinstance(channel, discord.TextChannel):
+                    name = f'# {channel.name}'
+                elif isinstance(channel, discord.Thread):
+                    name = f'🧵 {channel.name}'
+                else:
+                    if not include_unknown: continue
+                    name = f'# unknown ({channel_id})'
 
                 result.append(app_commands.Choice(name=name[:AUTOCOMPLETE_MAX_CHOICE_LENGTH], value=channel_id))
                 if len(result) >= AUTOCOMPLETE_MAX_CHOICES: break
