@@ -7,8 +7,14 @@ from unittest.mock import AsyncMock, MagicMock, patch, call
 
 import discord
 
-# Ensure project root is importable
+# Ensure project root and test directory are importable
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
+
+try:
+    import conftest  # noqa: F401 - global test isolation for standalone execution
+except ImportError:
+    pass
 
 from configs.load_configs import configs
 from src.notification.account_tracker import AccountTracker

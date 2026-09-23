@@ -10,36 +10,19 @@ import yaml
 import discord
 from discord import app_commands
 
-# Ensure project root is importable
+# Ensure project root and test directory are importable
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
+
+try:
+    import conftest  # noqa: F401 - global test isolation for standalone execution
+except ImportError:
+    pass
 
 from configs.constants import AUTOCOMPLETE_MAX_CHOICES, AUTOCOMPLETE_MAX_CHOICE_LENGTH
-
-# Stub config/env-dependent modules before importing cogs so the test suite works
-# on a clean checkout without generated config files or a local TWITTER_TOKEN.
-
-if 'configs.load_configs' not in sys.modules:
-    _example_cfg_path = os.path.join(os.path.dirname(__file__), '..', 'configs.example.yml')
-    with open(_example_cfg_path, 'r', encoding='utf-8') as _f:
-        _fake_configs = yaml.safe_load(_f)
-
-    _fake_mod = ModuleType('configs.load_configs')
-    _fake_mod.configs = _fake_configs
-    _fake_mod.FX_SETTINGS = _fake_configs['embed']['built_in']['fx']
-    _fake_mod.IS_TRANSLATION_ENABLED = (
-        _fake_mod.FX_SETTINGS['auto_translation']
-        if _fake_configs['embed']['type'] == 'built_in'
-        else _fake_configs['embed']['proxy']['auto_translation']
-    )
-    sys.modules['configs.load_configs'] = _fake_mod
-
-# init_i18n only reads locales/en.yml (tracked in git) — no config / env dependency.
 from src.i18n import init_i18n
-init_i18n()
 
-# Monkey-patch get_accounts before the Notification class body evaluates it.
-import src.utils
-src.utils.get_accounts = lambda: {'test_account': 'fake_token'}
+init_i18n()
 
 from src.discord_ui.fetch_tracked_channels import fetch_tracked_channels
 from cogs.list_users import ListUsers
