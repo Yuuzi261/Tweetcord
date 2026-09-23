@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.7.3 (September 23, 2026)
+
+**✨Features:**
+- Implemented a notification retry mechanism with exponential backoff to automatically retry sending messages upon encountering transient Discord server or network errors (such as `503 Service Unavailable` or timeouts), resolving part of issue [#98](https://github.com/Yuuzi261/Tweetcord/issues/98).
+- Added support for prioritizing existing saved sessions on startup, eliminating the need to force a re-login on every bot restart.
+
+**♻️Refactor:**
+- Corrected a typo in the type hint for the `fetch_tracked_channels` function parameter.
+
+**🐛Fixes:**
+- Resolved autocomplete exceptions caused by excessive choices (> 25) or choice labels exceeding Discord's 100-character limit, resolving part of issue [#98](https://github.com/Yuuzi261/Tweetcord/issues/98).
+- Updated the `tweety-ns` dependency with a cache-busting patch to address login failures caused by Cloudflare edge caching on X (`business.x.com`).
+- Fixed an issue where deleted channels (`# unknown`) could not be filtered by query in channel autocomplete.
+- Fixed an issue where HTML entities (such as `&amp;`, `&lt;`, `&gt;`) in tweet content were not unescaped, preventing raw entities from displaying in Discord messages or breaking Markdown formatting (applies when using the `built_in` embed type).
+- Safely retrieve the selected channel option via `itn.namespace` in username autocomplete to avoid potential exceptions when accessing raw interaction data.
+
+**🚀Performance:**
+- Optimized `fetch_tracked_channels` by terminating search early once the maximum autocomplete choice limit (25) is reached, avoiding unnecessary database iterations.
+
 ## 0.7.2 (July 15, 2026)
 
 **✨Features:**
