@@ -121,7 +121,7 @@ pip install -r requirements.txt
 
 ## ⚡Usage
 
-**📢This tutorial applies to version 0.6 or higher. For settings of older versions, please refer to the README files of the respective historical versions.**
+**📢This tutorial applies to version 0.7.3 or higher. For settings of older versions, please refer to the README files of the respective historical versions.**
 
 ### [⬆️View Version Upgrade Guides](./UPGRADE_GUIDE.md)
 

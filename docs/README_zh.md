@@ -121,7 +121,7 @@ pip install -r requirements.txt
 
 ## ⚡使用
 
-**📢本教學適用於0.6或更高版本，舊版設定請參考各個歷史版本的README。**
+**📢本教學適用於 0.7.3 或更高版本，舊版設定請參考各個歷史版本的README。**
 
 ### [⬆️查看歷史版本升級指南](./UPGRADE_GUIDE.md)
 
