@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.7.4 (September 27, 2026)
+
+**🐛Fixes:**
+- Updated the `tweety-ns` dependency with a fallback to `/i/jf/` for extracting the ondemand chunk manifest, fixing `Exception: Couldn't get animation key indices` and account authentication failures caused by X's migration to the new Rolldown-based frontend (`x-web`).
+
 ## 0.7.3 (September 23, 2026)
 
 **✨Features:**
