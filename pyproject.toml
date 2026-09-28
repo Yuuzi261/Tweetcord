@@ -1,0 +1,23 @@
+[project]
+name = "tweetcord"
+version = "0.7.4"
+requires-python = ">=3.11"
+dependencies = [
+    "aiosqlite==0.18.0",
+    "discord-py==2.7.1",
+    "python-dotenv==1.2.2",
+    "pyyaml==6.0.1",
+    "tweety-ns",
+]
+
+[tool.uv]
+package = false
+
+[tool.uv.sources]
+tweety-ns = { git = "https://github.com/Yuuzi261/tweety.git", rev = "aa2067dab80c941f1193c68bcc6d7c6863304479" }
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.0,<10.0.0",
+    "pytest-asyncio>=1.0.0,<2.0.0",
+]
