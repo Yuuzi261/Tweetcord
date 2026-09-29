@@ -117,7 +117,7 @@ https://twitter.com/nyachodayo/status/1869000108697960952
 
 ```shell
 # 使用 uv（推薦）
-uv sync
+uv sync --no-dev
 
 # 或是使用 pip
 pip install -r requirements.txt

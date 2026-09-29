@@ -41,7 +41,7 @@ git checkout -b feat/your-feature-name
 
 ```bash
 # Install both runtime dependencies and development tools (pytest, pytest-asyncio)
-uv sync --all-groups
+uv sync
 ```
 
 To run commands within the `uv` environment:

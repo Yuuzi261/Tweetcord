@@ -117,7 +117,7 @@ Before running the bot, you need to install the necessary packages.
 
 ```shell
 # Using uv (Recommended)
-uv sync
+uv sync --no-dev
 
 # Or using pip
 pip install -r requirements.txt
