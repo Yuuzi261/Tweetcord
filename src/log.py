@@ -2,7 +2,18 @@ import logging
 import logging.handlers
 import os
 
-ENABLE_FILE_LOG = os.getenv('ENABLE_FILE_LOGGING', 'true').lower() in ('true', '1', 't', 'y', 'yes')
+from collections import deque
+from configs.constants import ENABLE_FILE_LOG
+
+LOG_BUFFER = deque(maxlen=2000)
+
+
+class RingBufferHandler(logging.Handler):
+    def emit(self, record):
+        try:
+            LOG_BUFFER.append(self.format(record))
+        except Exception:
+            self.handleError(record)
 
 
 class MessageContentIntentWarningFilter(logging.Filter):
@@ -78,6 +89,10 @@ def setup_logger(module_name: str) -> logging.Logger:
         console_handler = logging.StreamHandler()
         console_handler.setLevel(logging.INFO)
         console_handler.setFormatter(ConsoleFormatter())
+        
+        # create ring buffer handler
+        ring_handler = RingBufferHandler()
+        ring_handler.setFormatter(LogFormatter())
 
         # specify that the log file path is the same as `main.py` file path
         grandparent_dir = os.path.abspath(__file__ + "/../../")
@@ -97,6 +112,7 @@ def setup_logger(module_name: str) -> logging.Logger:
 
         # Add handlers to logger
         logger.addHandler(console_handler)
+        logger.addHandler(ring_handler)
         
     discord_bot_logger = logging.getLogger('discord.ext.commands.bot')
     

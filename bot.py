@@ -1,16 +1,19 @@
 import os
+import io
 import sys
+from dotenv import load_dotenv
+
+load_dotenv()
 
 import discord
 from discord import app_commands
 from discord.ext import commands
-from dotenv import load_dotenv
 
 from src.checker import build_and_validate_configs, check_env, check_db, check_upgrade
-from src.log import setup_logger
+from src.log import setup_logger, LOG_BUFFER
+from configs.constants import ENABLE_FILE_LOG
 
 log = setup_logger(__name__)
-load_dotenv()
 
 # --- Pre-boot Checks ---
 if not check_env():
@@ -93,7 +96,14 @@ async def reload(ctx: commands.context.Context, extension):
 @bot.command()
 @commands.is_owner()
 async def download_log(ctx: commands.context.Context):
-    message = await ctx.send(file=discord.File('console.log'))
+    if ENABLE_FILE_LOG and os.path.exists('console.log'):
+        file = discord.File('console.log')
+    else:
+        log_content = "\n".join(LOG_BUFFER)
+        file_bytes = io.BytesIO(log_content.encode('utf-8'))
+        file = discord.File(file_bytes, filename='recent_console.log')
+        
+    message = await ctx.send(file=file)
     await message.delete(delay=15)
 
 
