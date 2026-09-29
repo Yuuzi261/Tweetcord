@@ -12,7 +12,7 @@ log = setup_logger(__name__)
 async def init_db():
     data_path = get_data_path()
     if not os.path.exists(data_path):
-        os.mkdir(data_path)
+        os.makedirs(data_path)
 
     db_path = os.path.join(data_path, 'tracked_accounts.db')
     db_exists = os.path.exists(db_path)
