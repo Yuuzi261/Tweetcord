@@ -30,13 +30,16 @@ from src.presence_updater import update_presence
 
 init_i18n(configs.get('locale', 'en'))
 
+ENABLE_PREFIX_COMMANDS_IN_GUILD = configs.get('enable_prefix_commands_in_guild', True)
+
 intents = discord.Intents(
     guilds=True,
-    messages=True,
-    message_content=configs.get('enable_prefix_commands_in_guild', True),
+    guild_messages=ENABLE_PREFIX_COMMANDS_IN_GUILD,
+    dm_messages=True,
+    message_content=ENABLE_PREFIX_COMMANDS_IN_GUILD,
     emojis=True
 )
-bot = commands.Bot(command_prefix=configs['prefix'], intents=intents)
+bot = commands.Bot(command_prefix=configs['prefix'], intents=intents, max_messages=None)
 
 
 @bot.event
