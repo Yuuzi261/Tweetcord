@@ -75,6 +75,39 @@ class ConsoleFormatter(LogFormatter):
 
     def format(self, record):
         return super().format(record, is_exc_info_colored=True)
+    
+
+_SHARED_HANDLERS = None
+
+def _get_shared_handlers() -> list[logging.Handler]:
+    global _SHARED_HANDLERS
+    if _SHARED_HANDLERS is None:
+        # create console handler
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.INFO)
+        console_handler.setFormatter(ConsoleFormatter())
+
+        # create ring buffer handler
+        ring_handler = RingBufferHandler()
+        ring_handler.setFormatter(LogFormatter())
+
+        _SHARED_HANDLERS = [console_handler, ring_handler]
+
+        if ENABLE_FILE_LOG:
+            # specify that the log file path is the same as `main.py` file path
+            grandparent_dir = os.path.abspath(__file__ + "/../../")
+            log_path = os.path.join(grandparent_dir, 'console.log')
+
+            log_handler = logging.handlers.RotatingFileHandler(
+                filename=log_path,
+                encoding='utf-8',
+                maxBytes=5 * 1024 * 1024,   # 5 MiB
+                backupCount=1,              # Rotate through 1 files
+            )
+            log_handler.setFormatter(LogFormatter())
+            _SHARED_HANDLERS.append(log_handler)
+
+    return _SHARED_HANDLERS
 
 
 def setup_logger(module_name: str) -> logging.Logger:
@@ -85,34 +118,8 @@ def setup_logger(module_name: str) -> logging.Logger:
     logger.setLevel(logging.INFO)
 
     if not logger.handlers:
-        # create console handler
-        console_handler = logging.StreamHandler()
-        console_handler.setLevel(logging.INFO)
-        console_handler.setFormatter(ConsoleFormatter())
-        
-        # create ring buffer handler
-        ring_handler = RingBufferHandler()
-        ring_handler.setFormatter(LogFormatter())
-
-        # specify that the log file path is the same as `main.py` file path
-        grandparent_dir = os.path.abspath(__file__ + "/../../")
-        log_name = 'console.log'
-        log_path = os.path.join(grandparent_dir, log_name)
-
-        # create local log handler
-        if ENABLE_FILE_LOG:
-            log_handler = logging.handlers.RotatingFileHandler(
-                filename=log_path,
-                encoding='utf-8',
-                maxBytes=5 * 1024 * 1024,   # 5 MiB
-                backupCount=1,              # Rotate through 1 files
-            )
-            log_handler.setFormatter(LogFormatter())
-            logger.addHandler(log_handler)
-
-        # Add handlers to logger
-        logger.addHandler(console_handler)
-        logger.addHandler(ring_handler)
+        for handler in _get_shared_handlers():
+            logger.addHandler(handler)
         
     discord_bot_logger = logging.getLogger('discord.ext.commands.bot')
     
