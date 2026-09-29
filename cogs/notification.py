@@ -94,13 +94,11 @@ class Notification(Cog_Extension):
                                 
                                 try:
                                     await old_app.connect()
-                                    target_user = await old_app.get_user_info(username)
-
                                     if configs['auto_unfollow']:
-                                        status = await old_app.unfollow_user(target_user)
+                                        status = await old_app.unfollow_user(str(new_user.id))
                                         log.info(f'successfully unfollowed {new_user.username} (due to client change)') if status else log.warning(f'unable to unfollow {new_user.username}')
                                     else:
-                                        status = await old_app.disable_user_notification(target_user)
+                                        status = await old_app.disable_user_notification(str(new_user.id))
                                         log.info(f'successfully turned off notification for {new_user.username} (due to client change)') if status else log.warning(f'unable to turn off notifications for {new_user.username}')
                                 except Exception as e:
                                     log.warning(f'unable to unfollow or disable notification for {new_user.username} (when client changing to {account_used}): {e}')
@@ -151,14 +149,14 @@ class Notification(Cog_Extension):
                     return
 
         if match_user is None or match_user['enabled'] == 0:
-            await self.account_tracker.addTask(new_user.username, account_used)
+            await self.account_tracker.addTask(str(new_user.id), new_user.username, account_used)
             await update_presence(self.bot)
             await itn.followup.send(t('notification.add.success_new', username=new_user.username, account_used=account_used), ephemeral=True)
         else:
             if is_changed_client or match_user['username'] != new_user.username:
                 log.info(f'restarting task for {new_user.username} due to client or username change.')
-                await self.account_tracker.removeTask(match_user['username'])
-                await self.account_tracker.addTask(new_user.username, account_used)
+                await self.account_tracker.removeTask(str(new_user.id))
+                await self.account_tracker.addTask(str(new_user.id), new_user.username, account_used)
             
             await itn.followup.send(t('notification.add.success_update', username=new_user.username, client_used=account_used), ephemeral=True)
 
@@ -194,44 +192,43 @@ class Notification(Cog_Extension):
                     await itn.followup.send(t('notification.remove.channel_not_found', channel_id=channel_id, guild_name=str(itn.guild.name)), ephemeral=True)
                     return
                 try:
-                    
-                    await cursor.execute('SELECT user_id FROM notification, user WHERE username = ? COLLATE NOCASE AND channel_id = ? AND user_id = id AND notification.enabled = 1', (username, channel_id))
+                    await cursor.execute('SELECT user_id, username FROM notification JOIN user ON user.id = notification.user_id WHERE username = ? COLLATE NOCASE AND channel_id = ? AND notification.enabled = 1', (username, channel_id))
                     match_notifier = await cursor.fetchone()
                     if match_notifier is not None:
+                        user_id = match_notifier['user_id']
+                        db_username = match_notifier['username']
                         async with lock:
                             await db.execute('BEGIN')
-                            await cursor.execute('UPDATE notification SET enabled = 0 WHERE user_id = ? AND channel_id = ?', (match_notifier['user_id'], channel_id))
-                            await itn.followup.send(t('notification.remove.success', username=username), ephemeral=True)
-                            await cursor.execute('SELECT user_id FROM notification WHERE user_id = ? AND enabled = 1', (match_notifier['user_id'],))
+                            await cursor.execute('UPDATE notification SET enabled = 0 WHERE user_id = ? AND channel_id = ?', (user_id, channel_id))
+                            await itn.followup.send(t('notification.remove.success', username=db_username), ephemeral=True)
+                            await cursor.execute('SELECT user_id FROM notification WHERE user_id = ? AND enabled = 1', (user_id,))
 
                             active_notifiers = await cursor.fetchall()
                             if not active_notifiers:
-                                await cursor.execute('UPDATE user SET enabled = 0 WHERE id = ?', (match_notifier['user_id'],))
+                                await cursor.execute('UPDATE user SET enabled = 0 WHERE id = ?', (user_id,))
                             await db.commit()
                             
                         if not active_notifiers:
-                            await self.account_tracker.removeTask(username)
+                            await self.account_tracker.removeTask(user_id)
                             
                             if configs['auto_unfollow'] or configs['auto_turn_off_notification']:
-                                await cursor.execute('SELECT client_used FROM user WHERE id = ?', (match_notifier['user_id'],))
+                                await cursor.execute('SELECT client_used FROM user WHERE id = ?', (user_id,))
                                 result = await cursor.fetchone()
                                 client_used = result['client_used']
                                 app = Twitter(client_used)
                                 await app.connect()
                                 
                                 try:
-                                    target_user = await app.get_user_info(username)
-
                                     if configs['auto_unfollow']:
-                                        status = await app.unfollow_user(target_user)
-                                        log.info(f'successfully unfollowed {username}') if status else log.warning(f'unable to unfollow {username}')
+                                        status = await app.unfollow_user(user_id)
+                                        log.info(f'successfully unfollowed {db_username}') if status else log.warning(f'unable to unfollow {db_username}')
                                     else:
-                                        status = await app.disable_user_notification(target_user)
-                                        log.info(f'successfully turned off notification for {username}') if status else log.warning(f'unable to turn off notifications for {username}')
+                                        status = await app.disable_user_notification(user_id)
+                                        log.info(f'successfully turned off notification for {db_username}') if status else log.warning(f'unable to turn off notifications for {db_username}')
                                 except UserProtected:
-                                    log.warning(f'the account: {username} is protected or has been banned, skip this step')
+                                    log.warning(f'the account: {db_username} is protected or has been banned, skip this step')
                                 except Exception as e:
-                                    log.warning(f'unable to unfollow or disable notification for {username}: {e}')
+                                    log.warning(f'unable to unfollow or disable notification for {db_username}: {e}')
                                     
                             await update_presence(self.bot)
                     else:

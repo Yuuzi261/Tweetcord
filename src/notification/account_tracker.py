@@ -39,6 +39,7 @@ class AccountTracker():
         # Responsible for processing queries and writing timestamps
         self.db_write_queue = asyncio.Queue()
         self.latest_tweet_timestamps = {}
+        self.tracked_users = {}
         self.timestamps_ready = asyncio.Event()
 
         self.tasksMonitorLogAt = datetime.now(timezone.utc) - timedelta(hours=configs['tasks_monitor_log_period'])
@@ -90,8 +91,8 @@ class AccountTracker():
                 sys.exit(1)
 
         # Initial user list for notification tasks
-        for (username, client_used), _ in self.latest_tweet_timestamps.items():
-            self.bot.loop.create_task(self.notification(username, client_used)).set_name(username)
+        for user_id, data in self.tracked_users.items():
+            self.bot.loop.create_task(self.notification(user_id, data['username'], data['client_used'])).set_name(data['username'])
         
         self.bot.loop.create_task(self.tasksMonitor()).set_name('TasksMonitor')
 
@@ -100,11 +101,15 @@ class AccountTracker():
         while True:
             try:
                 async with connect_readonly(self.db_path) as db:
-                    async with db.execute('SELECT username, client_used, latest_tweet FROM user WHERE enabled = 1') as cursor:
+                    async with db.execute('SELECT id, username, client_used, latest_tweet FROM user WHERE enabled = 1') as cursor:
                         new_timestamps = {}
+                        new_tracked = {}
                         async for row in cursor:
-                            new_timestamps[(row[0], row[1])] = row[2]
+                            uid, uname, client, ts = str(row[0]), str(row[1]), str(row[2]), str(row[3])
+                            new_timestamps[uid] = ts
+                            new_tracked[uid] = {'username': uname, 'client_used': client}
                         self.latest_tweet_timestamps = new_timestamps
+                        self.tracked_users = new_tracked
                 
                 if not self.timestamps_ready.is_set():
                     self.timestamps_ready.set()
@@ -120,62 +125,76 @@ class AccountTracker():
         """Singleton task to handle all database write operations."""
         while True:
             try:
-                username, new_timestamp = await self.db_write_queue.get()
+                user_id, new_timestamp = await self.db_write_queue.get()
                 async with lock:
                     async with aiosqlite.connect(self.db_path, timeout=10) as db:
-                        await db.execute('UPDATE user SET latest_tweet = ? WHERE username = ?', (str(new_timestamp), username))
+                        await db.execute('UPDATE user SET latest_tweet = ? WHERE id = ?', (str(new_timestamp), str(user_id)))
                         await db.commit()
                 self.db_write_queue.task_done()
             except Exception as e:
                 log.error(f"error in db_writer: {e}")
 
-    async def notification(self, username: str, client_used: str):
+    async def notification(self, user_id: str, username: str, client_used: str):
         while True:
             await asyncio.sleep(configs['tweets_check_period'])
 
-            last_tweet_at = self.latest_tweet_timestamps.get((username, client_used))
+            last_tweet_at = self.latest_tweet_timestamps.get(user_id)
             if not last_tweet_at:
                 # This can happen if a user is removed right after the sleep.
-                log.warning(f"no timestamp for {username}, task will terminate.")
+                log.warning(f"no timestamp for {username} ({user_id}), task will terminate.")
                 break
 
-            latest_tweets = await get_tweets(self.tweets[client_used], username, last_tweet_at)
+            latest_tweets = await get_tweets(self.tweets[client_used], user_id=user_id, last_tweet_at=last_tweet_at)
             if not latest_tweets:
                 continue
             
             newest_timestamp = latest_tweets[-1].created_on
             # Update local cache immediately to prevent re-notification
-            self.latest_tweet_timestamps[(username, client_used)] = str(newest_timestamp)
+            self.latest_tweet_timestamps[user_id] = str(newest_timestamp)
             # Queue the database update
-            await self.db_write_queue.put((username, newest_timestamp))
+            await self.db_write_queue.put((user_id, newest_timestamp))
 
-            user = None
+            # Auto-detect username change on Twitter
+            latest_author_username = getattr(latest_tweets[-1].author, 'username', None)
+            if latest_author_username and latest_author_username != username:
+                log.info(f'detected username change for user {user_id}: {username} -> {latest_author_username}')
+                username = latest_author_username
+                if user_id in self.tracked_users:
+                    self.tracked_users[user_id]['username'] = latest_author_username
+                curr_task = asyncio.current_task()
+                if curr_task:
+                    curr_task.set_name(latest_author_username)
+                try:
+                    async with lock:
+                        async with aiosqlite.connect(self.db_path, timeout=10) as db:
+                            await db.execute('UPDATE user SET username = ? WHERE id = ?', (latest_author_username, user_id))
+                            await db.commit()
+                except Exception as e:
+                    log.error(f'failed to update username in DB for user {user_id}: {e}')
+
             notifications = []
             try:
                 async with connect_readonly(self.db_path) as db:
                     db.row_factory = aiosqlite.Row
                     async with db.cursor() as cursor:
-                        await cursor.execute('SELECT id FROM user WHERE username = ?', (username,))
-                        user = await cursor.fetchone()
-                        if user:
-                            if IS_TRANSLATION_ENABLED:
-                                await cursor.execute('''
-                                    SELECT n.*, suc.translate AS server_translate
-                                    FROM notification n
-                                    JOIN channel c ON n.channel_id = c.id
-                                    LEFT JOIN server_user_config suc ON c.server_id = suc.server_id AND n.user_id = suc.user_id
-                                    WHERE n.user_id = ? AND n.enabled = 1
-                                ''', (user['id'],))
-                            else:
-                                await cursor.execute('SELECT * FROM notification WHERE user_id = ? AND enabled = 1', (user['id'],))
-                            notifications = await cursor.fetchall()
+                        if IS_TRANSLATION_ENABLED:
+                            await cursor.execute('''
+                                SELECT n.*, suc.translate AS server_translate
+                                FROM notification n
+                                JOIN channel c ON n.channel_id = c.id
+                                LEFT JOIN server_user_config suc ON c.server_id = suc.server_id AND n.user_id = suc.user_id
+                                WHERE n.user_id = ? AND n.enabled = 1
+                            ''', (user_id,))
+                        else:
+                            await cursor.execute('SELECT * FROM notification WHERE user_id = ? AND enabled = 1', (user_id,))
+                        notifications = await cursor.fetchall()
             except aiosqlite.OperationalError as e:
                 if "database is locked" in str(e):
                     log.warning(f"database locked while reading notification settings for {username}, this is unexpected but handled.")
                 else:
                     raise
             
-            if not user:
+            if not notifications:
                 continue
 
             for tweet in latest_tweets:
@@ -295,26 +314,21 @@ class AccountTracker():
             await asyncio.sleep(configs['tasks_monitor_check_period'] * 60)
 
             running_tasks = {task.get_name() for task in asyncio.all_tasks()}
-            users_in_cache = {username for username, _ in self.latest_tweet_timestamps.keys()}
+            tracked_usernames = {data['username'] for data in self.tracked_users.values()}
             
-            alive_tasks = running_tasks & users_in_cache
+            alive_tasks = running_tasks & tracked_usernames
 
-            if alive_tasks != users_in_cache:
-                dead_tasks = list(users_in_cache - alive_tasks)
+            if alive_tasks != tracked_usernames:
+                dead_tasks = list(tracked_usernames - alive_tasks)
                 if dead_tasks:
                     log.warning(f'dead tasks : {dead_tasks}')
                     for dead_task_username in dead_tasks:
-                        # Find the corresponding client_used from the cache
-                        client_used = None
-                        for u, c in self.latest_tweet_timestamps.keys():
-                            if u == dead_task_username:
-                                client_used = c
+                        for uid, data in self.tracked_users.items():
+                            if data['username'] == dead_task_username:
+                                self.bot.loop.create_task(self.notification(uid, dead_task_username, data['client_used'])).set_name(dead_task_username)
+                                log.info(f'restart {dead_task_username} successfully using {data["client_used"]}')
                                 break
-                        
-                        if client_used:
-                            self.bot.loop.create_task(self.notification(dead_task_username, client_used)).set_name(dead_task_username)
-                            log.info(f'restart {dead_task_username} successfully using {client_used}')
-
+                            
             for client in self.accounts_data.keys():
                 if f'TweetsUpdater_{client}' not in running_tasks:
                     log.warning(f'tweets updater {client} : dead')
@@ -327,33 +341,29 @@ class AccountTracker():
                 self.tasksMonitorLogAt = datetime.now(timezone.utc)
 
 
-    async def addTask(self, username: str, client_used: str):
+    async def addTask(self, user_id: str, username: str, client_used: str):
         """Adds a new user to the live cache and starts their notification task."""
         # Add to live cache first
-        self.latest_tweet_timestamps[(username, client_used)] = get_utcnow()
+        self.latest_tweet_timestamps[user_id] = get_utcnow()
+        self.tracked_users[user_id] = {'username': username, 'client_used': client_used}
         
         # Start the task
-        self.bot.loop.create_task(self.notification(username, client_used)).set_name(username)
+        self.bot.loop.create_task(self.notification(user_id, username, client_used)).set_name(username)
         log.info(f'new task {username} added successfully using {client_used}')
 
-    async def removeTask(self, username: str):
+    async def removeTask(self, user_id: str):
         """Removes a user from the live cache and cancels their notification task."""
-        key_to_remove = None
-        # Create a copy of keys for safe iteration
-        for u, c in list(self.latest_tweet_timestamps.keys()):
-            if u == username:
-                key_to_remove = (u, c)
-                break
-        
-        # Remove from cache so the monitor doesn't restart it
-        if key_to_remove and key_to_remove in self.latest_tweet_timestamps:
-            del self.latest_tweet_timestamps[key_to_remove]
+        user_data = self.tracked_users.pop(user_id, None)
+        self.latest_tweet_timestamps.pop(user_id, None)
+
+        task_name = (user_data and user_data.get('username'))
+        if not task_name: return
 
         # Cancel the running task
         for task in asyncio.all_tasks():
-            if task.get_name() == username:
+            if task.get_name() == task_name:
                 task.cancel()
-                log.info(f'task {username} has been cancelled')
+                log.info(f'task {task.get_name()} has been cancelled')
                 break
 
     async def close(self):
