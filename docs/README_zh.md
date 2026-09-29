@@ -142,8 +142,8 @@ ENABLE_FILE_LOGGING=true
 |------|------|--------|-----|
 | `BOT_TOKEN` | str | - | 你的 Discord Bot Token |
 | `TWITTER_TOKEN` | str | - | Twitter 帳號認證 Token，格式為 `代號:Token` |
-| `DATA_PATH` | str | `./data` | 儲存資料庫與 session 檔案的資料夾路徑 |
-| `ENABLE_FILE_LOGGING` | bool | `true` | （可選）是否將日誌寫入本機 `console.log`。在雲端或容器環境（如 Fly.io）中可設為 `false` 以免除磁碟寫入並大幅減少記憶體 Page Cache 佔用。關閉時，`.download_log` 指令會自動無縫改由記憶體環形緩衝區發送最近日誌。 |
+| `DATA_PATH` | str | `./data` | （可選）儲存資料庫與 session 檔案的資料夾路徑。 |
+| `ENABLE_FILE_LOGGING` | bool | `true` | （可選）是否將日誌寫入本機 `console.log`。在雲端或容器環境中可設為 `false` 以免除磁碟寫入並大幅減少記憶體 Page Cache 佔用。關閉時，`.download_log` 指令會自動無縫改由記憶體環形緩衝區發送最近日誌。 |
 
 > [!NOTE]
 > 這裡的 `NameForYourTwitterToken` 是可以隨意定義的，僅用來作為輸入指令時指定帳戶用的代號，不一定要和Twitter帳號名稱一致。
@@ -172,7 +172,7 @@ ENABLE_FILE_LOGGING=true
 | `locale` | 機器人訊息與指令說明所使用的語言。 | 目前支援 `en` 和 `zh-TW`。 |
 | `prefix` | 機器人命令的前綴，只會對前綴指令生效。 | 無，但建議選擇簡單且易於識別的前綴，並避免使用空字串。 |
 | `activity_name` | 機器人顯示的活動名稱。 | 無。 |
-| `activity_type` | 機器人顯示的活動類型。 | 僅限 `playing`、`streaming`、`listening`、`watching` 和 `competing`。 |
+| `activity_type` | 機器人顯示的活動類型。 | 僅限 `playing`、`streaming`、`listening`、`watching`、`competing` 和 `custom`。 |
 | `users_list_pagination_size` | `list users` 指令的分頁大小。 | 只接受整數，不宜使用過大或過小的值。 |
 | `users_list_page_counter_position` | `list users` 指令的分頁計數器位置。 | 僅限 `title` 和 `footer` 。 |
 | `enable_prefix_commands_in_guild` | 是否在伺服器啟用前綴指令（關閉這個選項僅會影響前綴指令，不影響任何功能，需要使用前綴指令上傳/備份資料庫或下載日誌可以私訊機器人），若為 `false`，則可以禁用訊息內容意圖 (Message Content Intent)。 | 布林值。 |
@@ -181,6 +181,10 @@ ENABLE_FILE_LOGGING=true
 自定義活動名稱為 `f-string` 格式，目前支援1種特別的變數可供使用，將在下面說明：
 
 - `{count}` : 目前被機器人追蹤的使用者數量，會即時更新
+
+> [!NOTE]
+> - 若 `activity_type` 設為 `custom`，機器人將呈現為自訂狀態（Custom Status，不帶「正在觀看/遊玩」等前綴詞）。
+> - 若 `activity_name` 未包含 `{count}`，則會視為靜態狀態，僅會在啟動時設定一次，不會重複向資料庫查詢與更新。
 
 #### 計時器 & 計數器
 

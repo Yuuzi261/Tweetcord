@@ -142,8 +142,8 @@ ENABLE_FILE_LOGGING=true
 |-----------|------|---------|-------------|
 | `BOT_TOKEN` | str | - | The token of your Discord bot |
 | `TWITTER_TOKEN` | str | - | Twitter authentication token in format `name:token` |
-| `DATA_PATH` | str | `./data` | Directory where database and session files are stored |
-| `ENABLE_FILE_LOGGING` | bool | `true` | (Optional) Whether to write logs to local `console.log`. Set to `false` in cloud/container environments (e.g. Fly.io) to eliminate disk I/O and reduce memory Page Cache. If disabled, the `.download_log` Discord command will seamlessly fallback to sending the recent in-memory log buffer. |
+| `DATA_PATH` | str | `./data` | (Optional) Directory where database and session files are stored |
+| `ENABLE_FILE_LOGGING` | bool | `true` | (Optional) Whether to write logs to local `console.log`. Set to `false` in cloud/container environments to eliminate disk I/O and reduce memory Page Cache. If disabled, the `.download_log` Discord command will seamlessly fallback to sending the recent in-memory log buffer. |
 
 > [!NOTE]  
 > The `NameForYourTwitterToken` here can be freely defined. It is only used as an alias to specify the account when entering commands and does not need to match the Twitter account name.
@@ -172,15 +172,19 @@ Create `configs.yml` and copy the contents of `configs.example.yml` into it, and
 | `locale` | The language used for bot messages and command descriptions. | Currently supports `en` and `zh-TW`. |
 | `prefix` | The prefix for bot commands, only effective for prefix commands. | None, but recommended to choose a simple and easily identifiable prefix and avoid using empty strings. |
 | `activity_name` | The activity name displayed by the bot. | None. |
-| `activity_type` | The activity type displayed by the bot. | `playing`, `streaming`, `listening`, `watching` and `competing` only. |
+| `activity_type` | The activity type displayed by the bot. | `playing`, `streaming`, `listening`, `watching`, `competing` and `custom` only. |
 | `users_list_pagination_size` | `list users` command's pagination size. | Only accepts integers, and it is not recommended to use too large or too small values. |
 | `users_list_page_counter_position` | `list users` command's pagination counter position. | `title` and `footer` only. |
 | `enable_prefix_commands_in_guild` | Whether to enable prefix commands in the server (disabling this option only affects prefix commands and does not affect any features. You can still DM the bot to use prefix commands to upload/backup databases or download logs). If `false`, you can disable the Message Content Intent. | Boolean. |
 | `use_existing_sessions_first` | Whether to prioritize connecting to an existing saved session on startup before authenticating with the auth token. If the auth token in the environment variables is updated, the bot will automatically detect it and re-authenticate. | Boolean. |
 
-Custom activity name is in `f-string` format, currently supporting 1 special variable for use, which will be explained below.
+Custom activity name is in `f-string` format, currently supporting 1 special variable for use, which will be explained below:
 
 - `{count}` : the number of users currently being monitored, it will be updated in real time
+
+> [!NOTE]
+> - If `activity_type` is set to `custom`, the bot will display a Custom Status (without prefixes like "Playing" or "Watching").
+> - If `{count}` is not included in `activity_name`, it will be treated as a static presence and set once at startup without redundant database queries.
 
 #### Timer & Counter
 
