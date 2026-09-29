@@ -306,27 +306,28 @@ class AccountTracker():
             await asyncio.sleep(configs['tasks_monitor_check_period'] * 60)
 
             running_tasks = {task.get_name() for task in asyncio.all_tasks()}
-            tracked_usernames = {data['username'] for data in self.tracked_users.values()}
-            
-            alive_tasks = running_tasks & tracked_usernames
 
-            if alive_tasks != tracked_usernames:
-                dead_tasks = list(tracked_usernames - alive_tasks)
-                if dead_tasks:
-                    log.warning(f'dead tasks : {dead_tasks}')
-                    for dead_task_username in dead_tasks:
-                        for uid, data in self.tracked_users.items():
-                            if data['username'] == dead_task_username:
-                                self.bot.loop.create_task(self.notification(uid, dead_task_username, data['client_used'])).set_name(dead_task_username)
-                                log.info(f'restart {dead_task_username} successfully using {data["client_used"]}')
-                                break
-                            
+            alive_tasks = set()
+            dead_tasks = []
+            for uid, data in self.tracked_users.items():
+                username = data['username']
+                if username in running_tasks:
+                    alive_tasks.add(username)
+                else:
+                    dead_tasks.append((uid, username, data['client_used']))
+
+            if dead_tasks:
+                log.warning(f'dead tasks : {[u for _, u, _ in dead_tasks]}')
+                for uid, dead_username, client_used in dead_tasks:
+                    self.bot.loop.create_task(self.notification(uid, dead_username, client_used)).set_name(dead_username)
+                    log.info(f'restart {dead_username} successfully using {client_used}')
+
             for client in self.accounts_data.keys():
                 if f'TweetsUpdater_{client}' not in running_tasks:
                     log.warning(f'tweets updater {client} : dead')
 
             if (datetime.now(timezone.utc) - self.tasksMonitorLogAt).total_seconds() / 3600 >= configs['tasks_monitor_log_period']:
-                log.info(f"alive tasks: {len(alive_tasks)}/{len(tracked_usernames)} [{self._summarize_tasks(alive_tasks)}]")
+                log.info(f"alive tasks: {len(alive_tasks)}/{len(self.tracked_users)} [{self._summarize_tasks(alive_tasks)}]")
                 for client in self.accounts_data.keys():
                     if f'TweetsUpdater_{client}' in running_tasks:
                         log.info(f'tweets updater {client} : alive')
