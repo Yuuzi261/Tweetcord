@@ -293,6 +293,12 @@ class AccountTracker():
                 continue
             
             await asyncio.sleep(configs['tweets_check_period'])
+            
+    def _summarize_tasks(self, tasks: set[str], limit: int = 10) -> str:
+        names = sorted(tasks)
+        shown = ', '.join(names[:limit])
+        rest = len(names) - limit
+        return f"{shown} ... (+{rest} more)" if rest > 0 else shown
 
     async def tasksMonitor(self):
         """Dynamically monitors tasks based on the live timestamp cache."""
@@ -320,7 +326,7 @@ class AccountTracker():
                     log.warning(f'tweets updater {client} : dead')
 
             if (datetime.now(timezone.utc) - self.tasksMonitorLogAt).total_seconds() / 3600 >= configs['tasks_monitor_log_period']:
-                log.info(f'alive tasks : {list(alive_tasks)}')
+                log.info(f"alive tasks: {len(alive_tasks)}/{len(tracked_usernames)} [{self._summarize_tasks(alive_tasks)}]")
                 for client in self.accounts_data.keys():
                     if f'TweetsUpdater_{client}' in running_tasks:
                         log.info(f'tweets updater {client} : alive')
