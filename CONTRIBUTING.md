@@ -122,17 +122,17 @@ pytest
 pytest -v
 
 # Run a specific test module
-pytest test/test_log.py -v
+pytest tests/test_log.py -v
 ```
 
 ### Writing Tests
 
-- All tests are placed in the [`test/`](./test/) directory using standard `unittest` or `pytest`.
+- All tests are placed in the [`tests/`](./tests/) directory using standard `unittest` or `pytest`.
 - **Test Isolation (Hermeticity)**:
-  - Tests **must not** depend on personal `.env` credentials or live external APIs (Twitter, Discord).
+  - Tests **must not** depend on personal `.env` credentials, live external APIs (Twitter, Discord), or local user configs.
   - Mock network calls, Discord API interactions, or filesystem operations where appropriate.
   - Reset any global state or caches (e.g. `LOG_BUFFER.clear()`) in `setUp()` / `tearDown()`.
-- Whenever you add a new feature or fix a bug, please write corresponding tests in [`test/`](./test/).
+- Whenever you add a new feature or fix a bug, please write corresponding tests in [`tests/`](./tests/).
 
 ---
 
@@ -160,11 +160,11 @@ Example:
 git commit -m "feat: add optional file logging with in-memory ring buffer"
 ```
 
-### 3. Pull Request Checklist
+### 3. Pull Request Template & Checklist
 
-Before submitting your PR, please verify:
+When you open a Pull Request on GitHub, the [Pull Request Template](./.github/pull_request_template.md) will be loaded automatically. Please fill out the template and ensure:
 - [ ] Code runs without warnings or errors.
-- [ ] All tests pass: `pytest`.
+- [ ] All tests pass: `pytest` or `uv run pytest`.
 - [ ] New tests are added covering your changes.
 - [ ] Documentation is updated in both:
   - [`docs/README.md`](./docs/README.md) (English)
