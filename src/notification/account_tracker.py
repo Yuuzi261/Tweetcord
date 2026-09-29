@@ -40,7 +40,6 @@ class AccountTracker():
         self.db_write_queue = asyncio.Queue()
         self.latest_tweet_timestamps = {}
         self.tracked_users = {}
-        self.timestamps_ready = asyncio.Event()
 
         self.tasksMonitorLogAt = datetime.now(timezone.utc) - timedelta(hours=configs['tasks_monitor_log_period'])
         bot.loop.create_task(self.setup_tasks())
@@ -50,12 +49,11 @@ class AccountTracker():
         if configs['init_latest_tweet_on_startup']:
             await init_latest_tweet_on_startup(self.db_path)
 
-        # Start the core database workers first
-        self.bot.loop.create_task(self.timestamp_updater()).set_name('TimestampUpdater')
-        self.bot.loop.create_task(self.db_writer()).set_name('DBWriter')
+        # Load initial timestamps from the database
+        await self.load_initial_timestamps()
 
-        # Wait for the initial timestamp load
-        await self.timestamps_ready.wait()
+        # Start the core database worker
+        self.bot.loop.create_task(self.db_writer()).set_name('DBWriter')
 
         async def authenticate_account(account_name, account_token):            
             app = Twitter(account_name)
@@ -96,30 +94,18 @@ class AccountTracker():
         
         self.bot.loop.create_task(self.tasksMonitor()).set_name('TasksMonitor')
 
-    async def timestamp_updater(self):
-        """Periodically reads all user timestamps from the DB into a shared dictionary."""
-        while True:
-            try:
-                async with connect_readonly(self.db_path) as db:
-                    async with db.execute('SELECT id, username, client_used, latest_tweet FROM user WHERE enabled = 1') as cursor:
-                        new_timestamps = {}
-                        new_tracked = {}
-                        async for row in cursor:
-                            uid, uname, client, ts = str(row[0]), str(row[1]), str(row[2]), str(row[3])
-                            new_timestamps[uid] = ts
-                            new_tracked[uid] = {'username': uname, 'client_used': client}
-                        self.latest_tweet_timestamps = new_timestamps
-                        self.tracked_users = new_tracked
-                
-                if not self.timestamps_ready.is_set():
-                    self.timestamps_ready.set()
-                    log.info("initial tweet timestamps loaded")
-
-            except Exception as e:
-                log.error(f"error in timestamp_updater: {e}")
-
-            # After careful consideration, it was decided to keep it hard-coded, as it makes little sense to allow users to customize this value.
-            await asyncio.sleep(60)
+    async def load_initial_timestamps(self):
+        """Loads all enabled user timestamps and metadata from the DB into memory at startup."""
+        try:
+            async with connect_readonly(self.db_path) as db:
+                async with db.execute('SELECT id, username, client_used, latest_tweet FROM user WHERE enabled = 1') as cursor:
+                    async for row in cursor:
+                        uid, uname, client, ts = str(row[0]), str(row[1]), str(row[2]), str(row[3])
+                        self.latest_tweet_timestamps[uid] = ts
+                        self.tracked_users[uid] = {'username': uname, 'client_used': client}
+            log.info("initial tweet timestamps loaded")
+        except Exception as e:
+            log.error(f"error loading initial timestamps: {e}")
 
     async def db_writer(self):
         """Singleton task to handle all database write operations."""
