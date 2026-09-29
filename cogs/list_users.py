@@ -1,5 +1,3 @@
-import os
-
 import aiosqlite
 import discord
 from discord import app_commands
@@ -7,6 +5,7 @@ from discord.ext import commands
 
 from core.classes import Cog_Extension
 from configs.constants import AUTOCOMPLETE_MAX_CHOICES, AUTOCOMPLETE_MAX_CHOICE_LENGTH
+from configs.paths import get_db_path
 from configs.load_configs import configs
 from src.i18n import t
 from src.permission import ADMINISTRATOR
@@ -46,7 +45,7 @@ class ListUsers(Cog_Extension):
 
         server_id = itn.guild_id
 
-        async with connect_readonly(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
+        async with connect_readonly(get_db_path()) as db:
             async with db.execute("""
                 SELECT user.username, channel.id, notification.role_id, notification.enable_type, notification.enable_media_type, user.client_used
                 FROM user
@@ -81,7 +80,7 @@ class ListUsers(Cog_Extension):
 
     @list_users.autocomplete('account')
     async def get_clients(self, itn: discord.Interaction, account: str) -> list[app_commands.Choice[str]]:
-        async with connect_readonly(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
+        async with connect_readonly(get_db_path()) as db:
             db.row_factory = aiosqlite.Row
             async with db.cursor() as cursor:
                 await cursor.execute('SELECT client_used FROM user WHERE enabled = 1')

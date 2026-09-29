@@ -1,9 +1,9 @@
-import os
 import discord
 
 from discord.ext import commands
 from configs.load_configs import configs
 from src.db_function.readonly_db import connect_readonly
+from configs.paths import get_db_path
 
 RF_COUNT = '{count}'
 
@@ -27,7 +27,7 @@ async def update_presence(bot: commands.Bot):
         _static_presence_set = True
         presence_message = activity_name
     else:
-        async with connect_readonly(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
+        async with connect_readonly(get_db_path()) as db:
             async with db.execute('SELECT count(*) FROM user WHERE enabled = 1') as cursor:
                 count = (await cursor.fetchone())[0]
                 presence_message = activity_name.format(count=str(count))

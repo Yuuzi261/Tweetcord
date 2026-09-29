@@ -1,5 +1,3 @@
-import os
-
 import aiosqlite
 import discord
 from discord import app_commands
@@ -10,6 +8,7 @@ from src.i18n import t
 from src.log import setup_logger
 from src.sync_db.sync_db import sync_db
 from src.db_function.readonly_db import connect_readonly
+from configs.paths import get_db_path
 
 log = setup_logger(__name__)
 
@@ -23,7 +22,7 @@ class Sync(Cog_Extension):
 
         await itn.response.defer(ephemeral=True)
 
-        async with connect_readonly(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
+        async with connect_readonly(get_db_path()) as db:
             db.row_factory = aiosqlite.Row
             async with db.execute('SELECT id, client_used FROM user WHERE enabled = 1') as cursor:
                 follow_list = {row[0]: row[1] async for row in cursor}

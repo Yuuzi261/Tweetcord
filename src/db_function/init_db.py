@@ -4,12 +4,13 @@ import aiosqlite
 
 from src.log import setup_logger
 from src.utils import get_utcnow
+from configs.paths import get_data_path
 
 log = setup_logger(__name__)
 
 
 async def init_db():
-    data_path = os.getenv('DATA_PATH')
+    data_path = get_data_path()
     if not os.path.exists(data_path):
         os.mkdir(data_path)
 

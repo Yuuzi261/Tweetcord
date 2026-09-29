@@ -11,6 +11,7 @@ from discord.ext import commands
 
 from src.checker import build_and_validate_configs, check_env, check_db, check_upgrade
 from src.log import setup_logger, LOG_BUFFER
+from configs.paths import get_db_path
 from configs.constants import ENABLE_FILE_LOG
 
 log = setup_logger(__name__)
@@ -110,7 +111,7 @@ async def download_log(ctx: commands.context.Context):
 @bot.command()
 @commands.is_owner()
 async def download_data(ctx: commands.context.Context):
-    message = await ctx.send(file=discord.File(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')))
+    message = await ctx.send(file=discord.File(get_db_path()))
     await message.delete(delay=15)
 
 
@@ -118,7 +119,7 @@ async def download_data(ctx: commands.context.Context):
 @commands.is_owner()
 async def upload_data(ctx: commands.context.Context):
     raw = await [attachment for attachment in ctx.message.attachments if attachment.filename[-3:] == '.db'][0].read()
-    with open(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db'), 'wb') as wbf:
+    with open(get_db_path(), 'wb') as wbf:
         wbf.write(raw)
     message = await ctx.send('successfully uploaded data')
     await message.delete(delay=5)

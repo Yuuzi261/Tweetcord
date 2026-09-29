@@ -1,5 +1,4 @@
 import asyncio
-import os
 import sys
 import re
 import aiohttp
@@ -12,6 +11,7 @@ from tweety import Twitter
 
 from core.classes import ParsedTweet
 from configs.load_configs import configs, IS_TRANSLATION_ENABLED
+from configs.paths import get_db_path
 from src.i18n import t
 from src.log import setup_logger
 from src.notification.display_tools import gen_embed, get_action, get_footer_name
@@ -32,7 +32,7 @@ class AccountTracker():
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.accounts_data = get_accounts()
-        self.db_path = os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')
+        self.db_path = get_db_path()
         self.tweets = {account_name: [] for account_name in self.accounts_data.keys()}
         self.session = None
         self.sending_retry_tasks: set[asyncio.Task] = set()

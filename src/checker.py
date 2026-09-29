@@ -4,6 +4,7 @@ from copy import deepcopy
 
 from src.db_function.readonly_db import connect_readonly
 from src.log import setup_logger
+from configs.paths import get_db_path
 
 log = setup_logger(__name__)
 
@@ -108,7 +109,7 @@ def build_and_validate_configs():
 
 def check_env():
     required_keys = [
-        'BOT_TOKEN', 'DATA_PATH', 'TWITTER_TOKEN'
+        'BOT_TOKEN', 'TWITTER_TOKEN'
     ]
 
     missing_keys = [key for key in required_keys if key not in os.environ]
@@ -128,7 +129,7 @@ def check_env():
 async def check_db() -> set[str]:
     twitter_token = os.getenv('TWITTER_TOKEN')
     
-    async with connect_readonly(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
+    async with connect_readonly(get_db_path()) as db:
         async with db.execute('SELECT client_used FROM user') as cursor:
             row = await cursor.fetchall()
             

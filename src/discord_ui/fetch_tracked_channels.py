@@ -1,16 +1,16 @@
-import os
-
+import aiosqlite
 import discord
+
 from discord import app_commands
 from configs.constants import AUTOCOMPLETE_MAX_CHOICES, AUTOCOMPLETE_MAX_CHOICE_LENGTH
-import aiosqlite
+from configs.paths import get_db_path
 
 from src.db_function.readonly_db import connect_readonly
 
 async def fetch_tracked_channels(itn: discord.Interaction, input_channel: str, include_unknown: bool) -> list[app_commands.Choice[str]]:
     input_channel = input_channel.lower().replace("#", "")
 
-    async with connect_readonly(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
+    async with connect_readonly(get_db_path()) as db:
         db.row_factory = aiosqlite.Row
         async with db.cursor() as cursor:
             # Don't show channels that no longer have any notifiers

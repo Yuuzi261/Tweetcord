@@ -1,4 +1,3 @@
-import os
 import aiosqlite
 import discord
 from discord import app_commands
@@ -8,6 +7,7 @@ from tweety.exceptions import UserProtected
 
 from configs.constants import AUTOCOMPLETE_MAX_CHOICES
 from configs.load_configs import configs, IS_TRANSLATION_ENABLED
+from configs.paths import get_db_path
 from core.classes import Cog_Extension
 from src.i18n import t
 from src.discord_ui.fetch_tracked_channels import fetch_tracked_channels
@@ -67,7 +67,7 @@ class Notification(Cog_Extension):
 
         await itn.response.defer(ephemeral=True)
 
-        async with aiosqlite.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
+        async with aiosqlite.connect(get_db_path()) as db:
             await db.execute('PRAGMA synchronous = OFF')
             await db.execute('PRAGMA count_changes = OFF')
 
@@ -181,7 +181,7 @@ class Notification(Cog_Extension):
 
         await itn.response.defer(ephemeral=True)
 
-        async with aiosqlite.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
+        async with aiosqlite.connect(get_db_path()) as db:
             await db.execute('PRAGMA synchronous = OFF')
             await db.execute('PRAGMA count_changes = OFF')
             
@@ -262,7 +262,7 @@ class Notification(Cog_Extension):
             await itn.response.send_message(t('notification.customize.settings.channel_not_found', channel_id=channel_id), ephemeral=True)
             return
 
-        async with connect_readonly(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
+        async with connect_readonly(get_db_path()) as db:
             db.row_factory = aiosqlite.Row
             async with db.cursor() as cursor:
                 await cursor.execute('SELECT user_id, role_id, enable_type, enable_media_type, customized_msg FROM notification JOIN user ON user.id = notification.user_id WHERE username = ? COLLATE NOCASE AND channel_id = ? AND notification.enabled = 1', (username, str(channel.id)))
@@ -299,7 +299,7 @@ class Notification(Cog_Extension):
 
         await itn.response.defer(ephemeral=True)
 
-        async with aiosqlite.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
+        async with aiosqlite.connect(get_db_path()) as db:
             await db.execute('PRAGMA synchronous = OFF')
             await db.execute('PRAGMA count_changes = OFF')
 
@@ -334,7 +334,7 @@ class Notification(Cog_Extension):
         if not selected_channel_id:
             return []
 
-        async with connect_readonly(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
+        async with connect_readonly(get_db_path()) as db:
             db.row_factory = aiosqlite.Row
             async with db.cursor() as cursor:
                 await cursor.execute('SELECT user.username FROM user JOIN notification ON user.id = notification.user_id WHERE notification.channel_id = ? AND notification.enabled = 1', (selected_channel_id,))
@@ -343,7 +343,7 @@ class Notification(Cog_Extension):
 
     @customize_translation.autocomplete('username')
     async def get_guild_enabled_users(self, itn: discord.Interaction, username: str) -> list[app_commands.Choice[str]]:
-        async with connect_readonly(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
+        async with connect_readonly(get_db_path()) as db:
             db.row_factory = aiosqlite.Row
             async with db.cursor() as cursor:
                 await cursor.execute('SELECT user.username FROM user JOIN notification ON user.id = notification.user_id JOIN channel ON notification.channel_id = channel.id WHERE channel.server_id = ? AND notification.enabled = 1', (str(itn.guild_id),))

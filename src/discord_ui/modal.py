@@ -1,9 +1,8 @@
-import os
-
 import aiosqlite
 import discord
 from discord import ui
 
+from configs.paths import get_db_path
 from src.i18n import t
 from src.utils import get_lock
 
@@ -86,7 +85,7 @@ class CustomizeSettingsModal(ui.Modal, title='customize settings'):
         selected_role = self.role_select.values[0] if self.role_select.values else None
         role_id = str(selected_role.id) if selected_role else ''
 
-        async with aiosqlite.connect(os.path.join(os.getenv('DATA_PATH'), 'tracked_accounts.db')) as db:
+        async with aiosqlite.connect(get_db_path()) as db:
             db.row_factory = aiosqlite.Row
             async with lock:
                 await db.execute('UPDATE notification SET enable_type = ?, enable_media_type = ?, customized_msg = ?, role_id = ? WHERE user_id = ? AND channel_id = ?', (new_enable_type, new_media_type, customized_msg, role_id, self.user_id, str(self.channel.id)))
