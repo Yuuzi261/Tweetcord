@@ -300,7 +300,8 @@ primary_region = "你的APP地區"
 
 [env]
   DATA_PATH = "/data"
-  ENABLE_FILE_LOGGING = "false"  # 建議在 Fly.io 上設為 false 以消除磁碟 I/O 並省下記憶體 Page Cache
+  # 建議在 Fly.io 上設為 false 以消除磁碟 I/O 並省下記憶體 Page Cache
+  ENABLE_FILE_LOGGING = "false"  
 
 [mounts]
   source = "你的APP的VOLUME名稱"

@@ -300,7 +300,8 @@ primary_region = "YOUR_APP_REGION"
 
 [env]
   DATA_PATH = "/data"
-  ENABLE_FILE_LOGGING = "false"  # Recommended on Fly.io to eliminate disk I/O and reduce memory Page Cache
+  # Recommended on Fly.io to eliminate disk I/O and reduce memory Page Cache
+  ENABLE_FILE_LOGGING = "false"
 
 [mounts]
   source = "YOUR_APP_VOLUME_NAME"
