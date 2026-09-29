@@ -12,7 +12,10 @@ _static_presence_set = False
 
 async def update_presence(bot: commands.Bot):
     """
-    Updates the bot's presence based on the number of enabled accounts in the database.
+    Update the bot's presence according to the configured activity settings.
+
+    When the activity name contains ``{count}``, replace it with the current
+    number of enabled accounts. Static activity names are applied only once.
     """
     activity_name: str = configs.get("activity_name")
     activity_type = getattr(discord.ActivityType, configs.get('activity_type').lower())
