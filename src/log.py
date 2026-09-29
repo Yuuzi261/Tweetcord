@@ -2,6 +2,8 @@ import logging
 import logging.handlers
 import os
 
+ENABLE_FILE_LOG = os.getenv('ENABLE_FILE_LOGGING', 'true').lower() in ('true', '1', 't', 'y', 'yes')
+
 
 class MessageContentIntentWarningFilter(logging.Filter):
     def filter(self, record):
@@ -83,16 +85,17 @@ def setup_logger(module_name: str) -> logging.Logger:
         log_path = os.path.join(grandparent_dir, log_name)
 
         # create local log handler
-        log_handler = logging.handlers.RotatingFileHandler(
-            filename=log_path,
-            encoding='utf-8',
-            maxBytes=5 * 1024 * 1024,   # 5 MiB
-            backupCount=1,              # Rotate through 1 files
-        )
-        log_handler.setFormatter(LogFormatter())
+        if ENABLE_FILE_LOG:
+            log_handler = logging.handlers.RotatingFileHandler(
+                filename=log_path,
+                encoding='utf-8',
+                maxBytes=5 * 1024 * 1024,   # 5 MiB
+                backupCount=1,              # Rotate through 1 files
+            )
+            log_handler.setFormatter(LogFormatter())
+            logger.addHandler(log_handler)
 
         # Add handlers to logger
-        logger.addHandler(log_handler)
         logger.addHandler(console_handler)
         
     discord_bot_logger = logging.getLogger('discord.ext.commands.bot')
