@@ -116,6 +116,10 @@ Note: You need to set `auto_translation` to `true` in the `embed` settings to us
 Before running the bot, you need to install the necessary packages.
 
 ```shell
+# Using uv (Recommended)
+uv sync
+
+# Or using pip
 pip install -r requirements.txt
 ```
 
@@ -131,7 +135,15 @@ pip install -r requirements.txt
 BOT_TOKEN=YourDiscordBotToken
 TWITTER_TOKEN=NameForYourTwitterToken:YourTwitterAccountAuthToken
 DATA_PATH=./data
+ENABLE_FILE_LOGGING=true
 ```
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `BOT_TOKEN` | str | - | The token of your Discord bot |
+| `TWITTER_TOKEN` | str | - | Twitter authentication token in format `name:token` |
+| `DATA_PATH` | str | `./data` | Directory where database and session files are stored |
+| `ENABLE_FILE_LOGGING` | bool | `true` | (Optional) Whether to write logs to local `console.log`. Set to `false` in cloud/container environments (e.g. Fly.io) to eliminate disk I/O and reduce memory Page Cache. If disabled, the `.download_log` Discord command will seamlessly fallback to sending the recent in-memory log buffer. |
 
 > [!NOTE]  
 > The `NameForYourTwitterToken` here can be freely defined. It is only used as an alias to specify the account when entering commands and does not need to match the Twitter account name.
@@ -141,6 +153,7 @@ DATA_PATH=./data
 BOT_TOKEN=FAKE1234567890ABCDEFGHIJKLMNO.PQRSTUVWXYZ1234567890.ABCDEFGHIJKLMNOPQRSTUVWXYZ123456
 TWITTER_TOKEN=Account1:12345abcde67890fghij12345klmnop67890qrstuv,Account2:abcdef123456ghijkl7890mnopqrst123456uvwx
 DATA_PATH=./data
+ENABLE_FILE_LOGGING=true
 ```
 
 You can retrieve your auth token from cookies, or you can explore other methods to obtain it.
@@ -277,15 +290,7 @@ If you disable `enable_prefix_commands_in_guild` in `configs.yml`, you can disab
    <summary><b>⚙️some configuration files you may need if you use fly.io</b></summary>
 
 - dockerfile
-
-```dockerfile
-FROM python:3.11.11
-WORKDIR /bot
-COPY requirements.txt /bot/
-RUN pip install -r requirements.txt
-COPY . /bot/
-CMD python bot.py
-```
+   > The project root already includes an optimized, multi-stage [`Dockerfile`](../Dockerfile) using Python 3.12 and `uv`. You can deploy directly using this Dockerfile!
 
 - fly.toml
 
@@ -295,6 +300,7 @@ primary_region = "YOUR_APP_REGION"
 
 [env]
   DATA_PATH = "/data"
+  ENABLE_FILE_LOGGING = "false"  # Recommended on Fly.io to eliminate disk I/O and reduce memory Page Cache
 
 [mounts]
   source = "YOUR_APP_VOLUME_NAME"
@@ -306,6 +312,10 @@ primary_region = "YOUR_APP_REGION"
 ### 4. Have fun
 
 Now you can go back to Discord and use the `/add notifier` command to set up notifications for the Twitter users you wish to receive updates from!
+
+## 🤝Contributing
+
+Contributions, issues, and feature requests are welcome! Feel free to check the [Contributing Guide](../CONTRIBUTING.md) to get started.
 
 ## 💪Contributors
 

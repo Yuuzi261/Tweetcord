@@ -116,6 +116,10 @@ https://twitter.com/nyachodayo/status/1869000108697960952
 在運行機器人之前，你需要安裝必要的模組。
 
 ```shell
+# 使用 uv（推薦）
+uv sync
+
+# 或是使用 pip
 pip install -r requirements.txt
 ```
 
@@ -131,7 +135,15 @@ pip install -r requirements.txt
 BOT_TOKEN=YourDiscordBotToken
 TWITTER_TOKEN=NameForYourTwitterToken:YourTwitterAccountAuthToken
 DATA_PATH=./data
+ENABLE_FILE_LOGGING=true
 ```
+
+| 參數 | 類型 | 預設值 | 描述 |
+|------|------|--------|-----|
+| `BOT_TOKEN` | str | - | 你的 Discord Bot Token |
+| `TWITTER_TOKEN` | str | - | Twitter 帳號認證 Token，格式為 `代號:Token` |
+| `DATA_PATH` | str | `./data` | 儲存資料庫與 session 檔案的資料夾路徑 |
+| `ENABLE_FILE_LOGGING` | bool | `true` | （可選）是否將日誌寫入本機 `console.log`。在雲端或容器環境（如 Fly.io）中可設為 `false` 以免除磁碟寫入並大幅減少記憶體 Page Cache 佔用。關閉時，`.download_log` 指令會自動無縫改由記憶體環形緩衝區發送最近日誌。 |
 
 > [!NOTE]
 > 這裡的 `NameForYourTwitterToken` 是可以隨意定義的，僅用來作為輸入指令時指定帳戶用的代號，不一定要和Twitter帳號名稱一致。
@@ -141,6 +153,7 @@ DATA_PATH=./data
 BOT_TOKEN=FAKE1234567890ABCDEFGHIJKLMNO.PQRSTUVWXYZ1234567890.ABCDEFGHIJKLMNOPQRSTUVWXYZ123456
 TWITTER_TOKEN=Account1:12345abcde67890fghij12345klmnop67890qrstuv,Account2:abcdef123456ghijkl7890mnopqrst123456uvwx
 DATA_PATH=./data
+ENABLE_FILE_LOGGING=true
 ```
 
 你可以從cookies中獲取你的token，或是你可以探索其他獲取它的方法。
@@ -277,15 +290,7 @@ python bot.py
    <summary><b>⚙️如果你使用fly.io的話你可能會需要的一些配置檔案</b></summary>
 
 - dockerfile
-
-```dockerfile
-FROM python:3.11.11
-WORKDIR /bot
-COPY requirements.txt /bot/
-RUN pip install -r requirements.txt
-COPY . /bot/
-CMD python bot.py
-```
+   > 專案根目錄已內建使用 Python 3.12 與 `uv` 優化的多階段構建 [`Dockerfile`](../Dockerfile)，你可以直接使用該 Dockerfile 進行部署！
 
 - fly.toml
 
@@ -295,6 +300,7 @@ primary_region = "你的APP地區"
 
 [env]
   DATA_PATH = "/data"
+  ENABLE_FILE_LOGGING = "false"  # 建議在 Fly.io 上設為 false 以消除磁碟 I/O 並省下記憶體 Page Cache
 
 [mounts]
   source = "你的APP的VOLUME名稱"
@@ -306,6 +312,10 @@ primary_region = "你的APP地區"
 ### 4. 玩得開心
 
 現在你可以回到Discord，並使用 `/add notifier` 指令來設置你想要接收更新的Twitter用戶！
+
+## 🤝參與貢獻
+
+歡迎任何形式的貢獻、回報 Issue 或提出新功能建議！請參閱 [貢獻指南 (Contributing Guide)](../CONTRIBUTING.md) 了解如何開始。
 
 ## 💪貢獻者
 
