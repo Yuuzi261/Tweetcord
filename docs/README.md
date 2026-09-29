@@ -316,7 +316,7 @@ Now you can go back to Discord and use the `/add notifier` command to set up not
 
 ## 🤝Contributing
 
-Contributions, issues, and feature requests are welcome! Feel free to check the [Contributing Guide](../CONTRIBUTING.md) to get started.
+Contributions, issues, and feature requests are welcome! Feel free to check the [Contributing Guide](./CONTRIBUTING.md) to get started.
 
 ## 💪Contributors
 

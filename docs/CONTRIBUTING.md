@@ -9,7 +9,7 @@ Please take a moment to review this guide before submitting contributions.
 
 ## 🛠️ Prerequisites
 
-- **Python**: `>= 3.11` (Python `3.12` is recommended and aligned with [.python-version](./.python-version)).
+- **Python**: `>= 3.11` (Python `3.12` is recommended and aligned with [.python-version](../.python-version)).
 - **Git**: Installed and configured on your system.
 - **Package Manager**:
   - [**uv**](https://docs.astral.sh/uv/) (Strongly recommended): Extremely fast Python package and project manager.
@@ -81,10 +81,10 @@ pip install -r requirements-dev.txt
 
 Tweetcord supports both **`uv`** (PEP 517/621 + PEP 735) and traditional **`pip`**:
 
-- **[`pyproject.toml`](./pyproject.toml) & [`uv.lock`](./uv.lock)**:
+- **[`pyproject.toml`](../pyproject.toml) & [`uv.lock`](../uv.lock)**:
   - `[project.dependencies]`: Runtime dependencies.
   - `[dependency-groups.dev]`: Development and test dependencies (`pytest`, `pytest-asyncio`).
-- **[`requirements.txt`](./requirements.txt) & [`requirements-dev.txt`](./requirements-dev.txt)**:
+- **[`requirements.txt`](../requirements.txt) & [`requirements-dev.txt`](../requirements-dev.txt)**:
   - Kept in sync for users and environments that deploy using standard `pip`.
 
 ### Adding or Updating Dependencies
@@ -100,8 +100,8 @@ When adding or updating dependencies, please keep both systems synchronized:
    uv add --dev <package>
    ```
 2. **Update requirements files**:
-   - If adding a runtime dependency, append it to [`requirements.txt`](./requirements.txt).
-   - If adding a dev dependency, append it to [`requirements-dev.txt`](./requirements-dev.txt).
+   - If adding a runtime dependency, append it to [`requirements.txt`](../requirements.txt).
+   - If adding a dev dependency, append it to [`requirements-dev.txt`](../requirements-dev.txt).
 
 ---
 
@@ -127,12 +127,12 @@ pytest tests/test_log.py -v
 
 ### Writing Tests
 
-- All tests are placed in the [`tests/`](./tests/) directory using standard `unittest` or `pytest`.
+- All tests are placed in the [`tests/`](../tests/) directory using standard `unittest` or `pytest`.
 - **Test Isolation (Hermeticity)**:
   - Tests **must not** depend on personal `.env` credentials, live external APIs (Twitter, Discord), or local user configs.
   - Mock network calls, Discord API interactions, or filesystem operations where appropriate.
   - Reset any global state or caches (e.g. `LOG_BUFFER.clear()`) in `setUp()` / `tearDown()`.
-- Whenever you add a new feature or fix a bug, please write corresponding tests in [`tests/`](./tests/).
+- Whenever you add a new feature or fix a bug, please write corresponding tests in [`tests/`](../tests/).
 
 ---
 
@@ -162,13 +162,13 @@ git commit -m "feat: add optional file logging with in-memory ring buffer"
 
 ### 3. Pull Request Template & Checklist
 
-When you open a Pull Request on GitHub, the [Pull Request Template](./.github/pull_request_template.md) will be loaded automatically. Please fill out the template and ensure:
+When you open a Pull Request on GitHub, the [Pull Request Template](../.github/pull_request_template.md) will be loaded automatically. Please fill out the template and ensure:
 - [ ] Code runs without warnings or errors.
 - [ ] All tests pass: `pytest` or `uv run pytest`.
 - [ ] New tests are added covering your changes.
 - [ ] Documentation is updated in both:
-  - [`docs/README.md`](./docs/README.md) (English)
-  - [`docs/README_zh.md`](./docs/README_zh.md) (Traditional Chinese, AI translation can be used based on the README)
+  - [`docs/README.md`](./README.md) (English)
+  - [`docs/README_zh.md`](./README_zh.md) (Traditional Chinese, AI translation can be used based on the README)
 - [ ] PR targets the **`dev`** branch.
 
 ---

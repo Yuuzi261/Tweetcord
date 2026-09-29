@@ -316,7 +316,7 @@ primary_region = "你的APP地區"
 
 ## 🤝參與貢獻
 
-歡迎任何形式的貢獻、回報 Issue 或提出新功能建議！請參閱 [貢獻指南 (Contributing Guide)](../CONTRIBUTING.md) 了解如何開始。
+歡迎任何形式的貢獻、回報 Issue 或提出新功能建議！請參閱 [貢獻指南 (Contributing Guide)](./CONTRIBUTING.md) 了解如何開始。
 
 ## 💪貢獻者
 
