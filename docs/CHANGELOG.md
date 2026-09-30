@@ -1,5 +1,31 @@
 # Changelog
 
+## Unknown
+
+**✨Features:**
+- Added support for custom Discord activity types and optimized presence updating to only set static activity messages once on startup.
+- Implemented in-memory ring buffer logging, allowing `/download_log` to retrieve recent logs even when file logging is disabled.
+- Added support for toggling file logging on or off via the `ENABLE_FILE_LOGGING` environment variable.
+
+**♻️Refactor:**
+<!-- - Centralized database path resolution across the codebase using a unified `get_db_path()` function. -->
+- Reused shared log handlers across loggers to eliminate duplicate handlers and redundant stream formatting.
+- Summarized task monitor status logs to display health ratios and sample names, preventing log flooding when tracking a large number of accounts.
+
+**🐛Fixes:**
+- Re-architected tweet tracking and task management to be driven by immutable Twitter user IDs, automatically detecting username changes and updating database records and task names without dropping notifications.
+- Replaced periodic timestamp database polling with startup initialization, eliminating a race condition where stale database reads could cause duplicate tweet notifications.
+- Fixed an issue where creating the database directory would fail on nested paths by using `os.makedirs`.
+
+**🚀Performance:**
+- Refined Discord message intents and disabled message caching in discord.py to reduce idle memory usage.
+- Optimized the task monitoring loop to single-pass linear time complexity, improving task health checks and restart efficiency.
+- Reduced log file size and backup retention count in logger configuration to minimize disk space consumption.
+
+**📦Build & Dependencies:**
+- Migrated project package and environment management to `uv` for faster and more reliable dependency resolution.
+- Upgraded the Dockerfile base image to Python 3.12 and optimized multi-stage builds using `uv`.
+
 ## 0.7.4 (September 27, 2026)
 
 **🐛Fixes:**
