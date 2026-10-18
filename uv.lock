@@ -1317,7 +1317,7 @@ requires-dist = [
     { name = "discord-py", specifier = "==2.7.1" },
     { name = "python-dotenv", specifier = "==1.2.2" },
     { name = "pyyaml", specifier = "==6.0.1" },
-    { name = "tweety-ns", git = "https://github.com/Yuuzi261/tweety.git?rev=aa2067dab80c941f1193c68bcc6d7c6863304479" },
+    { name = "tweety-ns", git = "https://github.com/Yuuzi261/tweety.git?rev=09408db7ef7d424b5afbded1a84b0d8e36366e3e" },
 ]
 
 [package.metadata.requires-dev]
@@ -1329,7 +1329,7 @@ dev = [
 [[package]]
 name = "tweety-ns"
 version = "2.4.1"
-source = { git = "https://github.com/Yuuzi261/tweety.git?rev=aa2067dab80c941f1193c68bcc6d7c6863304479#aa2067dab80c941f1193c68bcc6d7c6863304479" }
+source = { git = "https://github.com/Yuuzi261/tweety.git?rev=09408db7ef7d424b5afbded1a84b0d8e36366e3e#09408db7ef7d424b5afbded1a84b0d8e36366e3e" }
 dependencies = [
     { name = "2captcha-python" },
     { name = "anticaptchaofficial" },

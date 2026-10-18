@@ -1,5 +1,5 @@
 discord.py==2.7.1
-tweety-ns @ git+https://github.com/Yuuzi261/tweety.git@aa2067dab80c941f1193c68bcc6d7c6863304479
+tweety-ns @ git+https://github.com/Yuuzi261/tweety.git@09408db7ef7d424b5afbded1a84b0d8e36366e3e
 python-dotenv==1.2.2
 pyyaml==6.0.1
 aiosqlite==0.18.0
