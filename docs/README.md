@@ -176,7 +176,7 @@ Create `configs.yml` and copy the contents of `configs.example.yml` into it, and
 | `users_list_pagination_size` | `list users` command's pagination size. | Only accepts integers, and it is not recommended to use too large or too small values. |
 | `users_list_page_counter_position` | `list users` command's pagination counter position. | `title` and `footer` only. |
 | `enable_prefix_commands_in_guild` | Whether to enable prefix commands in the server (disabling this option only affects prefix commands and does not affect any features. You can still DM the bot to use prefix commands to upload/backup databases or download logs). If `false`, you can disable the Message Content Intent. | Boolean. |
-| `use_existing_sessions_first` | Whether to prioritize connecting to an existing saved session on startup before authenticating with the auth token. If the auth token in the environment variables is updated, the bot will automatically detect it and re-authenticate. | Boolean. |
+| `use_existing_sessions_first` | Whether to prioritize connecting to an existing saved session on startup before authenticating with the auth token. If the auth token in the environment variables is updated, the bot will automatically detect it and re-authenticate. Session files are stored under `DATA_PATH` (`AccountName.tw_session`). | Boolean. |
 
 Custom activity name is in `f-string` format, currently supporting 1 special variable for use, which will be explained below:
 

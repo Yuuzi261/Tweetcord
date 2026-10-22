@@ -16,6 +16,8 @@
 - Re-architected tweet tracking and task management to be driven by immutable Twitter user IDs, automatically detecting username changes and updating database records and task names without dropping notifications.
 - Replaced periodic timestamp database polling with startup initialization, eliminating a race condition where stale database reads could cause duplicate tweet notifications.
 - Fixed an issue where creating the database directory would fail on nested paths by using `os.makedirs`.
+- Account login now uses `load_cookies` with the `auth_token` and a random `ct0` (X issues a real `ct0` in response), then reconnects so the `x-csrf-token` header matches the new cookie. This no longer depends on `tweety-ns`'s `load_auth_token` fetching a page to obtain `ct0`.
+- Session files (`*.tw_session`) are now stored under `DATA_PATH`, so they persist across Docker container recreation. Existing session files in the project root are no longer used; the bot logs in again once on first startup.
 
 **🚀Performance:**
 - Refined Discord message intents and disabled message caching in discord.py to reduce idle memory usage.
