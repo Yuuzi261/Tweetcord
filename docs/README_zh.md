@@ -176,7 +176,7 @@ ENABLE_FILE_LOGGING=true
 | `users_list_pagination_size` | `list users` 指令的分頁大小。 | 只接受整數，不宜使用過大或過小的值。 |
 | `users_list_page_counter_position` | `list users` 指令的分頁計數器位置。 | 僅限 `title` 和 `footer` 。 |
 | `enable_prefix_commands_in_guild` | 是否在伺服器啟用前綴指令（關閉這個選項僅會影響前綴指令，不影響任何功能，需要使用前綴指令上傳/備份資料庫或下載日誌可以私訊機器人），若為 `false`，則可以禁用訊息內容意圖 (Message Content Intent)。 | 布林值。 |
-| `use_existing_sessions_first` | 啟動時是否優先嘗試連接本地既有的 session，若無或失效才使用 auth_token 重新登入。若在環境變數中更新了 auth_token，機器人會自動偵測並重新認證。 | 布林值。 |
+| `use_existing_sessions_first` | 啟動時是否優先嘗試連接本地既有的 session，若無或失效才使用 auth_token 重新登入。若在環境變數中更新了 auth_token，機器人會自動偵測並重新認證。session 檔存放在 `DATA_PATH` 底下（`帳號代號.tw_session`）。 | 布林值。 |
 
 自定義活動名稱為 `f-string` 格式，目前支援1種特別的變數可供使用，將在下面說明：
 

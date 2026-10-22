@@ -1,6 +1,7 @@
 import asyncio
 import sys
 import re
+import secrets
 import aiohttp
 from datetime import datetime, timezone, timedelta
 
@@ -11,7 +12,7 @@ from tweety import Twitter
 
 from core.classes import ParsedTweet
 from configs.load_configs import configs, IS_TRANSLATION_ENABLED
-from configs.paths import get_db_path
+from configs.paths import get_db_path, get_session_path
 from src.i18n import t
 from src.log import setup_logger
 from src.notification.display_tools import gen_embed, get_action, get_footer_name
@@ -44,6 +45,36 @@ class AccountTracker():
         self.tasksMonitorLogAt = datetime.now(timezone.utc) - timedelta(hours=configs['tasks_monitor_log_period'])
         bot.loop.create_task(self.setup_tasks())
 
+    async def _authenticate_account(self, account_name, account_token):
+        app = Twitter(get_session_path(account_name))
+
+        if configs['use_existing_sessions_first']:
+            try:
+                saved_token = app.session.cookies_dict().get('auth_token')
+                if saved_token and saved_token != account_token:
+                    log.info(f"detected updated auth token in environmental variables for account: {account_name}, re-authenticating...")
+                elif await app.connect():
+                    return app
+            except Exception as e:
+                log.warning(f"failed to load existing session for account {account_name}: {e}")
+
+        max_attempts = configs['auth_max_attempts']
+        for attempt in range(max_attempts):
+            try:
+                # load_auth_token 要先多打一次網頁才拿得到 ct0，以前 business.x.com 就在這步被 Cloudflare 擋下。
+                # 直接塞隨機 ct0 登入，X 會在回應裡發正式的 ct0
+                await app.load_cookies({'auth_token': account_token, 'ct0': secrets.token_hex(16)})
+                # tweety 收到新 ct0 只更新了 cookie，x-csrf-token header 還是舊的隨機值，不重連的話，下一個請求會回 353
+                await app.connect()
+                return app
+            except Exception as e:
+                log.error(f"authentication failed for account: {account_name} [Attempt {attempt + 1}/{max_attempts}]")
+                if attempt < max_attempts - 1:
+                    await asyncio.sleep(5)
+                else:
+                    log.error(f"persistent authentication failure for account {account_name}")
+                    raise
+
     async def setup_tasks(self):
         self.session = aiohttp.ClientSession()
         if configs['init_latest_tweet_on_startup']:
@@ -55,35 +86,9 @@ class AccountTracker():
         # Start the core database worker
         self.bot.loop.create_task(self.db_writer()).set_name('DBWriter')
 
-        async def authenticate_account(account_name, account_token):            
-            app = Twitter(account_name)
-            
-            if configs['use_existing_sessions_first']:
-                try:
-                    saved_token = app.session.cookies_dict().get('auth_token')
-                    if saved_token and saved_token != account_token:
-                        log.info(f"detected updated auth token in environmental variables for account: {account_name}, re-authenticating...")
-                    elif await app.connect():
-                        return app
-                except Exception as e:
-                    log.warning(f"failed to load existing session for account {account_name}: {e}")
-            
-            max_attempts = configs['auth_max_attempts']
-            for attempt in range(max_attempts):
-                try:
-                    await app.load_auth_token(account_token)
-                    return app
-                except Exception as e:
-                    log.error(f"authentication failed for account: {account_name} [Attempt {attempt + 1}/{max_attempts}]")
-                    if attempt < max_attempts - 1:
-                        await asyncio.sleep(5)
-                    else:
-                        log.error(f"persistent authentication failure for account {account_name}")
-                        raise
-        
         for account_name, account_token in self.accounts_data.items():
             try:
-                app = await authenticate_account(account_name, account_token)
+                app = await self._authenticate_account(account_name, account_token)
                 self.bot.loop.create_task(self.tweetsUpdater(app)).set_name(f'TweetsUpdater_{account_name}')
             except Exception:
                 sys.exit(1)

@@ -135,9 +135,11 @@ class TestNotificationCogUsernameChange(unittest.IsolatedAsyncioTestCase):
         mock_app.connect = AsyncMock()
         mock_app.unfollow_user = AsyncMock(return_value=True)
 
-        with patch('cogs.notification.Twitter', return_value=mock_app):
+        with patch('cogs.notification.Twitter', return_value=mock_app) as mock_twitter:
             await self.cog.r_notifier.callback(self.cog, itn, channel_id='2001', username='old_handle')
 
+            # session 檔在 DATA_PATH，用帳號名稱當路徑會讀到工作目錄，變成未登入
+            mock_twitter.assert_called_with(os.path.join(self.temp_dir.name, 'clientA'))
             self.assertTrue(itn.followup.send.called)
             sent_msg = itn.followup.send.call_args[0][0]
             self.assertIn('old_handle', sent_msg)
@@ -153,6 +155,21 @@ class TestNotificationCogUsernameChange(unittest.IsolatedAsyncioTestCase):
             # unfollow_user called directly with user_id '1001'
             mock_app.unfollow_user.assert_called_with('1001')
             self.assertFalse(mock_app.get_user_info.called)
+
+    async def test_add_notifier_loads_session_from_data_path(self):
+        """/add notifier must read the session saved under DATA_PATH, or Twitter requests fail as unauthenticated."""
+        itn = MagicMock()
+        itn.response.defer = AsyncMock()
+        itn.followup.send = AsyncMock()
+
+        mock_app = MagicMock()
+        mock_app.connect = AsyncMock()
+        mock_app.get_user_info = AsyncMock(side_effect=Exception('not found'))
+
+        with patch('cogs.notification.Twitter', return_value=mock_app) as mock_twitter:
+            await self.cog.notifier.callback(self.cog, itn, username='someone', channel=MagicMock(), account_used='clientA')
+
+        mock_twitter.assert_called_once_with(os.path.join(self.temp_dir.name, 'clientA'))
 
     async def test_remove_notifier_not_found(self):
         """When username is not found in DB, responds with not found message without calling Twitter API."""

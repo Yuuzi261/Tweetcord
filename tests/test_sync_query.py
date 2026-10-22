@@ -64,6 +64,19 @@ class TestSyncDbUnconfiguredClient(unittest.IsolatedAsyncioTestCase):
         app_mock.follow_user.assert_awaited_once_with('userX')
         app_mock.enable_user_notification.assert_awaited_once_with('userX')
 
+    @patch.dict(os.environ, {'DATA_PATH': os.path.join('some', 'data')})
+    async def test_loads_session_from_data_path(self):
+        """sync_db must read the session saved under DATA_PATH, or the client is not logged in."""
+        app_mock = MagicMock()
+        app_mock.connect = AsyncMock()
+
+        with patch('src.sync_db.sync_db.get_accounts', return_value={'known': 'token'}), \
+             patch('src.sync_db.sync_db.Twitter', return_value=app_mock) as mock_twitter, \
+             patch('src.sync_db.sync_db.asyncio.sleep', new=AsyncMock()):
+            await sync_db({})
+
+        mock_twitter.assert_called_once_with(os.path.join('some', 'data', 'known'))
+
 
 if __name__ == '__main__':
     unittest.main()
