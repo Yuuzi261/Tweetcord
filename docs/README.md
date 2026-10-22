@@ -261,6 +261,22 @@ Custom activity name is in `f-string` format, currently supporting 1 special var
 python bot.py
 ```
 
+#### Run with Docker
+
+You can also use `compose.yml` in the project root, which uses the prebuilt image `ghcr.io/yuuzi261/tweetcord`. Put `.env` (keep `DATA_PATH` as `./data`) and `configs.yml` next to `compose.yml`, then run:
+
+```shell
+docker compose up -d
+```
+
+The database is stored in `./data`.
+
+> [!IMPORTANT]
+> Create `configs.yml` before starting. If the file does not exist, Docker creates an empty directory with the same name in its place, and the bot crashes when reading its configuration.
+
+> [!WARNING]
+> If a Twitter account fails to log in, the bot exits, and `restart: unless-stopped` in `compose.yml` keeps restarting it. Every restart connects to Discord again, and Discord allows each bot at most 1000 connections (IDENTIFY) per 24 hours. Going over the limit **resets your bot token**. Docker normally doubles the delay before each restart, but resets it to 100 ms once a container has run for 10 seconds. The bot runs for more than 10 seconds before exiting each time, so it keeps restarting quickly and can reach the limit within a few hours. If you see `persistent authentication failure` in the logs, run `docker compose stop` first and fix the login problem before starting again.
+
 #### Permissions Setup
 
 🔧Bot Permissions Setup (Permissions Integer): `2147666944`

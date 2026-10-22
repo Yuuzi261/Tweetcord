@@ -1,7 +1,9 @@
 import asyncio
+import contextlib
 import html
 import os
 import re
+import signal
 
 from datetime import datetime, timezone
 
@@ -18,6 +20,16 @@ class LockManager:
 
 def get_lock():
     return LockManager().lock
+
+
+def close_on_sigterm(bot):
+    # bot 在 container 裡是 PID 1，沒裝 handler 的話 SIGTERM 會被無視，docker 等 10 秒後直接 SIGKILL
+    def on_sigterm():
+        bot.shutdown_task = asyncio.create_task(bot.close())  # 留住參照，避免 task 跑到一半被回收
+
+    # Windows 的事件迴圈不支援 add_signal_handler，本機開發照樣用 Ctrl+C
+    with contextlib.suppress(NotImplementedError):
+        asyncio.get_running_loop().add_signal_handler(signal.SIGTERM, on_sigterm)
 
 
 def bool_to_str(boo: bool):
