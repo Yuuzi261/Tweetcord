@@ -3,6 +3,7 @@ import asyncio
 from tweety import Twitter
 from tweety.exceptions import TwitterError
 
+from configs.paths import get_session_path
 from src.log import setup_logger
 from src.utils import get_accounts
 
@@ -13,7 +14,7 @@ async def sync_db(follow_list: dict[str, str]) -> None:
 
     apps: dict[str, Twitter] = {}
     for account_name, _ in get_accounts().items():
-        app = Twitter(account_name)
+        app = Twitter(get_session_path(account_name))
         await app.connect()
         apps[account_name] = app
 

@@ -7,7 +7,7 @@ from tweety.exceptions import UserProtected
 
 from configs.constants import AUTOCOMPLETE_MAX_CHOICES
 from configs.load_configs import configs, IS_TRANSLATION_ENABLED
-from configs.paths import get_db_path
+from configs.paths import get_db_path, get_session_path
 from core.classes import Cog_Extension
 from src.i18n import t
 from src.discord_ui.fetch_tracked_channels import fetch_tracked_channels
@@ -74,7 +74,7 @@ class Notification(Cog_Extension):
             db.row_factory = aiosqlite.Row
             async with db.cursor() as cursor:
                 try:
-                    app = Twitter(account_used)
+                    app = Twitter(get_session_path(account_used))
                     await app.connect()
                     try:
                         new_user = await app.get_user_info(username)
@@ -90,7 +90,7 @@ class Notification(Cog_Extension):
                         if configs['auto_change_client']:
                             if configs['auto_unfollow'] or configs['auto_turn_off_notification']:
                                 old_client_used = match_user['client_used']
-                                old_app = Twitter(old_client_used)
+                                old_app = Twitter(get_session_path(old_client_used))
                                 
                                 try:
                                     await old_app.connect()
@@ -215,7 +215,7 @@ class Notification(Cog_Extension):
                                 await cursor.execute('SELECT client_used FROM user WHERE id = ?', (user_id,))
                                 result = await cursor.fetchone()
                                 client_used = result['client_used']
-                                app = Twitter(client_used)
+                                app = Twitter(get_session_path(client_used))
                                 await app.connect()
                                 
                                 try:
