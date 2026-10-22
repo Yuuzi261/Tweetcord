@@ -261,6 +261,22 @@ ENABLE_FILE_LOGGING=true
 python bot.py
 ```
 
+#### 使用 Docker 運行
+
+也可以用專案根目錄的 `compose.yml` 以 Docker 運行，映像檔是預先建置好的 `ghcr.io/yuuzi261/tweetcord`。在 `compose.yml` 同一層準備好 `.env`（`DATA_PATH` 維持 `./data`）和 `configs.yml` 後執行：
+
+```shell
+docker compose up -d
+```
+
+資料庫會存在 `./data`。
+
+> [!IMPORTANT]
+> 啟動前一定要先建立 `configs.yml`。檔案不存在時，Docker 會在 `configs.yml` 的位置建立一個同名的空目錄，機器人讀取設定時會直接崩潰。
+
+> [!WARNING]
+> Twitter 帳號登入失敗時，機器人會直接結束，`compose.yml` 的 `restart: unless-stopped` 則會讓它不斷重啟。每次重啟都會重新連線 Discord，而 Discord 規定每個機器人 24 小時內最多只能連線（IDENTIFY）1000 次，超過就會**重設你的 bot token**。Docker 原本會逐次加倍重啟間隔，但 container 只要跑滿 10 秒，間隔就會重設回 100 毫秒；機器人每次都會跑超過 10 秒才結束，所以重啟一直很頻繁，可能幾個小時就會超過上限。看到 `persistent authentication failure` 的 log 時，請先執行 `docker compose stop`，處理好登入問題再啟動。
+
 #### 權限設定
 
 🔧機器人權限設定（Permissions Integer）：`2147666944`

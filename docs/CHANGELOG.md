@@ -6,6 +6,8 @@
 - Added support for custom Discord activity types and optimized presence updating to only set static activity messages once on startup.
 - Implemented in-memory ring buffer logging, allowing `/download_log` to retrieve recent logs even when file logging is disabled.
 - Added support for toggling file logging on or off via the `ENABLE_FILE_LOGGING` environment variable.
+- Added Docker deployment instructions to the README, including a warning that restart loops after a Twitter login failure can exceed Discord's daily IDENTIFY limit and reset the bot token.
+- `compose.yml` now limits container log size (3 files of 10 MB).
 
 **♻️Refactor:**
 <!-- - Centralized database path resolution across the codebase using a unified `get_db_path()` function. -->
@@ -16,6 +18,7 @@
 - Re-architected tweet tracking and task management to be driven by immutable Twitter user IDs, automatically detecting username changes and updating database records and task names without dropping notifications.
 - Replaced periodic timestamp database polling with startup initialization, eliminating a race condition where stale database reads could cause duplicate tweet notifications.
 - Fixed an issue where creating the database directory would fail on nested paths by using `os.makedirs`.
+- The bot now shuts down gracefully on `SIGTERM` (e.g. `docker compose stop`). Previously the signal was ignored because the bot runs as PID 1 in the container, so Docker had to kill it after the 10-second timeout without closing sessions.
 
 **🚀Performance:**
 - Refined Discord message intents and disabled message caching in discord.py to reduce idle memory usage.
@@ -25,6 +28,7 @@
 **📦Build & Dependencies:**
 - Migrated project package and environment management to `uv` for faster and more reliable dependency resolution.
 - Upgraded the Dockerfile base image to Python 3.12 and optimized multi-stage builds using `uv`.
+- `.dockerignore` now excludes local `data/`, `configs.yml`, `configs/configs.generated.yml` and `.claude/`, so local `docker build` no longer packs them into the image.
 
 ## 0.7.4 (September 27, 2026)
 

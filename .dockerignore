@@ -162,6 +162,11 @@ cython_debug/
 
 # data
 *.db
+/data
+
+# configs (mounted at runtime)
+configs.yml
+configs/configs.generated.yml
 
 # docs
 /docs
@@ -182,3 +187,6 @@ fly.toml
 
 # VSCode
 .vscode/
+
+# Claude Code
+.claude/

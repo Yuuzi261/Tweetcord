@@ -31,6 +31,7 @@ from src.i18n import init_i18n
 from src.db_function.init_db import init_db
 from src.db_function.repair_db import auto_repair_mismatched_clients
 from src.presence_updater import update_presence
+from src.utils import close_on_sigterm
 
 init_i18n(configs.get('locale', 'en'))
 
@@ -44,6 +45,11 @@ intents = discord.Intents(
     emojis=True
 )
 bot = commands.Bot(command_prefix=configs['prefix'], intents=intents, max_messages=None)
+
+
+@bot.event
+async def setup_hook():
+    close_on_sigterm(bot)
 
 
 @bot.event

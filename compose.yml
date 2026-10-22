@@ -3,6 +3,10 @@ services:
     image: ghcr.io/yuuzi261/tweetcord:latest
     container_name: tweetcord
     restart: unless-stopped
+    logging:
+      options:
+        max-size: 10m
+        max-file: "3"
     env_file: .env
     volumes:
       - ./data/:/bot/data
