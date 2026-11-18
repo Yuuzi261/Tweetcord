@@ -138,7 +138,6 @@ class TestNotificationCogUsernameChange(unittest.IsolatedAsyncioTestCase):
         with patch('cogs.notification.Twitter', return_value=mock_app) as mock_twitter:
             await self.cog.r_notifier.callback(self.cog, itn, channel_id='2001', username='old_handle')
 
-            # session 檔在 DATA_PATH，用帳號名稱當路徑會讀到工作目錄，變成未登入
             mock_twitter.assert_called_with(os.path.join(self.temp_dir.name, 'clientA'))
             self.assertTrue(itn.followup.send.called)
             sent_msg = itn.followup.send.call_args[0][0]

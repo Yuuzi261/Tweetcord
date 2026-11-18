@@ -61,10 +61,9 @@ class AccountTracker():
         max_attempts = configs['auth_max_attempts']
         for attempt in range(max_attempts):
             try:
-                # load_auth_token 要先多打一次網頁才拿得到 ct0，以前 business.x.com 就在這步被 Cloudflare 擋下。
-                # 直接塞隨機 ct0 登入，X 會在回應裡發正式的 ct0
+                # Seed random ct0 so X issues a real ct0 in Set-Cookie without fetching a web page.
                 await app.load_cookies({'auth_token': account_token, 'ct0': secrets.token_hex(16)})
-                # tweety 收到新 ct0 只更新了 cookie，x-csrf-token header 還是舊的隨機值，不重連的話，下一個請求會回 353
+                # Reconnect to sync request._cookie with the new ct0 (prevents error 353).
                 await app.connect()
                 return app
             except Exception as e:
