@@ -1,4 +1,5 @@
 import asyncio
+import os
 import sys
 import re
 import secrets
@@ -53,7 +54,7 @@ class AccountTracker():
                 saved_token = app.session.cookies_dict().get('auth_token')
                 if saved_token and saved_token != account_token:
                     log.info(f"detected updated auth token in environmental variables for account: {account_name}, re-authenticating...")
-                elif await app.connect():
+                elif app.session.user and await app.connect():
                     return app
             except Exception as e:
                 log.warning(f"failed to load existing session for account {account_name}: {e}")
@@ -72,6 +73,13 @@ class AccountTracker():
                     await asyncio.sleep(5)
                 else:
                     log.error(f"persistent authentication failure for account {account_name}")
+                    # Clean up the unverified session file written by load_cookies.
+                    session_file = getattr(app.session, 'session_file_path', None)
+                    if isinstance(session_file, (str, os.PathLike)) and os.path.exists(session_file):
+                        try:
+                            os.remove(session_file)
+                        except OSError as remove_err:
+                            log.warning(f"failed to remove unverified session file for account {account_name}: {remove_err}")
                     raise
 
     async def setup_tasks(self):
