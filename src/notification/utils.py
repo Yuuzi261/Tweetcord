@@ -54,7 +54,7 @@ def is_match_type(tweet: Tweet, enable_type: str):
 
 def is_match_media_type(source: Tweet | ParsedTweet, media_type: str):
     if isinstance(source, Tweet): return media_type == '11' or (media_type == '10' and len(source.media) == 0) or (media_type == '01' and len(source.media) > 0)
-    elif isinstance(source, ParsedTweet): return media_type == '11' or (media_type == '10' and source.length == 0) or (media_type == '01' and source.length > 0)
+    elif isinstance(source, ParsedTweet): return media_type == '11' or (media_type == '10' and source.media.length == 0) or (media_type == '01' and source.media.length > 0)
     else: raise TypeError('source must be a Tweet or Media')
 
 
